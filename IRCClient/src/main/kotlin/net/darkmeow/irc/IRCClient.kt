@@ -7,13 +7,44 @@ import java.net.Socket
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.*
+import javax.crypto.Cipher
+import javax.crypto.spec.SecretKeySpec
 
 open class IRCClient {
+    object AESUtils {
+        fun encryptAES(input: String, key: String): String {
+            val secretKey = SecretKeySpec(key.toByteArray(), "AES")
+            val cipher = Cipher.getInstance("AES")
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+            return Base64.getEncoder().encodeToString(cipher.doFinal(input.toByteArray()))
+        }
+
+        fun decryptAES(input: String, key: String): String? {
+            return try {
+                val cipher = Cipher.getInstance("AES").apply {
+                    val secretKey = SecretKeySpec(key.toByteArray(), "AES")
+                    init(Cipher.DECRYPT_MODE, secretKey)
+                }
+
+                Base64.getDecoder().decode(input).let { decodedBytes ->
+                    String(cipher.doFinal(decodedBytes))
+                }
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+    }
+
     private lateinit var writer: PrintWriter
 
     private var socket : Socket = Socket()
 
-    fun start(host: String, port: Int) {
+    var key = ""
+
+    fun start(host: String, port: Int, key: String) {
+        this.key = key
         socket = Socket(host, port)
 
         try {
@@ -25,7 +56,7 @@ open class IRCClient {
                 try {
                     var message: String?
                     while (reader.readLine().also { message = it } != null) {
-                        message?.let { onMessage(URLDecoder.decode(it, StandardCharsets.UTF_8.toString())) }
+                        message?.let { onMessage(AESUtils.decryptAES(it, this.key) ?: return@let) }
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -56,7 +87,7 @@ open class IRCClient {
     // 公开的发送消息方法
     fun sendMessage(message: String) {
         if (::writer.isInitialized) {
-            writer.println(URLEncoder.encode(message, StandardCharsets.UTF_8.toString()))
+            writer.println(AESUtils.encryptAES(message, key))
             writer.flush()
         } else {
             println("Error: Connection is not established.")

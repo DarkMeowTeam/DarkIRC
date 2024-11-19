@@ -1,6 +1,7 @@
 package net.darkmeow.irc.config.configs
 
-@Suppress("Unused", "PropertyName") // 配置不需要遵循命名规定
+@Suppress("Unused")
 class Config {
     var port: Int = 8080
+    var key: String = "darkMeow_irc12345"
 }

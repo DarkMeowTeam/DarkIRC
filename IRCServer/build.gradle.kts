@@ -1,10 +1,10 @@
 plugins {
-    kotlin("jvm") version "2.0.20"
+    kotlin("jvm") version "2.0.21"
     application
 }
 
 group = "net.darkmeow"
-version = "0.0.1"
+version = "1.0.1119"
 
 application {
     mainClass.set("net.darkmeow.irc.IRCServerLoaderKt")

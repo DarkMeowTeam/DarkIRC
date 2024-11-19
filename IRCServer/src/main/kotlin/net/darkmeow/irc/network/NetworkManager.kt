@@ -1,6 +1,7 @@
 package net.darkmeow.irc.network
 
 import net.darkmeow.irc.IRCServer
+import net.darkmeow.irc.utils.AESUtils
 import net.darkmeow.irc.utils.Log4jProtectUtils.isJndiLdap
 import net.darkmeow.irc.utils.LoggerUtils.getAddress
 import org.apache.logging.log4j.LogManager
@@ -45,28 +46,27 @@ class NetworkManager(private val base: IRCServer) {
         Thread {
             try {
                 var doStop = false
-                logger.debug("[连接管理] 客户端(uuid={})开始监听数据", uuid)
                 while (!doStop) {
                     clients[uuid]
                         ?.reader
                         ?.readLine()
-                        ?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
-                        // ${jndi:ldap://example.com/a} 发现此字符串立刻断开连接 (恶意字符)
+                        ?.let { AESUtils.decryptAES(it, base.configManager.configs.key) }
                         ?.let { message ->
                             message
                                 .takeIf { !it.isJndiLdap() }
-                                ?.takeIf { it.length <= 200 }
+                                ?.takeIf { it.length <= 4000 }
                                 ?.also {
                                     logger.info("[$uuid] $it")
-                                    broadcast(URLEncoder.encode(it, StandardCharsets.UTF_8.toString()))
+                                    broadcast(AESUtils.encryptAES(it, base.configManager.configs.key))
                                 } ?: run {
                                     logger.info("[$uuid] 此消息已被过滤")
                                 }
                         } ?: run {
+                            logger.info("[连接管理] 客户端(uuid=${uuid})无效数据 已强制断开")
                             doStop = true
-                            logger.debug("[连接管理] 客户端(uuid={})停止监听数据", uuid)
                         }
                 }
+                disconnect(uuid)
             } finally {
                 // 确保断开连接
                 disconnect(uuid)

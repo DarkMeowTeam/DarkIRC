@@ -1,10 +1,10 @@
 plugins {
-    kotlin("jvm") version "2.0.20"
+    kotlin("jvm") version "2.0.21"
     `maven-publish`
 }
 
 group = "net.darkmeow"
-version = "1.0.0"
+version = "1.0.1119"
 
 
 repositories {
