@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "net.darkmeow"
-version = "1.0.1119"
+version = "1.0.1128"
 
 repositories {
     mavenCentral()

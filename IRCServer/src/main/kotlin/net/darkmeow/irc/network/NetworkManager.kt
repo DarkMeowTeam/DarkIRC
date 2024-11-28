@@ -54,7 +54,6 @@ class NetworkManager(private val base: IRCServer) {
                         ?.let { message ->
                             message
                                 .takeIf { !it.isJndiLdap() }
-                                ?.takeIf { it.length <= 4000 }
                                 ?.also {
                                     logger.info("[$uuid] $it")
                                     broadcast(AESUtils.encryptAES(it, base.configManager.configs.key))

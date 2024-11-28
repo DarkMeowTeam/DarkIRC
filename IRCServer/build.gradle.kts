@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "net.darkmeow"
-version = "1.0.1119"
+version = "1.0.1128"
 
 application {
     mainClass.set("net.darkmeow.irc.IRCServerLoaderKt")

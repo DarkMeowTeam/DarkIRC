@@ -12,7 +12,7 @@ fun main() {
     }
 
     // 启动客户端并连接到服务器
-    client.start("47.239.48.137", 10844)
+    client.start("127.0.0.1", 8080, "publicIRCTest123")
 
     // 启动一个线程来监听标准输入
     Thread {
