@@ -1,14 +1,45 @@
+val baseGroup: String by project
+val baseVersion: String by project
+
+val nettyVersion: String by project
+val gsonVersion: String by project
+
 plugins {
-    kotlin("jvm") version "2.0.21"
+    idea
+
+    java
+    kotlin("jvm")
 }
 
-group = "net.darkmeow"
-version = "1.0.1128"
+group = baseGroup
+version = baseVersion
 
-repositories {
-    mavenCentral()
-}
+allprojects {
+    group = baseGroup
+    version = baseVersion
 
-dependencies {
+    apply {
+        plugin("idea")
 
+        plugin("java")
+        plugin("kotlin")
+    }
+
+    repositories {
+        mavenLocal()
+
+        maven("https://maven.aliyun.com/repository/central/") // mavenCentral()
+        maven("https://jitpack.io")
+    }
+
+    dependencies {
+        implementation("io.netty:netty-all:${nettyVersion}")
+        implementation("com.google.code.gson:gson:${gsonVersion}")
+    }
+
+    tasks {
+        withType<JavaCompile> {
+            options.encoding = "UTF-8"
+        }
+    }
 }

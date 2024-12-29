@@ -1,25 +1,21 @@
 plugins {
-    kotlin("jvm") version "2.0.21"
+    java
+    kotlin("jvm")
     application
 }
-
-group = "net.darkmeow"
-version = "1.0.1128"
 
 application {
     mainClass.set("net.darkmeow.irc.IRCServerLoaderKt")
 }
 
-repositories {
-    mavenCentral()
-    maven("https://jitpack.io")
-}
-
 dependencies {
+    implementation(project(":IRCLib"))
+
     implementation(kotlin("stdlib"))
 
     implementation("org.apache.logging.log4j:log4j-core:2.20.0")
     implementation("com.esotericsoftware.yamlbeans:yamlbeans:1.17")
+    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
 }
 
 
