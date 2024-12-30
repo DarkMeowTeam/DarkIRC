@@ -52,14 +52,16 @@ public class IRCClientConnection {
 
                         @Override
                         protected void initChannel(SocketChannel ch) {
-
+                            // 代理
                             if (proxy.type() == Proxy.Type.SOCKS) {
-                                ch.pipeline().addLast(new Socks5ProxyHandler(proxy.address()));
+                                ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
                             } else if (proxy.type() == Proxy.Type.HTTP) {
-                                ch.pipeline().addLast(new HttpProxyHandler(proxy.address()));
+                                ch.pipeline().addLast("Proxy", new HttpProxyHandler(proxy.address()));
                             }
-                            ch.pipeline().addLast(new HandleClientEncryption(IRCClientConnection.this));
-                            ch.pipeline().addLast(new HandleClientPacketProcess(IRCClientConnection.this));
+
+                            // 处理
+                            ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
+                            ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
                         }
                     });
                 ChannelFuture future = bootstrap.connect(host, port).sync();

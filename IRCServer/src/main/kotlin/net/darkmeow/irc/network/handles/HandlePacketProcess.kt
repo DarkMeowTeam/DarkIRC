@@ -8,15 +8,8 @@ import net.darkmeow.irc.network.AttributeKeys
 import net.darkmeow.irc.network.NetworkManager
 import net.darkmeow.irc.network.PacketUtils
 import net.darkmeow.irc.network.packet.c2s.*
-import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult
+import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
-import net.darkmeow.irc.network.packet.s2c.S2CPacketMessagePrivate
-import net.darkmeow.irc.network.packet.s2c.S2CPacketMessagePrivateResult
-import net.darkmeow.irc.network.packet.s2c.S2CPacketMessagePublic
-import net.darkmeow.irc.network.packet.s2c.S2CPacketMessageSystem
-import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateExcludeNames
-import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMyInfo
-import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateOtherInfo
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import java.net.InetSocketAddress
 
@@ -42,7 +35,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
 
     override fun channelRead(ctx: ChannelHandlerContext, data: Any) {
         JsonParser.parseString(data as String).asJsonObject.also { obj ->
-            PacketUtils.resolveClientPacket(obj).also packetHandle@{ packet ->
+            PacketUtils.resolveClientPacket(obj).also packetHandle@ { packet ->
                 when (packet) {
                     is C2SPacketKeepAlive -> ctx.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
                     is C2SPacketLogin -> run {
@@ -71,9 +64,6 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                     manager.base.dataManager.getUserPremium(packet.name)
                                 )
                             )
-
-                            // 临时防止粘包
-                            Thread.sleep(20)
 
                             // 登出其他客户端
                             manager.clients
@@ -204,9 +194,6 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                 )
 
                                 excludes.remove(name)
-
-                                // 临时防止粘包
-                                Thread.sleep(20)
                             }
                             .also {
                                 // 告诉客户端这些id之后不要请求了 不是 irc 内用户

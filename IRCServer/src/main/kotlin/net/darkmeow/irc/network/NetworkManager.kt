@@ -52,11 +52,11 @@ class NetworkManager(
                     .childHandler(object : ChannelInitializer<SocketChannel>() {
                         override fun initChannel(ch: SocketChannel) {
                             // Base | 客户端连接状态距离
-                            ch.pipeline().addLast(HandleClientConnection(this@NetworkManager))
+                            ch.pipeline().addLast("BaseConnection", HandleClientConnection(this@NetworkManager))
                             // Base | 客户端传输加密
-                            ch.pipeline().addLast(HandleClientEncryption(this@NetworkManager))
+                            ch.pipeline().addLast("BaseEncryption", HandleClientEncryption(this@NetworkManager))
 
-                            ch.pipeline().addLast(HandlePacketProcess(this@NetworkManager))
+                            ch.pipeline().addLast("Handler", HandlePacketProcess(this@NetworkManager))
                         }
                     })
 

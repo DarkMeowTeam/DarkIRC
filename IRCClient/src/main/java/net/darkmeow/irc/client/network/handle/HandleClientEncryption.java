@@ -5,8 +5,10 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
 import io.netty.util.CharsetUtil;
 import net.darkmeow.irc.client.network.IRCClientConnection;
+import net.darkmeow.irc.network.IRCNetworkBaseConfig;
 import net.darkmeow.irc.utils.EncryptUtils;
 
 public class HandleClientEncryption extends ChannelHandlerAdapter {
@@ -18,9 +20,29 @@ public class HandleClientEncryption extends ChannelHandlerAdapter {
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        ctx.pipeline().addBefore("BaseEncryption", "BaseFrameDecoder", new LengthFieldBasedFrameDecoder(
+            IRCNetworkBaseConfig.MAX_FRAME_LENGTH,
+            0,
+            4,
+            0,
+            4
+        ));
+
+        super.channelActive(ctx);
+    }
+
+    @Override
     public void write(ChannelHandlerContext ctx, Object data, ChannelPromise promise) throws Exception {
         if (data instanceof String) {
-            super.write(ctx, Unpooled.copiedBuffer(EncryptUtils.encrypt((String) data, client.key), CharsetUtil.UTF_8), promise);
+            ByteBuf buffer = Unpooled.buffer();
+
+            byte[] encryptedData = EncryptUtils.encrypt((String) data, client.key).getBytes(CharsetUtil.UTF_8);
+
+            buffer.writeInt(encryptedData.length);
+            buffer.writeBytes(encryptedData);
+
+            super.write(ctx, buffer, promise);
         }
     }
 
