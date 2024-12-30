@@ -3,7 +3,6 @@ package net.darkmeow.irc.client.network.handle;
 import com.google.gson.JsonParser;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelPromise;
 import net.darkmeow.irc.client.data.IRCOtherUserInfo;
 import net.darkmeow.irc.client.enums.EnumPremium;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
@@ -20,11 +19,6 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
 
     public HandleClientPacketProcess(IRCClientConnection connection) {
         this.connection = connection;
-    }
-
-    @Override
-    public void write(ChannelHandlerContext ctx, Object data, ChannelPromise promise) throws Exception {
-        super.write(ctx, data, promise);
     }
 
     @Override
@@ -95,10 +89,10 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
                     ((S2CPacketUpdateOtherInfo) packet).info
                 ));
             }
+        } else if (packet instanceof S2CPacketDisconnect) {
+            connection.base.resultManager.disconnectReason = ((S2CPacketDisconnect) packet).reason;
+            connection.disconnect();
         }
-
-
-        System.out.println(data);
 
         super.channelRead(ctx, data);
     }

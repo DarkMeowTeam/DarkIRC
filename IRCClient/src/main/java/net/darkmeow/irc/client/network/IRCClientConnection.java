@@ -68,6 +68,8 @@ public class IRCClientConnection {
                 latch.countDown();
 
                 channel.closeFuture().sync();
+
+                base.listenable.onDisconnect(base.resultManager.disconnectReason);
             } catch (Exception e) {
                 e.printStackTrace();
 

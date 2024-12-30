@@ -8,8 +8,11 @@ public class IRCClientResultManager {
     public Function1<EnumResultLogin, Boolean> loginResultCallback;
     public Function3<String, String, Boolean, Boolean> privateResultCallback;
 
+    public String disconnectReason = "";
+
     public void reset() {
         this.loginResultCallback = null;
         this.privateResultCallback = null;
+        this.disconnectReason = "";
     }
 }
