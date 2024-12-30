@@ -2,7 +2,7 @@ package net.darkmeow.irc.client.manager;
 
 import kotlin.jvm.functions.Function1;
 import kotlin.jvm.functions.Function3;
-import net.darkmeow.irc.client.result.EnumResultLogin;
+import net.darkmeow.irc.client.enums.EnumResultLogin;
 
 public class IRCClientResultManager {
     public Function1<EnumResultLogin, Boolean> loginResultCallback;

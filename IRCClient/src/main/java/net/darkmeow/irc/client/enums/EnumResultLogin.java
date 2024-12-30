@@ -1,4 +1,4 @@
-package net.darkmeow.irc.client.result;
+package net.darkmeow.irc.client.enums;
 
 public enum EnumResultLogin {
     /**
