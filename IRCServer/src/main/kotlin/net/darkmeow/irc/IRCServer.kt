@@ -5,7 +5,6 @@ import net.darkmeow.irc.config.ConfigManager
 import net.darkmeow.irc.data.DataManager
 import net.darkmeow.irc.network.NetworkManager
 import org.apache.logging.log4j.LogManager
-import java.sql.DriverManager
 
 class IRCServer {
 

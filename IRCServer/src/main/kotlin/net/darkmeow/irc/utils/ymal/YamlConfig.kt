@@ -1,7 +1,7 @@
 package net.darkmeow.irc.utils.ymal
 
-import com.esotericsoftware.yamlbeans.YamlException
 import com.esotericsoftware.yamlbeans.YamlConfig
+import com.esotericsoftware.yamlbeans.YamlException
 import com.esotericsoftware.yamlbeans.YamlReader
 import com.esotericsoftware.yamlbeans.YamlWriter
 import java.io.IOException

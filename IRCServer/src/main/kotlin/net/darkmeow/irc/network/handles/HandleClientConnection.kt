@@ -2,12 +2,9 @@ package net.darkmeow.irc.network.handles
 
 import io.netty.channel.ChannelHandlerAdapter
 import io.netty.channel.ChannelHandlerContext
-import net.darkmeow.irc.data.ClientData
-import net.darkmeow.irc.data.datas.ConnectData
 import net.darkmeow.irc.network.AttributeKeys
 import net.darkmeow.irc.network.NetworkManager
-import java.net.InetSocketAddress
-import java.util.UUID
+import java.util.*
 
 class HandleClientConnection(private val manager: NetworkManager): ChannelHandlerAdapter() {
 

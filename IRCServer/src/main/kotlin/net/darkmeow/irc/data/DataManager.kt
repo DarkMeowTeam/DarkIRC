@@ -4,7 +4,6 @@ import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMyInfo.Premium
 import java.sql.Connection
 import java.sql.DriverManager
-import java.util.UUID
 
 class DataManager(
     private val base: IRCServer

@@ -2,7 +2,7 @@ package net.darkmeow.irc.network
 
 import io.netty.util.AttributeKey
 import net.darkmeow.irc.data.GameInfoData
-import java.util.UUID
+import java.util.*
 
 object AttributeKeys {
     val UUID = AttributeKey.newInstance<UUID>("uuid")

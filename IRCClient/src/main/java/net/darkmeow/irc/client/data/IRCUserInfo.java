@@ -1,7 +1,5 @@
 package net.darkmeow.irc.client.data;
 
-import net.darkmeow.irc.data.GameInfoData;
-
 public class IRCUserInfo {
 
     public final String name;
