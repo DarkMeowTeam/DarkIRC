@@ -97,9 +97,9 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                             // 登录成功
                             ctx.attr(AttributeKeys.CURRENT_USER).set(packet.name)
 
-                            val address = (ctx.channel().remoteAddress() as? InetSocketAddress)?.let { it.address.hostAddress  + " " + it.port } ?: "unknown"
+                            val address = (ctx.channel().remoteAddress() as? InetSocketAddress)?.let { "${it.address.hostAddress}:${it.port}"  } ?: "unknown"
 
-                            manager.logger.info("[+] ${packet.name}  ($address)")
+                            manager.logger.info("[+] ${packet.name}  ($address ${packet.deviceId})")
 
                             throw ExceptionLoginResult(LoginResult.SUCCESS)
                         }
