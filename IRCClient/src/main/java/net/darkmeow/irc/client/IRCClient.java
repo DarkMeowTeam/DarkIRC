@@ -1,10 +1,7 @@
 package net.darkmeow.irc.client;
 
-import kotlin.jvm.functions.Function0;
 import kotlin.jvm.functions.Function1;
-import kotlin.jvm.functions.Function2;
 import kotlin.jvm.functions.Function3;
-import net.darkmeow.irc.client.data.IRCOtherUserInfo;
 import net.darkmeow.irc.client.enums.EnumPremium;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
@@ -14,11 +11,9 @@ import net.darkmeow.irc.client.network.IRCClientConnection;
 import net.darkmeow.irc.data.ClientBrandData;
 import net.darkmeow.irc.data.GameInfoData;
 import net.darkmeow.irc.network.packet.c2s.*;
-import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult;
 
 import java.net.Proxy;
 import java.util.ArrayList;
-import java.util.function.Function;
 
 public class IRCClient {
 
@@ -100,14 +95,18 @@ public class IRCClient {
         if (isConnected()) {
             resultManager.loginResultCallback = callback;
 
-            connection.sendPacket(
-                new C2SPacketLogin(
-                    username,
-                    password,
-                    device,
-                    brand
+            if (
+                !connection.sendPacket(
+                    new C2SPacketLogin(
+                        username,
+                        password,
+                        device,
+                        brand
+                    )
                 )
-            );
+            ) {
+                callback.invoke(EnumResultLogin.NOT_CONNECT);
+            }
         } else {
             callback.invoke(EnumResultLogin.NOT_CONNECT);
         }

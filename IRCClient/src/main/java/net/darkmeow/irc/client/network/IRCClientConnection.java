@@ -11,14 +11,12 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.proxy.Socks5ProxyHandler;
 import net.darkmeow.irc.client.IRCClient;
-import net.darkmeow.irc.client.data.IRCOtherUserInfo;
 import net.darkmeow.irc.client.network.handle.HandleClientEncryption;
 import net.darkmeow.irc.client.network.handle.HandleClientPacketProcess;
 import net.darkmeow.irc.network.PacketUtils;
 import net.darkmeow.irc.network.packet.c2s.C2SPacket;
 
 import java.net.Proxy;
-import java.util.HashMap;
 import java.util.concurrent.CountDownLatch;
 
 public class IRCClientConnection {
@@ -36,6 +34,7 @@ public class IRCClientConnection {
         return this.connect(host, port, key, Proxy.NO_PROXY);
     }
 
+    @SuppressWarnings("all")
     public boolean connect(String host, int port, String key, Proxy proxy) {
         this.key = key;
 
@@ -70,6 +69,8 @@ public class IRCClientConnection {
 
                 channel.closeFuture().sync();
             } catch (Exception e) {
+                e.printStackTrace();
+
                 group.shutdownGracefully();
                 latch.countDown();
             }
@@ -80,21 +81,58 @@ public class IRCClientConnection {
         return isConnected();
     }
 
+    @SuppressWarnings("all")
     public boolean isConnected() {
-        return channel != null && channel.isActive();
-    }
+        try {
+            return channel != null && channel.isActive();
+        } catch (Exception e) {
+            e.printStackTrace();
 
-    public void disconnect() {
-        if (isConnected()) {
-            channel.close();
+            return false;
         }
     }
 
-    public void sendMessage(String message) {
-        channel.writeAndFlush(message);
+    @SuppressWarnings("all")
+    public void disconnect() {
+        if (isConnected()) {
+            try {
+                channel.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    public void sendPacket(C2SPacket packet) {
-        this.sendMessage(PacketUtils.generatePacket(packet));
+    /**
+     * 发送原始消息
+     *
+     * @param message 消息文本
+     *
+     * @return 是否成功
+     */
+    @SuppressWarnings("all") // printStackTrace()
+    public boolean sendMessage(String message) {
+        try {
+            ChannelFuture future = channel.writeAndFlush(message).sync();
+            return future.isSuccess();
+        } catch (InterruptedException e) {
+            // 处理中断异常
+            Thread.currentThread().interrupt();
+            return false;
+        } catch (Throwable e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * 发送 C2SPacket
+     *
+     * @param packet 网络包
+     *
+     * @return 是否成功
+     */
+    public boolean sendPacket(C2SPacket packet) {
+        return this.sendMessage(PacketUtils.generatePacket(packet));
     }
 }
