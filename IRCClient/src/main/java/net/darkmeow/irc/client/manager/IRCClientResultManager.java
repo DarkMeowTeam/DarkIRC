@@ -1,12 +1,13 @@
 package net.darkmeow.irc.client.manager;
 
-import kotlin.jvm.functions.Function1;
-import kotlin.jvm.functions.Function3;
+import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 
+import java.util.function.Consumer;
+
 public class IRCClientResultManager {
-    public Function1<EnumResultLogin, Boolean> loginResultCallback;
-    public Function3<String, String, Boolean, Boolean> privateResultCallback;
+    public Consumer<EnumResultLogin> loginResultCallback;
+    public Consumer<IRCResultSendMessageToPrivate> privateResultCallback;
 
     public String disconnectReason = "";
 

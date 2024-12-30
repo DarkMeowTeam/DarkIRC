@@ -22,7 +22,6 @@ allprojects {
         plugin("idea")
 
         plugin("java")
-        plugin("kotlin")
     }
 
     repositories {

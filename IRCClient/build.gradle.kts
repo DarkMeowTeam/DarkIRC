@@ -1,8 +1,8 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
     java
     id("com.github.johnrengelman.shadow") version "8.1.0"
+
+    `maven-publish`
 }
 
 dependencies {
@@ -12,10 +12,6 @@ dependencies {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-kotlin {
-    compilerOptions.jvmTarget.set(JvmTarget.JVM_1_8)
 }
 
 tasks.shadowJar {
@@ -29,4 +25,18 @@ tasks.shadowJar {
 
 tasks.build {
     dependsOn(tasks.shadowJar)
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            groupId = project.group.toString()
+            artifactId = "irc"
+            version = project.version.toString()
+        }
+    }
+    repositories {
+        mavenLocal()
+    }
 }

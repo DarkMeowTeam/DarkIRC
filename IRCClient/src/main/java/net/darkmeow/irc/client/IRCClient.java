@@ -1,7 +1,6 @@
 package net.darkmeow.irc.client;
 
-import kotlin.jvm.functions.Function1;
-import kotlin.jvm.functions.Function3;
+import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.enums.EnumPremium;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
@@ -14,6 +13,7 @@ import net.darkmeow.irc.network.packet.c2s.*;
 
 import java.net.Proxy;
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 public class IRCClient {
 
@@ -91,7 +91,7 @@ public class IRCClient {
      * @param brand 客户端信息
      * @param callback 异步执行结果返回
      */
-    public void login(String username, String password, String device, ClientBrandData brand, Function1<EnumResultLogin, Boolean> callback) {
+    public void login(String username, String password, String device, ClientBrandData brand, Consumer<EnumResultLogin> callback) {
         if (isConnected()) {
             resultManager.loginResultCallback = callback;
 
@@ -105,10 +105,10 @@ public class IRCClient {
                     )
                 )
             ) {
-                callback.invoke(EnumResultLogin.NOT_CONNECT);
+                callback.accept(EnumResultLogin.NOT_CONNECT);
             }
         } else {
-            callback.invoke(EnumResultLogin.NOT_CONNECT);
+            callback.accept(EnumResultLogin.NOT_CONNECT);
         }
     }
 
@@ -120,7 +120,7 @@ public class IRCClient {
         }
     }
 
-    public void sendMessageToPrivate(String user, String message, Function3<String, String, Boolean, Boolean> callback) {
+    public void sendMessageToPrivate(String user, String message, Consumer<IRCResultSendMessageToPrivate> callback) {
         if (isConnected()) {
             resultManager.privateResultCallback = callback;
 

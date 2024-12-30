@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import net.darkmeow.irc.client.data.IRCOtherUserInfo;
+import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.enums.EnumPremium;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.network.IRCClientConnection;
@@ -32,13 +33,13 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
             if (connection.base.resultManager.loginResultCallback != null) {
                 final S2CPacketLoginResult.LoginResult result = ((S2CPacketLoginResult) packet).result;
                 if (result == S2CPacketLoginResult.LoginResult.INVALID_CLIENT) {
-                    connection.base.resultManager.loginResultCallback.invoke(EnumResultLogin.INVALID_CLIENT);
+                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.INVALID_CLIENT);
                 } else if (result == S2CPacketLoginResult.LoginResult.OUTDATED_CLIENT_VERSION) {
-                    connection.base.resultManager.loginResultCallback.invoke(EnumResultLogin.OUTDATED_CLIENT_VERSION);
+                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.OUTDATED_CLIENT_VERSION);
                 } else if (result == S2CPacketLoginResult.LoginResult.USER_OR_PASSWORD_WRONG) {
-                    connection.base.resultManager.loginResultCallback.invoke(EnumResultLogin.USER_OR_PASSWORD_WRONG);
+                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.USER_OR_PASSWORD_WRONG);
                 } else if (result == S2CPacketLoginResult.LoginResult.SUCCESS) {
-                    connection.base.resultManager.loginResultCallback.invoke(EnumResultLogin.SUCCESS);
+                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.SUCCESS);
                 }
             }
         } else if (packet instanceof S2CPacketUpdateMyInfo) {
@@ -73,10 +74,12 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
             connection.base.listenable.onMessageSystem(((S2CPacketMessageSystem) packet).message);
         } else if (packet instanceof S2CPacketMessagePrivateResult) {
             if (connection.base.resultManager.privateResultCallback != null) {
-                connection.base.resultManager.privateResultCallback.invoke(
-                    ((S2CPacketMessagePrivateResult) packet).name,
-                    ((S2CPacketMessagePrivateResult) packet).message,
-                    ((S2CPacketMessagePrivateResult) packet).success
+                connection.base.resultManager.privateResultCallback.accept(
+                    new IRCResultSendMessageToPrivate(
+                        ((S2CPacketMessagePrivateResult) packet).success,
+                        ((S2CPacketMessagePrivateResult) packet).name,
+                        ((S2CPacketMessagePrivateResult) packet).message
+                    )
                 );
             }
         } else if (packet instanceof S2CPacketUpdateOtherInfo) {
