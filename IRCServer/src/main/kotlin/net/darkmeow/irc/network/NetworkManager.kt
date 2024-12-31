@@ -15,6 +15,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
 import java.util.concurrent.CountDownLatch
+import kotlin.collections.HashMap
 
 class NetworkManager(
     val base: IRCServer
@@ -28,12 +29,7 @@ class NetworkManager(
      * 已连接的客户端
      */
     @JvmField
-    val clients: HashMap<UUID, Channel> = hashMapOf()
-
-    fun getClientByChannel(channel: Channel) = clients
-        .entries
-        .firstOrNull { it.value == channel }
-
+    val clients: MutableMap<UUID, Channel> = Collections.synchronizedMap(hashMapOf())
 
     private var serverChannel: Channel? = null
 
