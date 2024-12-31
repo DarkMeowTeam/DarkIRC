@@ -59,12 +59,20 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
         JsonParser.parseString(data as String).asJsonObject.also { obj ->
             PacketUtils.resolveClientPacket(obj).also packetHandle@ { packet ->
                 when (packet) {
-                    is C2SPacketHandShake -> ctx.sendPacket(S2CPacketHandShake(IRCLib.PROTOCOL_VERSION))
+                    is C2SPacketHandShake -> {
+                        ctx.attr(AttributeKeys.DEVICE).set(packet.deviceId)
+
+                        ctx.sendPacket(S2CPacketHandShake(IRCLib.PROTOCOL_VERSION))
+                    }
                     is C2SPacketKeepAlive -> ctx.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
                     is C2SPacketLogin -> run {
                         class ExceptionLoginResult(val result: LoginResult): Exception()
 
                         runCatching {
+                            if (!ctx.hasAttr(AttributeKeys.DEVICE)) {
+                                throw ExceptionLoginResult(LoginResult.OUTDATED_CLIENT_VERSION)
+                            }
+
                             manager.base.dataManager
                                 .getClientMinLoginVersion(packet.client.id, packet.client.hash)
                                 ?.also {
@@ -112,7 +120,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
 
                             val address = (ctx.channel().remoteAddress() as? InetSocketAddress)?.let { "${it.address.hostAddress}:${it.port}"  } ?: "unknown"
 
-                            manager.logger.info("[+] ${packet.name}  ($address ${packet.deviceId})")
+                            manager.logger.info("[+] ${packet.name}  ($address ${ctx.attr(AttributeKeys.DEVICE).get()})")
 
                             throw ExceptionLoginResult(LoginResult.SUCCESS)
                         }

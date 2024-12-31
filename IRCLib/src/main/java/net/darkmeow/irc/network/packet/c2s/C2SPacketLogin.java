@@ -8,14 +8,11 @@ public class C2SPacketLogin implements C2SPacket {
 
     public String password;
 
-    public String deviceId;
-
     public ClientBrandData client;
 
-    public C2SPacketLogin(String name, String password, String deviceId, ClientBrandData client) {
+    public C2SPacketLogin(String name, String password, ClientBrandData client) {
         this.name = name;
         this.password = password;
-        this.deviceId = deviceId;
         this.client = client;
     }
 

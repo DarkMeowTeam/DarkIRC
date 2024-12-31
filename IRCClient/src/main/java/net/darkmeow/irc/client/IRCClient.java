@@ -13,6 +13,7 @@ import net.darkmeow.irc.data.CustomSkinData;
 import net.darkmeow.irc.data.GameInfoData;
 import net.darkmeow.irc.data.PlayerSessionData;
 import net.darkmeow.irc.network.packet.c2s.*;
+import net.darkmeow.irc.utils.DeviceUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.Proxy;
@@ -42,6 +43,7 @@ public class IRCClient {
 
     private ClientBrandData brand;
 
+
     /**
      * 连接到 IRC 服务器
      *
@@ -52,7 +54,21 @@ public class IRCClient {
      * @return 是否成功
      */
     public boolean connect(String host, int port, String key) {
-        return this.connect(host, port, key, Proxy.NO_PROXY);
+        return this.connect(host, port, key, Proxy.NO_PROXY, DeviceUtils.getDeviceId());
+    }
+
+    /**
+     * 连接到 IRC 服务器
+     *
+     * @param host 服务器IP
+     * @param port 服务器端口
+     * @param key 密钥
+     * @param deviceId 设备码
+     *
+     * @return 是否成功
+     */
+    public boolean connect(String host, int port, String key, String deviceId) {
+        return this.connect(host, port, key, Proxy.NO_PROXY, deviceId);
     }
 
     /**
@@ -62,10 +78,11 @@ public class IRCClient {
      * @param port 服务器端口
      * @param key 密钥
      * @param proxy 代理
+     * @param deviceId 设备码
      *
      * @return 是否成功
      */
-    public boolean connect(String host, int port, String key, Proxy proxy) {
+    public boolean connect(String host, int port, String key, Proxy proxy, String deviceId) {
         this.disconnect();
 
         resultManager.reset();
@@ -73,7 +90,7 @@ public class IRCClient {
         connection = new IRCClientConnection(this);
 
         if (connection.connect(host, port, key, proxy)) {
-            connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION));
+            connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, deviceId));
 
             try {
                 if (resultManager.handShakeLatch.await(5, TimeUnit.SECONDS)) {
@@ -114,11 +131,10 @@ public class IRCClient {
      *
      * @param username 用户名
      * @param password 密码
-     * @param device 设备码
      * @param brand 客户端信息
      * @param callback 异步执行结果返回
      */
-    public void login(String username, String password, String device, ClientBrandData brand, Consumer<EnumResultLogin> callback) {
+    public void login(String username, String password, ClientBrandData brand, Consumer<EnumResultLogin> callback) {
         if (isConnected()) {
             resultManager.loginResultCallback = callback;
             this.brand = brand;
@@ -128,7 +144,6 @@ public class IRCClient {
                     new C2SPacketLogin(
                         username,
                         password,
-                        device,
                         brand
                     )
                 )

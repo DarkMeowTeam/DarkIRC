@@ -12,6 +12,10 @@ import java.util.Base64;
 
 public class EncryptUtils {
 
+    public EncryptUtils() {
+
+    }
+
     /**
      * 字符串加密
      *
