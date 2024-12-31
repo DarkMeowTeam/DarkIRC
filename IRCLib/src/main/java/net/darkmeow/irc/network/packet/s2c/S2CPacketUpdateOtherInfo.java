@@ -1,18 +1,18 @@
 package net.darkmeow.irc.network.packet.s2c;
 
-import net.darkmeow.irc.data.GameInfoData;
+import net.darkmeow.irc.data.UserInfoData;
+import org.jetbrains.annotations.NotNull;
 
 public class S2CPacketUpdateOtherInfo implements S2CPacket {
 
+    @NotNull
     public String name;
 
-    public String rank;
+    @NotNull
+    public UserInfoData info;
 
-    public GameInfoData info;
-
-    public S2CPacketUpdateOtherInfo(String name, String rank, GameInfoData info) {
+    public S2CPacketUpdateOtherInfo(@NotNull String name, @NotNull UserInfoData info) {
         this.name = name;
-        this.rank = rank;
         this.info = info;
     }
 

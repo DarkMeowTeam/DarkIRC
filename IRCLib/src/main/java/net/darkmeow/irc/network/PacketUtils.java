@@ -33,7 +33,7 @@ public class PacketUtils {
         serverPackets.put("MessagePrivate", S2CPacketMessagePrivate.class);
         serverPackets.put("MessagePrivateResult", S2CPacketMessagePrivateResult.class);
         serverPackets.put("UpdateOtherInfo", S2CPacketUpdateOtherInfo.class);
-        serverPackets.put("UpdateExcludeNames", S2CPacketUpdateExcludeNames.class);
+        serverPackets.put("UpdateMultiUsersInfo", S2CPacketUpdateMultiUserInfo.class);
         serverPackets.put("Disconnect", S2CPacketDisconnect.class);
         serverPackets.put("CustomPayload", S2CPacketCustomPayload.class);
     }

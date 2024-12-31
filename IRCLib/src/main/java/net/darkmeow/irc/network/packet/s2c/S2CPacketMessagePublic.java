@@ -1,20 +1,17 @@
 package net.darkmeow.irc.network.packet.s2c;
 
-import net.darkmeow.irc.data.GameInfoData;
+import net.darkmeow.irc.data.UserInfoData;
 
 public class S2CPacketMessagePublic implements S2CPacket {
 
     public String name;
     
-    public String rank;
-    
-    public GameInfoData info;
+    public UserInfoData info;
 
     public String message;
 
-    public S2CPacketMessagePublic(String name, String rank, GameInfoData info, String message) {
+    public S2CPacketMessagePublic(String name, UserInfoData info, String message) {
         this.name = name;
-        this.rank = rank;
         this.info = info;
         this.message = message;
     }

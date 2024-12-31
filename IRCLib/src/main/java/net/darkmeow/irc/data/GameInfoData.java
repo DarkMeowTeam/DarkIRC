@@ -1,25 +1,40 @@
 package net.darkmeow.irc.data;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
+
 public class GameInfoData {
 
-    public static GameInfoData EMPTY = new GameInfoData("", "", 0, false, ClientBrandData.EMPTY);
+    public static GameInfoData EMPTY = new GameInfoData(new PlayerSessionData("", UUID.randomUUID()), ClientBrandData.EMPTY,null, null, 0, "", false);
 
-    public String inGameName;
+    @NotNull
+    public final PlayerSessionData session;
 
-    public String server;
+    @NotNull
+    public final ClientBrandData client;
 
-    public int clientFPS;
+    @Nullable
+    public final CustomSkinData skin;
 
-    public boolean attackIRC;
+    @Nullable
+    public final String server;
 
-    public ClientBrandData client;
+    public final int clientFPS;
 
-    public GameInfoData(String inGameName, String server, int clientFPS, boolean attackIRC, ClientBrandData client) {
-        this.inGameName = inGameName;
+    @NotNull
+    public final String namePrefix;
+
+    public final boolean attackIRC;
+
+    public GameInfoData(@NotNull PlayerSessionData session, @NotNull ClientBrandData client, @Nullable CustomSkinData skin, @Nullable String server, int clientFPS, @NotNull String namePrefix, boolean attackIRC) {
+        this.session = session;
+        this.client = client;
+        this.skin = skin;
         this.server = server;
         this.clientFPS = clientFPS;
+        this.namePrefix = namePrefix;
         this.attackIRC = attackIRC;
-        this.client = client;
     }
-
 }

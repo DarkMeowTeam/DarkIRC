@@ -3,8 +3,8 @@ package net.darkmeow.irc.client.network.handle;
 import com.google.gson.JsonParser;
 import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
-import net.darkmeow.irc.client.data.IRCOtherUserInfo;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
+import net.darkmeow.irc.client.data.IRCUserInfo;
 import net.darkmeow.irc.client.enums.EnumPremium;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.network.IRCClientConnection;
@@ -12,8 +12,6 @@ import net.darkmeow.irc.network.PacketUtils;
 import net.darkmeow.irc.network.packet.c2s.C2SPacketKeepAlive;
 import net.darkmeow.irc.network.packet.c2s.C2SPacketQueryUsers;
 import net.darkmeow.irc.network.packet.s2c.*;
-
-import java.util.Objects;
 
 public class HandleClientPacketProcess extends ChannelHandlerAdapter {
 
@@ -44,6 +42,7 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.USER_OR_PASSWORD_WRONG);
                 } else if (result == S2CPacketLoginResult.LoginResult.SUCCESS) {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.SUCCESS);
+                    connection.sendPacket(new C2SPacketQueryUsers(false));
                 }
             }
         } else if (packet instanceof S2CPacketUpdateMyInfo) {
@@ -53,9 +52,8 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
 
             connection.base.listenable.onUpdateUserInfo(connection.base.name, connection.base.rank, connection.base.premium);
         } else if (packet instanceof S2CPacketMessagePublic) {
-            final IRCOtherUserInfo info = new IRCOtherUserInfo(
+            final IRCUserInfo info = new IRCUserInfo(
                 ((S2CPacketMessagePublic) packet).name,
-                ((S2CPacketMessagePublic) packet).rank,
                 ((S2CPacketMessagePublic) packet).info
             );
             connection.base.listenable.onMessagePublic(
@@ -64,9 +62,8 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
             );
             connection.base.userManager.users.put(((S2CPacketMessagePublic) packet).name, info);
         } else if (packet instanceof S2CPacketMessagePrivate) {
-            final IRCOtherUserInfo info = new IRCOtherUserInfo(
+            final IRCUserInfo info = new IRCUserInfo(
                 ((S2CPacketMessagePrivate) packet).name,
-                ((S2CPacketMessagePrivate) packet).rank,
                 ((S2CPacketMessagePrivate) packet).info
             );
             connection.base.listenable.onMessagePrivate(
@@ -87,15 +84,22 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
                 );
             }
         } else if (packet instanceof S2CPacketUpdateOtherInfo) {
-            if (Objects.equals(((S2CPacketUpdateOtherInfo) packet).info.inGameName, "")) {
+            if (!((S2CPacketUpdateOtherInfo) packet).info.online) {
                 connection.base.userManager.users.remove(((S2CPacketUpdateOtherInfo) packet).name);
             } else {
-                connection.base.userManager.users.put(((S2CPacketUpdateOtherInfo) packet).name, new IRCOtherUserInfo(
+                connection.base.userManager.users.put(((S2CPacketUpdateOtherInfo) packet).name, new IRCUserInfo(
                     ((S2CPacketUpdateOtherInfo) packet).name,
-                    ((S2CPacketUpdateOtherInfo) packet).rank,
                     ((S2CPacketUpdateOtherInfo) packet).info
                 ));
             }
+        } else if (packet instanceof S2CPacketUpdateMultiUserInfo) {
+            if (((S2CPacketUpdateMultiUserInfo) packet).overrideAll) {
+                connection.base.userManager.users.clear();
+            }
+            ((S2CPacketUpdateMultiUserInfo) packet).users
+                .forEach((key, value) ->
+                    connection.base.userManager.users.put(key, new IRCUserInfo(key, value))
+                );
         } else if (packet instanceof S2CPacketDisconnect) {
             connection.base.resultManager.disconnectReason = ((S2CPacketDisconnect) packet).reason;
             connection.disconnect();
