@@ -30,9 +30,9 @@ tasks.build {
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
-            from(components["java"])
+            artifact(tasks.shadowJar)
             groupId = project.group.toString()
-            artifactId = "irc"
+            artifactId = "IRCClient"
             version = project.version.toString()
         }
     }
