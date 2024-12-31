@@ -65,7 +65,7 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
                 ((S2CPacketMessagePrivate) packet).rank,
                 ((S2CPacketMessagePrivate) packet).info
             );
-            connection.base.listenable.onMessagePublic(
+            connection.base.listenable.onMessagePrivate(
                 info,
                 ((S2CPacketMessagePrivate) packet).message
             );
