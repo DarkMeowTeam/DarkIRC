@@ -39,9 +39,16 @@ allprojects {
 
         compileOnly("org.projectlombok:lombok:1.18.32")
         annotationProcessor("org.projectlombok:lombok:1.18.32")
+
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.0")
     }
 
     tasks {
+        test {
+            useJUnitPlatform()
+        }
+
         withType<JavaCompile> {
             options.encoding = "UTF-8"
         }
