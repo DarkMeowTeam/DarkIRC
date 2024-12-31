@@ -15,6 +15,7 @@ public class C2SPacketLogin implements C2SPacket {
     public C2SPacketLogin(String name, String password, String deviceId, ClientBrandData client) {
         this.name = name;
         this.password = password;
+        this.deviceId = deviceId;
         this.client = client;
     }
 
