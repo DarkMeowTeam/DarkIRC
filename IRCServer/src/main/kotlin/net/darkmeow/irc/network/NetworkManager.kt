@@ -22,6 +22,8 @@ class NetworkManager(
     @JvmField
     val logger: Logger = LogManager.getLogger("Network")
 
+    @JvmField
+    val keepAliveManager = NetworkKeepAliveManager(this)
     /**
      * 已连接的客户端
      */
@@ -67,7 +69,11 @@ class NetworkManager(
 
                 latch.countDown()
 
+                keepAliveManager.start()
+
                 future.channel().closeFuture().sync()
+
+                keepAliveManager.stop()
 
                 logger.info("已关闭")
             }
