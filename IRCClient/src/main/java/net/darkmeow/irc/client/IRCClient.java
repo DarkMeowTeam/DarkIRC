@@ -59,7 +59,22 @@ public class IRCClient {
         resultManager.reset();
 
         connection = new IRCClientConnection(this);
-        return connection.connect(host, port, key, proxy);
+
+        if (connection.connect(host, port, key, proxy)) {
+            connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION));
+
+            try {
+                if (resultManager.handShakeLatch.await(5, TimeUnit.SECONDS)) {
+                    return true;
+                }
+                disconnect();
+                return false;
+            } catch (InterruptedException e) {
+                disconnect();
+                return false;
+            }
+        }
+        return false;
     }
 
     /**

@@ -10,6 +10,7 @@ import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.network.IRCClientConnection;
 import net.darkmeow.irc.network.PacketUtils;
 import net.darkmeow.irc.network.packet.c2s.C2SPacketKeepAlive;
+import net.darkmeow.irc.network.packet.c2s.C2SPacketQueryUsers;
 import net.darkmeow.irc.network.packet.s2c.*;
 
 import java.util.Objects;
@@ -26,8 +27,11 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object data) throws Exception {
         final S2CPacket packet = PacketUtils.resolveServerPacket(JsonParser.parseString(data.toString()).getAsJsonObject());
 
-        // 心跳包 (服务端发送 客户端回应)
-        if (packet instanceof S2CPacketKeepAlive) {
+        if (packet instanceof S2CPacketHandShake) {
+            // 握手包 客户端主动发 服务端回应
+            connection.base.resultManager.handShakeLatch.countDown();
+        } else if (packet instanceof S2CPacketKeepAlive) {
+            // 心跳包 服务端发送 客户端回应
             connection.sendPacket(new C2SPacketKeepAlive(((S2CPacketKeepAlive) packet).id));
         } else if (packet instanceof S2CPacketLoginResult) {
             if (connection.base.resultManager.loginResultCallback != null) {

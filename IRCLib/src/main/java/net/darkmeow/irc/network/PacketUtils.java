@@ -2,13 +2,10 @@ package net.darkmeow.irc.network;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import net.darkmeow.irc.network.packet.Packet;
 import net.darkmeow.irc.network.packet.c2s.*;
 import net.darkmeow.irc.network.packet.s2c.*;
 
 import java.util.HashMap;
-import java.util.HashSet;
 
 public class PacketUtils {
     private static final Gson gson = new Gson();
@@ -17,6 +14,7 @@ public class PacketUtils {
     public static final HashMap<String, Class<? extends S2CPacket>> serverPackets = new HashMap<>();
 
     static {
+        clientPackets.put("HandShake", C2SPacketHandShake.class);
         clientPackets.put("KeepAlive", C2SPacketKeepAlive.class);
         clientPackets.put("Login", C2SPacketLogin.class);
         clientPackets.put("ChatPublic", C2SPacketChatPublic.class);
@@ -26,6 +24,7 @@ public class PacketUtils {
         clientPackets.put("QueryUsers", C2SPacketQueryUsers.class);
         clientPackets.put("CustomPayload", C2SPacketCustomPayload.class);
 
+        serverPackets.put("HandShake", S2CPacketHandShake.class);
         serverPackets.put("KeepAlive", S2CPacketKeepAlive.class);
         serverPackets.put("LoginResult", S2CPacketLoginResult.class);
         serverPackets.put("UpdateMyInfo", S2CPacketUpdateMyInfo.class);
