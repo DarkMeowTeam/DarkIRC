@@ -20,6 +20,11 @@ class IRCServer {
         configManager.readConfig()
         dataManager.connect(configManager.configs.database)
         networkManager.start(configManager.configs.port)
+
+        Runtime.getRuntime().addShutdownHook(Thread {
+            networkManager.stop()
+            dataManager.disconnect()
+        })
     }
 
 }

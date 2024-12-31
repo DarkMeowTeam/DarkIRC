@@ -54,6 +54,12 @@ class DataManager(
             .close()
     }
 
+    fun disconnect() {
+        runCatching {
+            connection.close()
+        }
+    }
+
     fun getClientMinLoginVersion(id: String, hash: String): Int? = connection
         .prepareStatement("SELECT allow_login_min_version FROM clients WHERE id = ? AND hash = ?;")
         .apply {
