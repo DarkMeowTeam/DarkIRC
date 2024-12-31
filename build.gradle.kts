@@ -34,6 +34,11 @@ allprojects {
     dependencies {
         implementation("io.netty:netty-all:${nettyVersion}")
         implementation("com.google.code.gson:gson:${gsonVersion}")
+
+        compileOnly("org.jetbrains:annotations:24.0.0")
+
+        compileOnly("org.projectlombok:lombok:1.18.32")
+        annotationProcessor("org.projectlombok:lombok:1.18.32")
     }
 
     tasks {
