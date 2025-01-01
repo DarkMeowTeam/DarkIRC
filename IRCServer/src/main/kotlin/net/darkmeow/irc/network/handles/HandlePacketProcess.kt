@@ -87,40 +87,44 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                     throw ExceptionLoginResult(LoginResult.USER_OR_PASSWORD_WRONG)
                                 }
 
-                            // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
-                            ctx.sendPacket(
-                                S2CPacketUpdateMyInfo(
-                                    packet.name,
-                                    manager.base.dataManager.getUserRank(packet.name),
-                                    manager.base.dataManager.getUserPremium(packet.name)
-                                )
-                            )
-
-                            // 登出其他客户端
-                            manager.clients
-                                .filter { (_, channel) ->
-                                    channel
-                                        .takeIf { it.hasAttr(AttributeKeys.CURRENT_USER) }
-                                        ?.attr(AttributeKeys.CURRENT_USER)
-                                        ?.get() == packet.name
-                                }
-                                .onEach { (_, channel) ->
-                                    channel.sendPacket(
-                                        S2CPacketUpdateMyInfo(
-                                            "",
-                                            "",
-                                            S2CPacketUpdateMyInfo.Premium.GUEST
-                                        )
+                            if (!packet.notOnline) {
+                                // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
+                                ctx.sendPacket(
+                                    S2CPacketUpdateMyInfo(
+                                        packet.name,
+                                        manager.base.dataManager.getUserRank(packet.name),
+                                        manager.base.dataManager.getUserPremium(packet.name)
                                     )
-                                    channel.attr(AttributeKeys.CURRENT_USER).remove()
-                                }
+                                )
 
-                            // 登录成功
-                            ctx.attr(AttributeKeys.CURRENT_USER).set(packet.name)
+                                // 登出其他客户端
+                                manager.clients
+                                    .filter { (_, channel) ->
+                                        channel
+                                            .takeIf { it.hasAttr(AttributeKeys.CURRENT_USER) }
+                                            ?.attr(AttributeKeys.CURRENT_USER)
+                                            ?.get() == packet.name
+                                    }
+                                    .onEach { (_, channel) ->
+                                        channel.sendPacket(
+                                            S2CPacketUpdateMyInfo(
+                                                "",
+                                                "",
+                                                S2CPacketUpdateMyInfo.Premium.GUEST
+                                            )
+                                        )
+                                        channel.attr(AttributeKeys.CURRENT_USER).remove()
+                                    }
 
-                            val address = (ctx.channel().remoteAddress() as? InetSocketAddress)?.let { "${it.address.hostAddress}:${it.port}"  } ?: "unknown"
+                                // 登录成功
+                                ctx.attr(AttributeKeys.CURRENT_USER).set(packet.name)
+                            }
 
-                            manager.logger.info("[+] ${packet.name}  ($address ${ctx.attr(AttributeKeys.DEVICE).get()})")
+                            val address = (ctx.channel()
+                                .remoteAddress() as? InetSocketAddress)?.let { "${it.address.hostAddress}:${it.port}" }
+                                ?: "unknown"
+
+                            manager.logger.info("[+] ${packet.name}  ($address ${ctx.attr(AttributeKeys.DEVICE).get()})${if(packet.notOnline) " (仅验证密码)" else ""}")
 
                             throw ExceptionLoginResult(LoginResult.SUCCESS)
                         }
@@ -201,6 +205,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                     is C2SPacketCommand -> {
                         if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
 
+                        manager.logger.info("[${ctx.attr(AttributeKeys.CURRENT_USER)}] 使用指令 ${packet.root} ${packet.args.joinToString(" ")}")
                         manager.base.commandManager.handle(ctx, packet.root, packet.args.toMutableList())
                     }
                     is C2SPacketUpdateGameInfo -> {
