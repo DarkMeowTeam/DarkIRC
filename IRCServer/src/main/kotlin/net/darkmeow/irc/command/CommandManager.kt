@@ -11,7 +11,7 @@ class CommandManager {
     )
 
     fun handle(ctx: ChannelHandlerContext, root: String, args: MutableList<String>) = commands
-        .firstOrNull { it.root == root }
+        .firstOrNull { it.root.equals(other = root, ignoreCase = true) }
         ?.handle(ctx, args)
 
 }
