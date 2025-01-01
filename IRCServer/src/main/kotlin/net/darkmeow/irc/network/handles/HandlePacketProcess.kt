@@ -12,6 +12,9 @@ import net.darkmeow.irc.network.PacketUtils
 import net.darkmeow.irc.network.packet.c2s.*
 import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
+import net.darkmeow.irc.utils.CTXUtils.clearCurrentUser
+import net.darkmeow.irc.utils.CTXUtils.getCurrentUser
+import net.darkmeow.irc.utils.CTXUtils.setCurrentUser
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import java.net.InetSocketAddress
 
@@ -92,7 +95,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                 ctx.sendPacket(
                                     S2CPacketUpdateMyInfo(
                                         packet.name,
-                                        manager.base.dataManager.getUserRank(packet.name),
+                                        manager.base.dataManager.getUserRank(packet.name) ?: "",
                                         manager.base.dataManager.getUserPremium(packet.name)
                                     )
                                 )
@@ -100,24 +103,15 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                 // 登出其他客户端
                                 manager.clients
                                     .filter { (_, channel) ->
-                                        channel
-                                            .takeIf { it.hasAttr(AttributeKeys.CURRENT_USER) }
-                                            ?.attr(AttributeKeys.CURRENT_USER)
-                                            ?.get() == packet.name
+                                        channel.getCurrentUser() == packet.name
                                     }
                                     .onEach { (_, channel) ->
-                                        channel.sendPacket(
-                                            S2CPacketUpdateMyInfo(
-                                                "",
-                                                "",
-                                                S2CPacketUpdateMyInfo.Premium.GUEST
-                                            )
-                                        )
-                                        channel.attr(AttributeKeys.CURRENT_USER).remove()
+                                        channel.sendPacket(S2CPacketUpdateMyInfo())
+                                        channel.clearCurrentUser()
                                     }
 
                                 // 登录成功
-                                ctx.attr(AttributeKeys.CURRENT_USER).set(packet.name)
+                                ctx.setCurrentUser(packet.name)
                             }
 
                             val address = (ctx.channel()
