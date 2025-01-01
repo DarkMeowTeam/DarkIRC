@@ -202,29 +202,25 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                         manager.base.commandManager.handle(ctx, packet.root, packet.args.toMutableList())
                     }
                     is C2SPacketUpdateGameInfo -> {
-                        if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
+                        val user = ctx.getCurrentUser() ?: return@packetHandle
 
                         if (runCatching { ctx.attr(AttributeKeys.GAME_INFO).get() }.getOrNull()?.let { packet.info.session.name != it.session.name || packet.info.server != it.server } == true) {
-                            manager.logger.info("[${ctx.attr(AttributeKeys.CURRENT_USER)}] 游戏状态更新: ${packet.info.session.name} ${packet.info.server}")
+                            manager.logger.info("[${user}] 游戏状态更新: ${packet.info.session.name} ${packet.info.server}")
                         }
 
                         ctx.attr(AttributeKeys.GAME_INFO).set(packet.info)
 
-                        val name = ctx.attr(AttributeKeys.CURRENT_USER).get()
-                        val rank = manager.base.dataManager.getUserRank(name) ?: return@packetHandle
-
+                        val boardCastPacket = S2CPacketUpdateOtherInfo(
+                            user,
+                            UserInfoData(
+                                manager.base.dataManager.getUserRank(user) ?: return@packetHandle,
+                                packet.info
+                            )
+                        )
                         manager.clients.values
                             .filter { channel -> channel.hasAttr(AttributeKeys.CURRENT_USER) }
                             .onEach { channel ->
-                                channel.sendPacket(
-                                    S2CPacketUpdateOtherInfo(
-                                        name,
-                                        UserInfoData(
-                                            rank,
-                                            channel.attr(AttributeKeys.GAME_INFO).get()
-                                        )
-                                    )
-                                )
+                                channel.sendPacket(boardCastPacket)
                             }
                     }
                     is C2SPacketQueryUsers -> {
