@@ -18,7 +18,7 @@ class CommandUsers: Command("Users") {
     override fun handle(manager: CommandManager, ctx: ChannelHandlerContext, args: MutableList<String>) {
         when (if (args.isEmpty()) "" else args[0]) {
             "create" -> {
-                if (args.size != 6) {
+                if (args.size != 5) {
                     ctx.sendCommandUsage("users", "create <用户名> <密码> <初始头衔> <等级(${S2CPacketUpdateMyInfo.Premium.entries.joinToString (",") { it.name }})>")
                     return
                 }
@@ -27,7 +27,7 @@ class CommandUsers: Command("Users") {
                     return
                 }
                 manager.base.dataManager.createUser(args[1], args[2], args[3], S2CPacketUpdateMyInfo.Premium.valueOf(args[4]))
-                ctx.sendSystemMessage("成功创建用户 ${args[0]}")
+                ctx.sendSystemMessage("成功创建用户 ${args[1]}")
             }
             "delete" -> {
                 if (args.size != 2) {
