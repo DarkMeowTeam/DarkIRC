@@ -24,7 +24,7 @@ class CommandChangePassword: Command("ChangePassword", "CP") {
         manager.base.networkManager.clients.values
             .filter { channel -> channel.getCurrentUser() == ctx.getCurrentUser() }
             .onEach { channel ->
-                channel.sendPacket(S2CPacketUpdateMyInfo("", "", S2CPacketUpdateMyInfo.Premium.GUEST))
+                channel.sendPacket(S2CPacketUpdateMyInfo())
                 channel.clearCurrentUser()
             }
 
