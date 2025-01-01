@@ -134,12 +134,10 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                             }
                     }
                     is C2SPacketChatPublic -> {
-                        if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
-
-                        val user = ctx.attr(AttributeKeys.CURRENT_USER).get()
+                        val user = ctx.getCurrentUser() ?: return@packetHandle
 
                         val boardCastPacket = S2CPacketMessagePublic(
-                            ctx.attr(AttributeKeys.CURRENT_USER).get(),
+                            user,
                             UserInfoData(
                                 manager.base.dataManager.getUserRank(user) ?: "",
                                 ctx.attr(AttributeKeys.GAME_INFO).get()
@@ -161,13 +159,10 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                             }
                     }
                     is C2SPacketChatPrivate -> {
-                        if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
-
-                        val user = ctx.attr(AttributeKeys.CURRENT_USER).get()
+                        val user = ctx.getCurrentUser() ?: return@packetHandle
 
                         manager.clients.values
-                            .filter { channel -> channel.hasAttr(AttributeKeys.CURRENT_USER) }
-                            .filter { channel -> channel.attr(AttributeKeys.CURRENT_USER).get() == packet.user }
+                            .filter { channel -> channel.getCurrentUser() == packet.user }
                             .also {
                                 // 接收方不在线
                                 if (it.isEmpty()) {
@@ -177,7 +172,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                             }
                             .also {
                                 val boardCastPacket = S2CPacketMessagePrivate(
-                                    ctx.attr(AttributeKeys.CURRENT_USER).get(),
+                                    user,
                                     UserInfoData(
                                         manager.base.dataManager.getUserRank(user) ?: "",
                                         ctx.attr(AttributeKeys.GAME_INFO).get()
@@ -196,9 +191,9 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                             }
                     }
                     is C2SPacketCommand -> {
-                        if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
+                        val user = ctx.getCurrentUser() ?: return@packetHandle
 
-                        manager.logger.info("[${ctx.attr(AttributeKeys.CURRENT_USER)}] 使用指令: ${packet.root} ${packet.args.joinToString(" ")}")
+                        manager.logger.info("[${user}] 使用指令: ${packet.root} ${packet.args.joinToString(" ")}")
                         manager.base.commandManager.handle(ctx, packet.root, packet.args.toMutableList())
                     }
                     is C2SPacketUpdateGameInfo -> {
@@ -238,8 +233,8 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                 }
                             }
                             .onEach { channel ->
-                                run queryUser@{
-                                    val name = channel.attr(AttributeKeys.CURRENT_USER).get()
+                                run queryUser@ {
+                                    val name = channel.getCurrentUser() ?: return@queryUser
 
                                     users[name] = UserInfoData(
                                         manager.base.dataManager.getUserRank(name) ?: return@queryUser,
