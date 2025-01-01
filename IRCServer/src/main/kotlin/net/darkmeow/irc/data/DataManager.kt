@@ -121,6 +121,14 @@ class DataManager(
         .executeQuery()
         .next()
 
+    fun setUserPassword(user: String, newPassword: String): Boolean = connection
+        .prepareStatement("UPDATE users SET password = ? WHERE name = ?;")
+        .apply {
+            setString(1, newPassword)
+            setString(2, user)
+        }
+        .executeUpdate() > 0
+
     fun createUser(name: String, password: String, rank: String, premium: Premium): Boolean = connection
         .prepareStatement(
             arrayOf(
