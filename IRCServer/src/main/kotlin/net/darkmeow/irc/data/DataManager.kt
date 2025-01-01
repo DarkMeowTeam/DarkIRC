@@ -46,7 +46,7 @@ class DataManager(
                     connection.createStatement().executeUpdate(
                         arrayOf(
                             "INSERT INTO users (name, password, rank, premium) ",
-                            "VALUES ('NekoCurit', '114514', '小枫猫娘', ${Premium.SUPER_ADMIN.ordinal});"
+                            "VALUES ('Administrator', '123456', '管理员', ${Premium.SUPER_ADMIN.ordinal});"
                         ).joinToString("")
                     )
                 }
