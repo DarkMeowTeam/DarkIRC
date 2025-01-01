@@ -11,6 +11,8 @@ import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.network.handles.HandleClientConnection
 import net.darkmeow.irc.network.handles.HandleClientEncryption
 import net.darkmeow.irc.network.handles.HandlePacketProcess
+import net.darkmeow.irc.network.packet.s2c.S2CPacketDisconnect
+import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
@@ -91,6 +93,13 @@ class NetworkManager(
      * @return 是否成功
      */
     fun stop() = runCatching {
+        clients.values.onEach { channel ->
+            runCatching {
+                channel.sendPacket(S2CPacketDisconnect("Server closed."))
+                channel.disconnect()
+            }
+        }
+
         serverChannel?.close()?.sync() // 关闭 Channel
         bossGroup?.shutdownGracefully() // 关闭 bossGroup
         workerGroup?.shutdownGracefully() // 关闭 workerGroup
