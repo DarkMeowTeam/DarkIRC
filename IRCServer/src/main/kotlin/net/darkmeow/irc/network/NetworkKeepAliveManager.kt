@@ -19,7 +19,7 @@ import kotlin.concurrent.timerTask
     fun start() {
         timer.schedule(timerTask {
             runKeepAlive()
-        }, 5000, 5000)
+        }, 5000, 2000)
     }
 
      fun stop() {
