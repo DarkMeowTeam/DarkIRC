@@ -14,7 +14,7 @@ class IRCServer {
     val configManager = ConfigManager()
     val networkManager = NetworkManager(this)
     val dataManager = DataManager(this)
-    val commandManager = CommandManager()
+    val commandManager = CommandManager(this)
 
     fun start() {
         configManager.readConfig()
