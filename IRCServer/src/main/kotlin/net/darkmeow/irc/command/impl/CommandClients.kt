@@ -23,7 +23,7 @@ class CommandClients: Command("Clients") {
                     return
                 }
                 manager.base.dataManager.createClient(args[1], args[2], args[3].toIntOrNull() ?: 0)
-                ctx.sendSystemMessage("成功创建客户端 ${args[0]}")
+                ctx.sendSystemMessage("成功创建客户端 ${args[1]}")
             }
             "delete" -> {
                 if (args.size != 2) {
