@@ -188,12 +188,11 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                         .replace("\r", "")
                                 )
 
+                                ctx.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message, true))
                                 // 兼容多客户端登录 (适用于 同一设备多开客户端)
                                 it.onEach { channel ->
                                     channel.sendPacket(boardCastPacket)
                                 }
-
-                                ctx.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message, true))
                             }
                     }
                     is C2SPacketCommand -> {
