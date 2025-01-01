@@ -205,11 +205,15 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                     is C2SPacketCommand -> {
                         if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
 
-                        manager.logger.info("[${ctx.attr(AttributeKeys.CURRENT_USER)}] 使用指令 ${packet.root} ${packet.args.joinToString(" ")}")
+                        manager.logger.info("[${ctx.attr(AttributeKeys.CURRENT_USER)}] 使用指令: ${packet.root} ${packet.args.joinToString(" ")}")
                         manager.base.commandManager.handle(ctx, packet.root, packet.args.toMutableList())
                     }
                     is C2SPacketUpdateGameInfo -> {
                         if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
+
+                        if (runCatching { ctx.attr(AttributeKeys.GAME_INFO).get() }.getOrNull()?.let { packet.info.session.name != it.session.name || packet.info.server != it.server } == true) {
+                            manager.logger.info("[${ctx.attr(AttributeKeys.CURRENT_USER)}] 游戏状态更新: ${packet.info.session.name} ${packet.info.server}")
+                        }
 
                         ctx.attr(AttributeKeys.GAME_INFO).set(packet.info)
 
