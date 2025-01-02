@@ -22,6 +22,7 @@ public class PacketUtils {
         clientPackets.put("Command", C2SPacketCommand.class);
         clientPackets.put("UpdateGameInfo", C2SPacketUpdateGameInfo.class);
         clientPackets.put("QueryUsers", C2SPacketQueryUsers.class);
+        clientPackets.put("ChangePassword", C2SPacketChangePassword.class);
         clientPackets.put("CustomPayload", C2SPacketCustomPayload.class);
 
         serverPackets.put("HandShake", S2CPacketHandShake.class);
