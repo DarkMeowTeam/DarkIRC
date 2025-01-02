@@ -30,7 +30,7 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
             connection.base.resultManager.handShakeLatch.countDown();
         } else if (packet instanceof S2CPacketKeepAlive) {
             // 心跳包 服务端发送 客户端回应
-            connection.sendPacket(new C2SPacketKeepAlive(((S2CPacketKeepAlive) packet).id));
+            connection.sendPacket(new C2SPacketKeepAlive(((S2CPacketKeepAlive) packet).id), true);
         } else if (packet instanceof S2CPacketLoginResult) {
             if (connection.base.resultManager.loginResultCallback != null) {
                 final S2CPacketLoginResult.LoginResult result = ((S2CPacketLoginResult) packet).result;
@@ -42,7 +42,7 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.USER_OR_PASSWORD_WRONG);
                 } else if (result == S2CPacketLoginResult.LoginResult.SUCCESS) {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.SUCCESS);
-                    connection.sendPacket(new C2SPacketQueryUsers(false));
+                    connection.sendPacket(new C2SPacketQueryUsers(false), true);
                 }
             }
         } else if (packet instanceof S2CPacketUpdateMyInfo) {

@@ -1,10 +1,7 @@
 package net.darkmeow.irc.client.network;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -109,16 +106,28 @@ public class IRCClientConnection {
      * 发送原始消息
      *
      * @param message 消息文本
+     * @param async 异步发送
      *
      * @return 是否成功
      */
     @SuppressWarnings("all") // printStackTrace()
-    public boolean sendMessage(String message) {
+    public boolean sendMessage(String message, boolean async) {
         try {
-            ChannelFuture future = channel.writeAndFlush(message).sync();
-            return future.isSuccess();
+            if (channel.isActive()) {
+                if (async) {
+                    channel.writeAndFlush(message).addListener((ChannelFutureListener) channelFuture -> {
+                        if (!channelFuture.isSuccess()) {
+                            channelFuture.cause().printStackTrace();
+                        }
+                    });
+                    return true;
+                } else {
+                    return channel.writeAndFlush(message).sync().isSuccess();
+                }
+            } else {
+                return false;
+            }
         } catch (InterruptedException e) {
-            // 处理中断异常
             Thread.currentThread().interrupt();
             return false;
         } catch (Throwable e) {
@@ -131,10 +140,11 @@ public class IRCClientConnection {
      * 发送 C2SPacket
      *
      * @param packet 网络包
+     * @param async 异步发送
      *
      * @return 是否成功
      */
-    public boolean sendPacket(C2SPacket packet) {
-        return this.sendMessage(PacketUtils.generatePacket(packet));
+    public boolean sendPacket(C2SPacket packet, boolean async) {
+        return this.sendMessage(PacketUtils.generatePacket(packet), async);
     }
 }

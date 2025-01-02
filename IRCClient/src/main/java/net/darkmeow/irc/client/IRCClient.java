@@ -15,6 +15,7 @@ import net.darkmeow.irc.data.PlayerSessionData;
 import net.darkmeow.irc.network.packet.c2s.*;
 import net.darkmeow.irc.utils.DeviceUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.Proxy;
 import java.util.ArrayList;
@@ -53,7 +54,7 @@ public class IRCClient {
      *
      * @return 是否成功
      */
-    public boolean connect(String host, int port, String key) {
+    public boolean connect(@NotNull String host, int port, @NotNull String key) {
         return this.connect(host, port, key, Proxy.NO_PROXY, DeviceUtils.getDeviceId());
     }
 
@@ -67,7 +68,7 @@ public class IRCClient {
      *
      * @return 是否成功
      */
-    public boolean connect(String host, int port, String key, String deviceId) {
+    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull String deviceId) {
         return this.connect(host, port, key, Proxy.NO_PROXY, deviceId);
     }
 
@@ -82,7 +83,7 @@ public class IRCClient {
      *
      * @return 是否成功
      */
-    public boolean connect(String host, int port, String key, Proxy proxy, String deviceId) {
+    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull Proxy proxy, @NotNull String deviceId) {
         this.disconnect();
 
         resultManager.reset();
@@ -90,7 +91,7 @@ public class IRCClient {
         connection = new IRCClientConnection(this);
 
         if (connection.connect(host, port, key, proxy)) {
-            connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, deviceId));
+            connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, deviceId), false);
 
             try {
                 if (resultManager.handShakeLatch.await(5, TimeUnit.SECONDS)) {
@@ -134,49 +135,49 @@ public class IRCClient {
      * @param brand 客户端信息
      * @param callback 异步执行结果返回
      */
-    public void login(String username, String password, ClientBrandData brand, Consumer<EnumResultLogin> callback) {
+    public void login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, @Nullable Consumer<EnumResultLogin> callback) {
         if (isConnected()) {
             resultManager.loginResultCallback = callback;
             this.brand = brand;
 
             if (
                 !connection.sendPacket(
-                    new C2SPacketLogin(
-                        username,
-                        password,
-                        brand
-                    )
+                    new C2SPacketLogin(username, password, brand),
+                    false
                 )
             ) {
-                callback.accept(EnumResultLogin.NOT_CONNECT);
+                if (callback != null) callback.accept(EnumResultLogin.NOT_CONNECT);
             }
         } else {
-            callback.accept(EnumResultLogin.NOT_CONNECT);
+            if (callback != null) callback.accept(EnumResultLogin.NOT_CONNECT);
         }
     }
 
-    public void sendMessage(String message) {
+    public void sendMessage(@NotNull String message) {
         if (isConnected()) {
             connection.sendPacket(
-                new C2SPacketChatPublic(message)
+                new C2SPacketChatPublic(message),
+                true
             );
         }
     }
 
-    public void sendMessageToPrivate(String user, String message, Consumer<IRCResultSendMessageToPrivate> callback) {
+    public void sendMessageToPrivate(@NotNull String user, @NotNull String message, @Nullable Consumer<IRCResultSendMessageToPrivate> callback) {
         if (isConnected()) {
             resultManager.privateResultCallback = callback;
 
             connection.sendPacket(
-                new C2SPacketChatPrivate(user, message)
+                new C2SPacketChatPrivate(user, message),
+                true
             );
         }
     }
 
-    public void sendCommand(String root, ArrayList<String> args) {
+    public void sendCommand(@NotNull String root, @NotNull ArrayList<String> args) {
         if (isConnected()) {
             connection.sendPacket(
-                new C2SPacketCommand(root, args)
+                new C2SPacketCommand(root, args),
+                true
             );
         }
     }
@@ -190,7 +191,7 @@ public class IRCClient {
      * @param clientFPS 客户端帧率
      * @param attackIRC 是否会攻击 IRC 内成员
      */
-    public void postGameInfo(PlayerSessionData session, String server, CustomSkinData skin, int clientFPS, String namePrefix, boolean attackIRC) {
+    public void postGameInfo(@NotNull PlayerSessionData session, @Nullable String server, @Nullable CustomSkinData skin, int clientFPS, @NotNull String namePrefix, boolean attackIRC) {
         if (isConnected()) {
             connection.sendPacket(
                 new C2SPacketUpdateGameInfo(
@@ -203,7 +204,12 @@ public class IRCClient {
                         namePrefix,
                         attackIRC
                     )
-                )
+                ),
+                true
+            );
+        }
+    }
+
     /**
      * 更新当前登录账号的密码
      * 更新后客户端将登陆失效了需要重新登录
