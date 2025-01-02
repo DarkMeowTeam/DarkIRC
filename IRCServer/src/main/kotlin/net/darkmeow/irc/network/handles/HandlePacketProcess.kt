@@ -16,6 +16,7 @@ import net.darkmeow.irc.utils.CTXUtils.clearCurrentUser
 import net.darkmeow.irc.utils.CTXUtils.getCurrentUser
 import net.darkmeow.irc.utils.CTXUtils.setCurrentUser
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
+import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
 import java.net.InetSocketAddress
 
 class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAdapter() {
@@ -251,6 +252,19 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                         users
                                     )
                                 )
+                            }
+                    }
+                    is C2SPacketChangePassword -> {
+                        val user = ctx.getCurrentUser() ?: return@packetHandle
+
+                        manager.base.dataManager.setUserPassword(user, packet.password)
+
+                        manager.base.networkManager.clients.values
+                            .filter { channel -> channel.getCurrentUser() == user }
+                            .onEach { channel ->
+                                channel.sendPacket(S2CPacketMessageSystem("当前账号密码已修改 请重新登录"))
+                                channel.sendPacket(S2CPacketUpdateMyInfo())
+                                channel.clearCurrentUser()
                             }
                     }
                     else -> { }

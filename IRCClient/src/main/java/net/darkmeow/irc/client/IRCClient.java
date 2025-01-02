@@ -204,6 +204,17 @@ public class IRCClient {
                         attackIRC
                     )
                 )
+    /**
+     * 更新当前登录账号的密码
+     * 更新后客户端将登陆失效了需要重新登录
+     *
+     * @param password 新密码
+     */
+    public void changePassword(@NotNull String password) {
+        if (isConnected()) {
+            connection.sendPacket(
+                new C2SPacketChangePassword(password),
+                true
             );
         }
     }
