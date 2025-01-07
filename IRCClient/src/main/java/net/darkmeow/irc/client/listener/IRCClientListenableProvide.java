@@ -13,6 +13,6 @@ public interface IRCClientListenableProvide {
 
     void onMessageSystem(String message);
 
-    void onDisconnect(String message);
+    void onDisconnect(String message, boolean logout);
 
 }

@@ -12,11 +12,10 @@ import net.darkmeow.irc.network.PacketUtils
 import net.darkmeow.irc.network.packet.c2s.*
 import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
-import net.darkmeow.irc.utils.CTXUtils.clearCurrentUser
 import net.darkmeow.irc.utils.CTXUtils.getCurrentUser
+import net.darkmeow.irc.utils.CTXUtils.kick
 import net.darkmeow.irc.utils.CTXUtils.setCurrentUser
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
-import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
 import java.net.InetSocketAddress
 
 class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAdapter() {
@@ -107,8 +106,10 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                         channel.getCurrentUser() == packet.name
                                     }
                                     .onEach { (_, channel) ->
-                                        channel.sendPacket(S2CPacketUpdateMyInfo())
-                                        channel.clearCurrentUser()
+                                        channel.kick(
+                                            reason = "账号在另一设备登录",
+                                            logout = false
+                                        )
                                     }
 
                                 // 登录成功
@@ -262,9 +263,10 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                         manager.base.networkManager.clients.values
                             .filter { channel -> channel.getCurrentUser() == user }
                             .onEach { channel ->
-                                channel.sendPacket(S2CPacketMessageSystem("当前账号密码已修改 请重新登录"))
-                                channel.sendPacket(S2CPacketUpdateMyInfo())
-                                channel.clearCurrentUser()
+                                channel.kick(
+                                    reason = "当前账号密码已修改,请重新登录",
+                                    logout = true
+                                )
                             }
                     }
                     else -> { }

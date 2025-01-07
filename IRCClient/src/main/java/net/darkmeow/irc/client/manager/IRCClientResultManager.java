@@ -13,6 +13,7 @@ public class IRCClientResultManager {
     public Consumer<IRCResultSendMessageToPrivate> privateResultCallback;
 
     public String disconnectReason = "";
+    public boolean disconnectLogout = false;
 
     public void reset() {
         this.handShakeLatch = new CountDownLatch(1);

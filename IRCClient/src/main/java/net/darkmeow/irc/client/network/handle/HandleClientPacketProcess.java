@@ -102,6 +102,7 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
                 );
         } else if (packet instanceof S2CPacketDisconnect) {
             connection.base.resultManager.disconnectReason = ((S2CPacketDisconnect) packet).reason;
+            connection.base.resultManager.disconnectLogout = ((S2CPacketDisconnect) packet).logout;
             connection.disconnect();
         }
 
