@@ -13,10 +13,12 @@ import net.darkmeow.irc.network.packet.c2s.*
 import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
 import net.darkmeow.irc.utils.CTXUtils.getCurrentUser
+import net.darkmeow.irc.utils.CTXUtils.getUniqueId
 import net.darkmeow.irc.utils.CTXUtils.kick
 import net.darkmeow.irc.utils.CTXUtils.setCurrentUser
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import java.net.InetSocketAddress
+import java.util.UUID
 
 class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAdapter() {
 
@@ -34,8 +36,6 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
             ?.also { name ->
                 manager.logger.info("[-] $name")
 
-                val rank = manager.base.dataManager.getUserRank(name) ?: return@also
-
                 manager.clients.values
                     .filter { channel -> channel.hasAttr(AttributeKeys.CURRENT_USER) }
                     .onEach { channel ->
@@ -43,12 +43,8 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                              // 告诉客户端这个 id 已经离线了
                             channel.sendPacket(
                                 S2CPacketUpdateOtherInfo(
-                                    name,
-                                    UserInfoData(
-                                        false,
-                                        rank,
-                                        null
-                                    )
+                                    ctx.getUniqueId(),
+                                    null
                                 )
                             )
                         }
@@ -106,10 +102,12 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                         channel.getCurrentUser() == packet.name
                                     }
                                     .onEach { (_, channel) ->
+                                        channel.sendPacket(S2CPacketMessageSystem("账号在另一设备登录"))
+                                        /*
                                         channel.kick(
                                             reason = "账号在另一设备登录",
                                             logout = false
-                                        )
+                                        )*/
                                     }
 
                                 // 登录成功
@@ -139,8 +137,9 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                         val user = ctx.getCurrentUser() ?: return@packetHandle
 
                         val boardCastPacket = S2CPacketMessagePublic(
-                            user,
+                            ctx.getUniqueId(),
                             UserInfoData(
+                                user,
                                 manager.base.dataManager.getUserRank(user) ?: "",
                                 ctx.attr(AttributeKeys.GAME_INFO).get()
                             ),
@@ -150,7 +149,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                 .replace("\r", "")
                         )
 
-                        manager.logger.info("[${boardCastPacket.name}] ${boardCastPacket.message}")
+                        manager.logger.info("[${user}] ${boardCastPacket.message}")
 
                         manager.clients
                             .values
@@ -174,8 +173,9 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                             }
                             .also {
                                 val boardCastPacket = S2CPacketMessagePrivate(
-                                    user,
+                                    ctx.getUniqueId(),
                                     UserInfoData(
+                                        user,
                                         manager.base.dataManager.getUserRank(user) ?: "",
                                         ctx.attr(AttributeKeys.GAME_INFO).get()
                                     ),
@@ -208,8 +208,9 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                         ctx.attr(AttributeKeys.GAME_INFO).set(packet.info)
 
                         val boardCastPacket = S2CPacketUpdateOtherInfo(
-                            user,
+                            ctx.getUniqueId(),
                             UserInfoData(
+                                user,
                                 manager.base.dataManager.getUserRank(user) ?: return@packetHandle,
                                 packet.info
                             )
@@ -223,7 +224,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                     is C2SPacketQueryUsers -> {
                         if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
 
-                        val users = HashMap<String, UserInfoData>()
+                        val users = HashMap<UUID, UserInfoData>()
 
                         manager.clients.values
                             .filter { channel -> channel.hasAttr(AttributeKeys.CURRENT_USER) }
@@ -238,7 +239,8 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                 run queryUser@ {
                                     val name = channel.getCurrentUser() ?: return@queryUser
 
-                                    users[name] = UserInfoData(
+                                    users[channel.getUniqueId()] = UserInfoData(
+                                        name,
                                         manager.base.dataManager.getUserRank(name) ?: return@queryUser,
                                         channel.attr(AttributeKeys.GAME_INFO).get()
                                     )

@@ -4,27 +4,27 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class UserInfoData {
-    
-    public boolean online;
 
+    /**
+     * IRC 用户名
+     */
+    @NotNull
+    public String name;
+
+    /**
+     * IRC 头衔
+     */
     @NotNull
     public String rank;
 
     /**
-     * 游戏内信息
-     * 如果为空则表示玩家离线
+     * IRC 客户端游戏内信息/参数
      */
-    @Nullable
+    @NotNull
     public GameInfoData info;
 
-    public UserInfoData(boolean online, @NotNull String rank, @Nullable GameInfoData info) {
-        this.online = online;
-        this.rank = rank;
-        this.info = info;
-    }
-
-    public UserInfoData(@NotNull String rank, @Nullable GameInfoData info) {
-        this.online = true;
+    public UserInfoData(@NotNull String name, @NotNull String rank, @NotNull GameInfoData info) {
+        this.name = name;
         this.rank = rank;
         this.info = info;
     }
