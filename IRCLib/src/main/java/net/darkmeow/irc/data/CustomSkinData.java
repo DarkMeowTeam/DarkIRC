@@ -2,6 +2,8 @@ package net.darkmeow.irc.data;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 public class CustomSkinData {
     /**
      * 皮肤
@@ -32,4 +34,15 @@ public class CustomSkinData {
         this.cape = cape;
         this.isSlim = isSlim;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof CustomSkinData && obj.hashCode() == this.hashCode();
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.skin, this.cape, this.isSlim);
+    }
+
 }
