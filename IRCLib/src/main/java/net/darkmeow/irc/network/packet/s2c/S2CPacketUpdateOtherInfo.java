@@ -2,17 +2,25 @@ package net.darkmeow.irc.network.packet.s2c;
 
 import net.darkmeow.irc.data.UserInfoData;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.UUID;
 
 public class S2CPacketUpdateOtherInfo implements S2CPacket {
 
     @NotNull
-    public String name;
+    public UUID sessionUniqueId;
 
-    @NotNull
+    @Nullable
     public UserInfoData info;
 
-    public S2CPacketUpdateOtherInfo(@NotNull String name, @NotNull UserInfoData info) {
-        this.name = name;
+    /**
+     *
+     * @param sessionUniqueId 客户端唯一标识
+     * @param info 客户端数据 为空代表删除数据
+     */
+    public S2CPacketUpdateOtherInfo(@NotNull UUID sessionUniqueId, @Nullable UserInfoData info) {
+        this.sessionUniqueId = sessionUniqueId;
         this.info = info;
     }
 

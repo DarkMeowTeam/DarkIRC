@@ -23,17 +23,17 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object data) throws Exception {
-        final S2CPacket packet = PacketUtils.resolveServerPacket(JsonParser.parseString(data.toString()).getAsJsonObject());
+        final S2CPacket serverPacket = PacketUtils.resolveServerPacket(JsonParser.parseString(data.toString()).getAsJsonObject());
 
-        if (packet instanceof S2CPacketHandShake) {
+        if (serverPacket instanceof S2CPacketHandShake) {
             // 握手包 客户端主动发 服务端回应
             connection.base.resultManager.handShakeLatch.countDown();
-        } else if (packet instanceof S2CPacketKeepAlive) {
+        } else if (serverPacket instanceof S2CPacketKeepAlive) {
             // 心跳包 服务端发送 客户端回应
-            connection.sendPacket(new C2SPacketKeepAlive(((S2CPacketKeepAlive) packet).id), true);
-        } else if (packet instanceof S2CPacketLoginResult) {
+            connection.sendPacket(new C2SPacketKeepAlive(((S2CPacketKeepAlive) serverPacket).id), true);
+        } else if (serverPacket instanceof S2CPacketLoginResult) {
             if (connection.base.resultManager.loginResultCallback != null) {
-                final S2CPacketLoginResult.LoginResult result = ((S2CPacketLoginResult) packet).result;
+                final S2CPacketLoginResult.LoginResult result = ((S2CPacketLoginResult) serverPacket).result;
                 if (result == S2CPacketLoginResult.LoginResult.INVALID_CLIENT) {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.INVALID_CLIENT);
                 } else if (result == S2CPacketLoginResult.LoginResult.OUTDATED_CLIENT_VERSION) {
@@ -45,64 +45,72 @@ public class HandleClientPacketProcess extends ChannelHandlerAdapter {
                     connection.sendPacket(new C2SPacketQueryUsers(false), true);
                 }
             }
-        } else if (packet instanceof S2CPacketUpdateMyInfo) {
-            connection.base.name = ((S2CPacketUpdateMyInfo) packet).name;
-            connection.base.rank = ((S2CPacketUpdateMyInfo) packet).rank;
-            connection.base.premium =  EnumPremium.getEnumPremiumFromPacket(((S2CPacketUpdateMyInfo) packet).premium);
+        } else if (serverPacket instanceof S2CPacketUpdateMyInfo) {
+            connection.base.name = ((S2CPacketUpdateMyInfo) serverPacket).name;
+            connection.base.rank = ((S2CPacketUpdateMyInfo) serverPacket).rank;
+            connection.base.premium =  EnumPremium.getEnumPremiumFromPacket(((S2CPacketUpdateMyInfo) serverPacket).premium);
 
             connection.base.listenable.onUpdateUserInfo(connection.base.name, connection.base.rank, connection.base.premium);
-        } else if (packet instanceof S2CPacketMessagePublic) {
-            final IRCUserInfo info = new IRCUserInfo(
-                ((S2CPacketMessagePublic) packet).name,
-                ((S2CPacketMessagePublic) packet).info
+        } else if (serverPacket instanceof S2CPacketMessagePublic) {
+            final S2CPacketMessagePublic packet = (S2CPacketMessagePublic) serverPacket;
+
+            final IRCUserInfo info = connection.base.userManager.users.computeIfAbsent(
+                packet.sessionUniqueId,
+                IRCUserInfo::new
             );
-            connection.base.listenable.onMessagePublic(
-                info,
-                ((S2CPacketMessagePublic) packet).message
+            info.update(packet.info);
+
+            connection.base.listenable.onMessagePublic(info, packet.message);
+        } else if (serverPacket instanceof S2CPacketMessagePrivate) {
+            final S2CPacketMessagePrivate packet = (S2CPacketMessagePrivate) serverPacket;
+
+            final IRCUserInfo info = connection.base.userManager.users.computeIfAbsent(
+                packet.sessionUniqueId,
+                IRCUserInfo::new
             );
-            connection.base.userManager.users.put(((S2CPacketMessagePublic) packet).name, info);
-        } else if (packet instanceof S2CPacketMessagePrivate) {
-            final IRCUserInfo info = new IRCUserInfo(
-                ((S2CPacketMessagePrivate) packet).name,
-                ((S2CPacketMessagePrivate) packet).info
-            );
-            connection.base.listenable.onMessagePrivate(
-                info,
-                ((S2CPacketMessagePrivate) packet).message
-            );
-            connection.base.userManager.users.put(((S2CPacketMessagePrivate) packet).name, info);
-        } else if (packet instanceof S2CPacketMessageSystem) {
-            connection.base.listenable.onMessageSystem(((S2CPacketMessageSystem) packet).message);
-        } else if (packet instanceof S2CPacketMessagePrivateResult) {
+            info.update(packet.info);
+
+            connection.base.listenable.onMessagePrivate(info, packet.message);
+        } else if (serverPacket instanceof S2CPacketMessageSystem) {
+            connection.base.listenable.onMessageSystem(((S2CPacketMessageSystem) serverPacket).message);
+        } else if (serverPacket instanceof S2CPacketMessagePrivateResult) {
             if (connection.base.resultManager.privateResultCallback != null) {
                 connection.base.resultManager.privateResultCallback.accept(
                     new IRCResultSendMessageToPrivate(
-                        ((S2CPacketMessagePrivateResult) packet).success,
-                        ((S2CPacketMessagePrivateResult) packet).name,
-                        ((S2CPacketMessagePrivateResult) packet).message
+                        ((S2CPacketMessagePrivateResult) serverPacket).success,
+                        ((S2CPacketMessagePrivateResult) serverPacket).name,
+                        ((S2CPacketMessagePrivateResult) serverPacket).message
                     )
                 );
             }
-        } else if (packet instanceof S2CPacketUpdateOtherInfo) {
-            if (!((S2CPacketUpdateOtherInfo) packet).info.online) {
-                connection.base.userManager.users.remove(((S2CPacketUpdateOtherInfo) packet).name);
+        } else if (serverPacket instanceof S2CPacketUpdateOtherInfo) {
+            final S2CPacketUpdateOtherInfo packet = (S2CPacketUpdateOtherInfo) serverPacket;
+
+            if (packet.info == null) {
+                connection.base.userManager.users.remove(((S2CPacketUpdateOtherInfo) serverPacket).sessionUniqueId);
             } else {
-                connection.base.userManager.users.put(((S2CPacketUpdateOtherInfo) packet).name, new IRCUserInfo(
-                    ((S2CPacketUpdateOtherInfo) packet).name,
-                    ((S2CPacketUpdateOtherInfo) packet).info
-                ));
+                connection.base.userManager.users.computeIfAbsent(
+                    ((S2CPacketUpdateOtherInfo) serverPacket).sessionUniqueId,
+                    IRCUserInfo::new
+                ).update(packet.info);
             }
-        } else if (packet instanceof S2CPacketUpdateMultiUserInfo) {
-            if (((S2CPacketUpdateMultiUserInfo) packet).overrideAll) {
+        } else if (serverPacket instanceof S2CPacketUpdateMultiUserInfo) {
+            final S2CPacketUpdateMultiUserInfo packet = (S2CPacketUpdateMultiUserInfo) serverPacket;
+
+            if (packet.overrideAll) {
                 connection.base.userManager.users.clear();
             }
-            ((S2CPacketUpdateMultiUserInfo) packet).users
-                .forEach((key, value) ->
-                    connection.base.userManager.users.put(key, new IRCUserInfo(key, value))
-                );
-        } else if (packet instanceof S2CPacketDisconnect) {
-            connection.base.resultManager.disconnectReason = ((S2CPacketDisconnect) packet).reason;
-            connection.base.resultManager.disconnectLogout = ((S2CPacketDisconnect) packet).logout;
+
+            packet.users.forEach((uuid, info) ->
+                connection.base.userManager.users.computeIfAbsent(
+                    uuid,
+                    IRCUserInfo::new
+                ).update(info)
+            );
+        } else if (serverPacket instanceof S2CPacketDisconnect) {
+            final S2CPacketDisconnect packet = (S2CPacketDisconnect) serverPacket;
+            connection.base.resultManager.disconnectReason = packet.reason;
+            connection.base.resultManager.disconnectLogout = packet.logout;
             connection.disconnect();
         }
 
