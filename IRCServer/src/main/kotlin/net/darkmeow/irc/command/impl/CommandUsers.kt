@@ -6,6 +6,7 @@ import net.darkmeow.irc.command.CommandManager
 import net.darkmeow.irc.network.packet.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMyInfo
 import net.darkmeow.irc.utils.CTXUtils.getCurrentUser
+import net.darkmeow.irc.utils.CTXUtils.getUniqueId
 import net.darkmeow.irc.utils.CTXUtils.kick
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
@@ -81,7 +82,8 @@ class CommandUsers: Command("Users") {
                                 S2CPacketUpdateMyInfo(
                                     args[1],
                                     args[2],
-                                    premium
+                                    premium,
+                                    channel.getUniqueId()
                                 )
                             )
                         }
@@ -115,7 +117,8 @@ class CommandUsers: Command("Users") {
                                 S2CPacketUpdateMyInfo(
                                     args[1],
                                     rank,
-                                    S2CPacketUpdateMyInfo.Premium.valueOf(args[2])
+                                    S2CPacketUpdateMyInfo.Premium.valueOf(args[2]),
+                                    channel.getUniqueId()
                                 )
                             )
                         }

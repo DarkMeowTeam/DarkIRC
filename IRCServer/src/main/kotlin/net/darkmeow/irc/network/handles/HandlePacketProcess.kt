@@ -93,7 +93,8 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                                     S2CPacketUpdateMyInfo(
                                         packet.name,
                                         manager.base.dataManager.getUserRank(packet.name) ?: "",
-                                        manager.base.dataManager.getUserPremium(packet.name)
+                                        manager.base.dataManager.getUserPremium(packet.name),
+                                        ctx.getUniqueId()
                                     )
                                 )
 
