@@ -3,11 +3,10 @@ package net.darkmeow.irc.command.impl
 import io.netty.channel.ChannelHandlerContext
 import net.darkmeow.irc.command.Command
 import net.darkmeow.irc.command.CommandManager
-import net.darkmeow.irc.network.AttributeKeys
 import net.darkmeow.irc.network.packet.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMyInfo
-import net.darkmeow.irc.utils.CTXUtils.clearCurrentUser
 import net.darkmeow.irc.utils.CTXUtils.getCurrentUser
+import net.darkmeow.irc.utils.CTXUtils.kick
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
 import net.darkmeow.irc.utils.DataManagerUtils.getCTXPremium
@@ -46,8 +45,10 @@ class CommandUsers: Command("Users") {
                             channel.getCurrentUser() == args[1]
                         }
                         .onEach { (_, channel) ->
-                            channel.sendPacket(S2CPacketUpdateMyInfo())
-                            channel.clearCurrentUser()
+                            channel.kick(
+                                reason = "账号被管理员删除",
+                                logout = true
+                            )
                         }
 
                     manager.base.dataManager.deleteUser(args[1])

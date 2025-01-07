@@ -2,7 +2,6 @@ package net.darkmeow.irc.command
 
 import io.netty.channel.ChannelHandlerContext
 import net.darkmeow.irc.IRCServer
-import net.darkmeow.irc.command.impl.CommandChangePassword
 import net.darkmeow.irc.command.impl.CommandClients
 import net.darkmeow.irc.command.impl.CommandPing
 import net.darkmeow.irc.command.impl.CommandUsers
@@ -15,8 +14,7 @@ class CommandManager(
     val commands = arrayOf(
         CommandPing(),
         CommandUsers(),
-        CommandClients(),
-        CommandChangePassword()
+        CommandClients()
     )
 
     fun handle(ctx: ChannelHandlerContext, root: String, args: MutableList<String>) = commands
