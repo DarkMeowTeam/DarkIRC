@@ -13,6 +13,7 @@ import net.darkmeow.irc.network.packet.c2s.*
 import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
 import net.darkmeow.irc.utils.CTXUtils.getCurrentUser
+import net.darkmeow.irc.utils.CTXUtils.getDevice
 import net.darkmeow.irc.utils.CTXUtils.getUniqueId
 import net.darkmeow.irc.utils.CTXUtils.kick
 import net.darkmeow.irc.utils.CTXUtils.setCurrentUser
@@ -98,16 +99,18 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
 
                                 // 登出其他客户端
                                 manager.clients
-                                    .filter { (_, channel) ->
+                                    .takeIf { !manager.base.configManager.configs.userLimit.allowMultiDeviceLogin }
+                                    ?.filter { (_, channel) ->
                                         channel.getCurrentUser() == packet.name
                                     }
-                                    .onEach { (_, channel) ->
-                                        channel.sendPacket(S2CPacketMessageSystem("账号在另一设备登录"))
-                                        /*
+                                    ?.filter { (_, channel) ->
+                                        channel.getDevice() != ctx.getDevice()
+                                    }
+                                    ?.onEach { (_, channel) ->
                                         channel.kick(
                                             reason = "账号在另一设备登录",
                                             logout = false
-                                        )*/
+                                        )
                                     }
 
                                 // 登录成功

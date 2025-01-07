@@ -12,6 +12,7 @@ object CTXUtils {
     fun ChannelHandlerContext.getUniqueId() = this.channel().getUniqueId()
     fun ChannelHandlerContext.getCurrentUser() = this.channel().getCurrentUser()
     fun ChannelHandlerContext.setCurrentUser(user: String) = this.channel().setCurrentUser(user)
+    fun ChannelHandlerContext.getDevice() = this.channel().getDevice()
 
     /**
      * 获取连接唯一标识
@@ -32,6 +33,12 @@ object CTXUtils {
     fun Channel.setCurrentUser(user: String) = this
         .attr(AttributeKeys.CURRENT_USER)
         .set(user)
+
+    fun Channel.getDevice() = this
+        .takeIf { hasAttr(AttributeKeys.DEVICE) }
+        ?.attr(AttributeKeys.DEVICE)
+        ?.get()
+        ?: ""
 
     /**
      * 踢出当前客户端
