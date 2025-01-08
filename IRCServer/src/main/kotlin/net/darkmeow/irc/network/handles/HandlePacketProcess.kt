@@ -123,11 +123,10 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                 ctx.setCurrentUser(packet.name)
                             }
 
-                            val address = (ctx.channel()
-                                .remoteAddress() as? InetSocketAddress)?.let { "${it.address.hostAddress}:${it.port}" }
-                                ?: "unknown"
+                            ctx.channel().also { channel ->
+                                manager.logger.info("[+] ${packet.name}  (${channel.attr(AttributeKeys.ADDRESS).get()} ${channel.attr(AttributeKeys.DEVICE).get()})${if(packet.notOnline) " (仅验证密码)" else ""}")
+                            }
 
-                            manager.logger.info("[+] ${packet.name}  ($address ${ctx.attr(AttributeKeys.DEVICE).get()})${if(packet.notOnline) " (仅验证密码)" else ""}")
 
                             throw ExceptionLoginResult(LoginResult.SUCCESS)
                         }
