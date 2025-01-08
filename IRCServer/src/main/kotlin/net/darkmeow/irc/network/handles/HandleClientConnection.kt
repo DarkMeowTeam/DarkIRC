@@ -1,12 +1,12 @@
 package net.darkmeow.irc.network.handles
 
-import io.netty.channel.ChannelHandlerAdapter
 import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 import net.darkmeow.irc.network.AttributeKeys
 import net.darkmeow.irc.network.NetworkManager
 import java.util.*
 
-class HandleClientConnection(private val manager: NetworkManager): ChannelHandlerAdapter() {
+class HandleClientConnection(private val manager: NetworkManager): ChannelInboundHandlerAdapter() {
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         val channel = ctx.channel()

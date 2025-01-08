@@ -1,8 +1,8 @@
 package net.darkmeow.irc.client.network.handle;
 
 import com.google.gson.JsonParser;
-import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.data.IRCUserInfo;
 import net.darkmeow.irc.client.enums.EnumPremium;
@@ -13,7 +13,7 @@ import net.darkmeow.irc.network.packet.c2s.C2SPacketKeepAlive;
 import net.darkmeow.irc.network.packet.c2s.C2SPacketQueryUsers;
 import net.darkmeow.irc.network.packet.s2c.*;
 
-public class HandleClientPacketProcess extends ChannelHandlerAdapter {
+public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
 
     public final IRCClientConnection connection;
 

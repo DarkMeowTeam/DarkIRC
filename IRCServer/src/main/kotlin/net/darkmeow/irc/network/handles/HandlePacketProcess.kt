@@ -1,8 +1,8 @@
 package net.darkmeow.irc.network.handles
 
 import com.google.gson.JsonParser
-import io.netty.channel.ChannelHandlerAdapter
 import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 import net.darkmeow.irc.IRCLib
 import net.darkmeow.irc.data.GameInfoData
 import net.darkmeow.irc.data.UserInfoData
@@ -22,7 +22,7 @@ import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
 import java.net.InetSocketAddress
 import java.util.UUID
 
-class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAdapter() {
+class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHandlerAdapter() {
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         ctx.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
@@ -57,7 +57,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, data: Any) {
-        JsonParser.parseString(data as String).asJsonObject.also { obj ->
+         JsonParser.parseString(data as? String)?.asJsonObject?.also { obj ->
             PacketUtils.resolveClientPacket(obj).also packetHandle@ { packet ->
                 when (packet) {
                     is C2SPacketHandShake -> {
