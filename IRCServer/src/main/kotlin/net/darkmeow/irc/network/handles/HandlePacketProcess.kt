@@ -18,6 +18,7 @@ import net.darkmeow.irc.utils.CTXUtils.getUniqueId
 import net.darkmeow.irc.utils.CTXUtils.kick
 import net.darkmeow.irc.utils.CTXUtils.setCurrentUser
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
+import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
 import java.net.InetSocketAddress
 import java.util.UUID
 
@@ -63,6 +64,10 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelHandlerAd
                         ctx.attr(AttributeKeys.DEVICE).set(packet.deviceId)
 
                         ctx.sendPacket(S2CPacketHandShake(IRCLib.PROTOCOL_VERSION))
+
+                        if (packet.protocolVersion < IRCLib.PROTOCOL_VERSION) {
+                            ctx.sendSystemMessage("您的 IRC 客户端协议版本已过时, 可能会存在一些问题.")
+                        }
                     }
                     is C2SPacketKeepAlive -> ctx.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
                     is C2SPacketLogin -> run {
