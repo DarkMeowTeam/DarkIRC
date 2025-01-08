@@ -161,7 +161,16 @@ class CommandUsers: Command("Users") {
                     ctx.sendSystemMessage("用户 ${args[1]} 不存在")
                 }
             }
-            else -> ctx.sendCommandUsage("users", "<create/delete/rank/premium/kick> <...>")
+            "list" -> {
+                if (manager.base.dataManager.getCTXPremium(ctx).ordinal < S2CPacketUpdateMyInfo.Premium.ADMIN.ordinal) {
+                    ctx.sendMessageError("当前登录用户无权限执行该命令")
+                    return
+                }
+                manager.base.dataManager.getUsers().also { users ->
+                    ctx.sendSystemMessage("用户列表(${users.size}): ${users.joinToString(", ")}")
+                }
+            }
+            else -> ctx.sendCommandUsage("users", "<create/delete/rank/premium/kick/list> <...>")
         }
     }
 }
