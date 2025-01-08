@@ -1,6 +1,6 @@
 package net.darkmeow.irc.command
 
-import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.Channel
 import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.command.impl.CommandClients
 import net.darkmeow.irc.command.impl.CommandPing
@@ -17,7 +17,7 @@ class CommandManager(
         CommandClients()
     )
 
-    fun handle(ctx: ChannelHandlerContext, root: String, args: MutableList<String>) = commands
+    fun handle(ctx: Channel, root: String, args: MutableList<String>) = commands
         .firstOrNull { it.root.any { r -> r.equals(other = root, ignoreCase = true) }}
         ?.runCatching { handle(this@CommandManager, ctx, args) }
         ?.onFailure { t ->
