@@ -17,37 +17,37 @@ class DataManager(
             .also {
                 if (!it.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='clients';").next()) {
                     connection.createStatement().executeUpdate(
-                        arrayOf(
-                            "CREATE TABLE IF NOT EXISTS clients (",
-                            "id TEXT PRIMARY KEY,",
-                            "hash TEXT NOT NULL,",
-                            "allow_login_min_version INTEGER",
-                            ");"
-                        ).joinToString("")
+                        """
+                            CREATE TABLE IF NOT EXISTS clients (
+                                id TEXT PRIMARY KEY,
+                                hash TEXT NOT NULL,
+                                allow_login_min_version INTEGER
+                            );
+                        """.trimIndent()
                     )
                     connection.createStatement().executeUpdate(
-                        arrayOf(
-                            "INSERT INTO clients (id, hash, allow_login_min_version) ",
-                            "VALUES ('DarkMeow', '114514', 0);"
-                        ).joinToString("")
+                        """
+                            INSERT INTO clients (id, hash, allow_login_min_version) 
+                            VALUES ('DarkMeow', '114514', 0);
+                        """.trimIndent()
                     )
                 }
                 if (!it.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='users';").next()) {
                     connection.createStatement().executeUpdate(
-                        arrayOf(
-                            "CREATE TABLE IF NOT EXISTS users (",
-                            "name TEXT PRIMARY KEY,",
-                            "password TEXT NOT NULL,",
-                            "rank TEXT NOT NULL,", // 头衔
-                            "premium INTEGER DEFAULT 0", // 0 -> 普通入 1 -> 管理入
-                            ");"
-                        ).joinToString("")
+                        """
+                            CREATE TABLE IF NOT EXISTS users (
+                                name TEXT PRIMARY KEY,
+                                password TEXT NOT NULL,
+                                rank TEXT NOT NULL, -- 头衔
+                                premium INTEGER DEFAULT 0 -- 0 -> 普通入 1 -> 管理入
+                            );
+                        """.trimIndent()
                     )
                     connection.createStatement().executeUpdate(
-                        arrayOf(
-                            "INSERT INTO users (name, password, rank, premium) ",
-                            "VALUES ('Administrator', '123456', '管理员', ${Premium.SUPER_ADMIN.ordinal});"
-                        ).joinToString("")
+                        """
+                            INSERT INTO users (name, password, rank, premium) 
+                            VALUES ('Administrator', '123456', '管理员', ${Premium.SUPER_ADMIN.ordinal});
+                        """.trimIndent()
                     )
                 }
             }
@@ -80,10 +80,10 @@ class DataManager(
 
     fun createClient(id: String, hash: String, allowLoginMinVersion: Int): Boolean = connection
         .prepareStatement(
-            arrayOf(
-                "INSERT INTO clients (id, hash, allow_login_min_version) ",
-                "VALUES (?, ?, ?);"
-            ).joinToString("")
+            """
+                INSERT INTO clients (id, hash, allow_login_min_version) 
+                VALUES (?, ?, ?);
+            """.trimIndent()
         ).apply {
             setString(1, id)
             setString(2, hash)
@@ -92,21 +92,21 @@ class DataManager(
 
     fun deleteClient(id: String): Boolean =
         connection.prepareStatement(
-            arrayOf(
-                "DELETE FROM clients ",
-                "WHERE id = ?;"
-            ).joinToString("")
+            """
+                DELETE FROM clients 
+                WHERE id = ?;
+            """.trimIndent()
         ).apply {
             setString(1, id)
         }.executeUpdate() > 0
 
     fun setClientMinVersion(id: String, newMinVersion: Int): Boolean = connection
         .prepareStatement(
-            arrayOf(
-                "UPDATE clients  ",
-                "SET allow_login_min_version = ? ",
-                "WHERE id = ?;"
-            ).joinToString("")
+            """
+                UPDATE clients 
+                SET allow_login_min_version = ? 
+                WHERE id = ?;
+            """.trimIndent()
         ).apply {
             setInt(1, newMinVersion)
             setString(2, id)
@@ -131,10 +131,10 @@ class DataManager(
 
     fun createUser(name: String, password: String, rank: String, premium: Premium): Boolean = connection
         .prepareStatement(
-            arrayOf(
-                "INSERT INTO users (name, password, rank, premium) ",
-                "VALUES (?, ?, ?, ?);"
-            ).joinToString("")
+            """
+                INSERT INTO users (name, password, rank, premium) 
+                VALUES (?, ?, ?, ?);
+            """.trimIndent()
         ).apply {
             setString(1, name)
             setString(2, password)
@@ -145,10 +145,10 @@ class DataManager(
 
     fun deleteUser(name: String): Boolean = connection
         .prepareStatement(
-            arrayOf(
-                "DELETE FROM users ",
-                "WHERE name = ?;"
-            ).joinToString("")
+            """
+                DELETE FROM users 
+                WHERE name = ?;
+            """.trimIndent()
         ).apply {
             setString(1, name)
         }
