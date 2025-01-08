@@ -129,6 +129,17 @@ class DataManager(
         }
         .executeUpdate() > 0
 
+    fun getUsers(): MutableList<String> = mutableListOf<String>()
+        .apply {
+            connection.prepareStatement("SELECT name FROM users;")
+                .executeQuery()
+                .use { resultSet ->
+                    while (resultSet.next()) {
+                        add(resultSet.getString("name"))
+                    }
+                }
+        }
+
     fun createUser(name: String, password: String, rank: String, premium: Premium): Boolean = connection
         .prepareStatement(
             """
