@@ -6,7 +6,10 @@ class Config {
      * 服务器监听端口
      */
     var port: Int = 8080
-
+    /**
+     * 是否启用 Proxy Protocol
+     */
+    var proxyProtocol: Boolean = false
     /**
      * 服务器连接密钥
      */
