@@ -100,6 +100,17 @@ class DataManager(
             setString(1, id)
         }.executeUpdate() > 0
 
+    fun getClients(): MutableList<String> = mutableListOf<String>()
+        .apply {
+            connection.prepareStatement("SELECT id FROM clients;")
+                .executeQuery()
+                .use { resultSet ->
+                    while (resultSet.next()) {
+                        add(resultSet.getString("id"))
+                    }
+                }
+        }
+
     fun setClientMinVersion(id: String, newMinVersion: Int): Boolean = connection
         .prepareStatement(
             """

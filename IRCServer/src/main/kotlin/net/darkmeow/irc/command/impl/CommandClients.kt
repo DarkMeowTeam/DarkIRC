@@ -57,7 +57,16 @@ class CommandClients: Command("Clients") {
                     ctx.sendSystemMessage("客户端 ${args[1]} 不存在")
                 }
             }
-            else -> ctx.sendCommandUsage("clients", "<create/delete/version> <...>")
+            "list" -> {
+                if (manager.base.dataManager.getCTXPremium(ctx) != S2CPacketUpdateMyInfo.Premium.SUPER_ADMIN) {
+                    ctx.sendMessageError("当前登录用户无权限执行该命令")
+                    return
+                }
+                manager.base.dataManager.getClients().also { users ->
+                    ctx.sendSystemMessage("客户端列表(${users.size}): ${users.joinToString(", ")}")
+                }
+            }
+            else -> ctx.sendCommandUsage("clients", "<create/delete/version/list> <...>")
         }
 
     }
