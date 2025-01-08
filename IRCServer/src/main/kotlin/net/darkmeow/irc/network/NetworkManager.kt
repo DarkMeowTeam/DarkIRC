@@ -7,6 +7,8 @@ import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.handler.codec.haproxy.HAProxyMessageDecoder
+import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol
 import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.network.handles.HandleClientConnection
 import net.darkmeow.irc.network.handles.HandleClientEncryption
@@ -51,6 +53,11 @@ class NetworkManager(
                     .channel(NioServerSocketChannel::class.java)
                     .childHandler(object : ChannelInitializer<SocketChannel>() {
                         override fun initChannel(ch: SocketChannel) {
+                            // Network | Proxy Protocol
+                            if (base.configManager.configs.proxyProtocol) {
+                                ch.pipeline().addLast("ProxyProtocol", HAProxyMessageDecoder())
+                            }
+
                             // Base | 客户端连接状态距离
                             ch.pipeline().addLast("BaseConnection", HandleClientConnection(this@NetworkManager))
                             // Base | 客户端传输加密
