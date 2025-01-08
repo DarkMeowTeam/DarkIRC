@@ -12,40 +12,42 @@ import net.darkmeow.irc.network.PacketUtils
 import net.darkmeow.irc.network.packet.c2s.*
 import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
-import net.darkmeow.irc.utils.CTXUtils.getCurrentUser
-import net.darkmeow.irc.utils.CTXUtils.getDevice
-import net.darkmeow.irc.utils.CTXUtils.getUniqueId
-import net.darkmeow.irc.utils.CTXUtils.kick
-import net.darkmeow.irc.utils.CTXUtils.setCurrentUser
+import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentUser
+import net.darkmeow.irc.utils.ChannelAttrUtils.getDevice
+import net.darkmeow.irc.utils.ChannelAttrUtils.getUniqueId
+import net.darkmeow.irc.utils.ChannelAttrUtils.kick
+import net.darkmeow.irc.utils.ChannelAttrUtils.setCurrentUser
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
-import java.net.InetSocketAddress
 import java.util.UUID
 
 class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHandlerAdapter() {
 
     override fun channelActive(ctx: ChannelHandlerContext) {
-        ctx.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
-        ctx.attr(AttributeKeys.GAME_INFO).set(GameInfoData.EMPTY)
+        ctx.channel().apply {
+            attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
+            attr(AttributeKeys.GAME_INFO).set(GameInfoData.EMPTY)
+        }
 
         super.channelActive(ctx)
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        ctx
+        ctx.channel()
             .takeIf { it.hasAttr(AttributeKeys.CURRENT_USER) }
-            ?.attr(AttributeKeys.CURRENT_USER)?.get()
+            ?.attr(AttributeKeys.CURRENT_USER)
+            ?.get()
             ?.also { name ->
                 manager.logger.info("[-] $name")
 
                 manager.clients.values
-                    .filter { channel -> channel.hasAttr(AttributeKeys.CURRENT_USER) }
-                    .onEach { channel ->
+                    .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
+                    .onEach { otherChannel ->
                         run updateUser@ {
                              // 告诉客户端这个 id 已经离线了
-                            channel.sendPacket(
+                            otherChannel.sendPacket(
                                 S2CPacketUpdateOtherInfo(
-                                    ctx.getUniqueId(),
+                                    ctx.channel().getUniqueId(),
                                     null
                                 )
                             )
@@ -59,22 +61,24 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
     override fun channelRead(ctx: ChannelHandlerContext, data: Any) {
          JsonParser.parseString(data as? String)?.asJsonObject?.also { obj ->
             PacketUtils.resolveClientPacket(obj).also packetHandle@ { packet ->
+                val channel = ctx.channel()
+
                 when (packet) {
                     is C2SPacketHandShake -> {
-                        ctx.attr(AttributeKeys.DEVICE).set(packet.deviceId)
+                        channel.attr(AttributeKeys.DEVICE).set(packet.deviceId)
 
-                        ctx.sendPacket(S2CPacketHandShake(IRCLib.PROTOCOL_VERSION))
+                        channel.sendPacket(S2CPacketHandShake(IRCLib.PROTOCOL_VERSION))
 
                         if (packet.protocolVersion < IRCLib.PROTOCOL_VERSION) {
-                            ctx.sendSystemMessage("您的 IRC 客户端协议版本已过时, 可能会存在一些问题.")
+                            channel.sendSystemMessage("您的 IRC 客户端协议版本已过时, 可能会存在一些问题.")
                         }
                     }
-                    is C2SPacketKeepAlive -> ctx.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
+                    is C2SPacketKeepAlive -> channel.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
                     is C2SPacketLogin -> run {
                         class ExceptionLoginResult(val result: LoginResult): Exception()
 
                         runCatching {
-                            if (!ctx.hasAttr(AttributeKeys.DEVICE)) {
+                            if (!channel.hasAttr(AttributeKeys.DEVICE)) {
                                 throw ExceptionLoginResult(LoginResult.OUTDATED_CLIENT_VERSION)
                             }
 
@@ -94,62 +98,59 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
 
                             if (!packet.notOnline) {
                                 // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
-                                ctx.sendPacket(
+                                channel.sendPacket(
                                     S2CPacketUpdateMyInfo(
                                         packet.name,
                                         manager.base.dataManager.getUserRank(packet.name) ?: "",
                                         manager.base.dataManager.getUserPremium(packet.name),
-                                        ctx.getUniqueId()
+                                        channel.getUniqueId()
                                     )
                                 )
 
                                 // 登出其他客户端
                                 manager.clients
                                     .takeIf { !manager.base.configManager.configs.userLimit.allowMultiDeviceLogin }
-                                    ?.filter { (_, channel) ->
-                                        channel.getCurrentUser() == packet.name
+                                    ?.filter { (_, otherChannel) ->
+                                        otherChannel.getCurrentUser() == packet.name
                                     }
-                                    ?.filter { (_, channel) ->
-                                        channel.getDevice() != ctx.getDevice()
+                                    ?.filter { (_, otherChannel) ->
+                                        otherChannel.getDevice() != channel.getDevice()
                                     }
-                                    ?.onEach { (_, channel) ->
-                                        channel.kick(
+                                    ?.onEach { (_, otherChannel) ->
+                                        otherChannel.kick(
                                             reason = "账号在另一设备登录",
                                             logout = false
                                         )
                                     }
 
                                 // 登录成功
-                                ctx.setCurrentUser(packet.name)
+                                channel.setCurrentUser(packet.name)
                             }
 
-                            ctx.channel().also { channel ->
-                                manager.logger.info("[+] ${packet.name}  (${channel.attr(AttributeKeys.ADDRESS).get()} ${channel.attr(AttributeKeys.DEVICE).get()})${if(packet.notOnline) " (仅验证密码)" else ""}")
-                            }
-
+                            manager.logger.info("[+] ${packet.name}  (${channel.attr(AttributeKeys.ADDRESS).get()} ${channel.attr(AttributeKeys.DEVICE).get()})${if(packet.notOnline) " (仅验证密码)" else ""}")
 
                             throw ExceptionLoginResult(LoginResult.SUCCESS)
                         }
                             .onFailure { t ->
                                 when (t) {
-                                    is ExceptionLoginResult -> ctx.sendPacket(
+                                    is ExceptionLoginResult -> channel.sendPacket(
                                         S2CPacketLoginResult(t.result)
                                     )
-                                    else -> ctx.sendPacket(
+                                    else -> channel.sendPacket(
                                         S2CPacketMessageSystem("系统错误: ${t.message}")
                                     )
                                 }
                             }
                     }
                     is C2SPacketChatPublic -> {
-                        val user = ctx.getCurrentUser() ?: return@packetHandle
+                        val user = channel.getCurrentUser() ?: return@packetHandle
 
                         val boardCastPacket = S2CPacketMessagePublic(
-                            ctx.getUniqueId(),
+                            channel.getUniqueId(),
                             UserInfoData(
                                 user,
                                 manager.base.dataManager.getUserRank(user) ?: "",
-                                ctx.attr(AttributeKeys.GAME_INFO).get()
+                                channel.attr(AttributeKeys.GAME_INFO).get()
                             ),
                             packet.message
                                 .replace("&", "§")
@@ -161,31 +162,31 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
 
                         manager.clients
                             .values
-                            .filter { channel -> channel.hasAttr(AttributeKeys.CURRENT_USER) }
-                            .onEach { channel ->
+                            .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
+                            .onEach { otherChannel ->
                                 // 同时也会发送给发送者客户端上 这不是bug 而是刻意这么设计的
-                                channel.sendPacket(boardCastPacket)
+                                otherChannel.sendPacket(boardCastPacket)
                             }
                     }
                     is C2SPacketChatPrivate -> {
-                        val user = ctx.getCurrentUser() ?: return@packetHandle
+                        val user = channel.getCurrentUser() ?: return@packetHandle
 
                         manager.clients.values
-                            .filter { channel -> channel.getCurrentUser() == packet.user }
+                            .filter { otherChannel -> otherChannel.getCurrentUser() == packet.user }
                             .also {
                                 // 接收方不在线
                                 if (it.isEmpty()) {
-                                    ctx.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message, false))
+                                    channel.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message, false))
                                     return@packetHandle
                                 }
                             }
                             .also {
                                 val boardCastPacket = S2CPacketMessagePrivate(
-                                    ctx.getUniqueId(),
+                                    channel.getUniqueId(),
                                     UserInfoData(
                                         user,
                                         manager.base.dataManager.getUserRank(user) ?: "",
-                                        ctx.attr(AttributeKeys.GAME_INFO).get()
+                                        channel.attr(AttributeKeys.GAME_INFO).get()
                                     ),
                                     packet.message
                                         .replace("&", "§")
@@ -193,30 +194,30 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                         .replace("\r", "")
                                 )
 
-                                ctx.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message, true))
+                                channel.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message, true))
                                 // 兼容多客户端登录 (适用于 同一设备多开客户端)
-                                it.onEach { channel ->
-                                    channel.sendPacket(boardCastPacket)
+                                it.onEach { otherChannel ->
+                                    otherChannel.sendPacket(boardCastPacket)
                                 }
                             }
                     }
                     is C2SPacketCommand -> {
-                        val user = ctx.getCurrentUser() ?: return@packetHandle
+                        val user = channel.getCurrentUser() ?: return@packetHandle
 
                         manager.logger.info("[${user}] 使用指令: ${packet.root} ${packet.args.joinToString(" ")}")
-                        manager.base.commandManager.handle(ctx, packet.root, packet.args.toMutableList())
+                        manager.base.commandManager.handle(channel, packet.root, packet.args.toMutableList())
                     }
                     is C2SPacketUpdateGameInfo -> {
-                        val user = ctx.getCurrentUser() ?: return@packetHandle
+                        val user = channel.getCurrentUser() ?: return@packetHandle
 
-                        if (runCatching { ctx.attr(AttributeKeys.GAME_INFO).get() }.getOrNull()?.let { packet.info.session.name != it.session.name || packet.info.server != it.server } == true) {
+                        if (runCatching { channel.attr(AttributeKeys.GAME_INFO).get() }.getOrNull()?.let { packet.info.session.name != it.session.name || packet.info.server != it.server } == true) {
                             manager.logger.info("[${user}] 游戏状态更新: ${packet.info.session.name} ${packet.info.server}")
                         }
 
-                        ctx.attr(AttributeKeys.GAME_INFO).set(packet.info)
+                        channel.attr(AttributeKeys.GAME_INFO).set(packet.info)
 
                         val boardCastPacket = S2CPacketUpdateOtherInfo(
-                            ctx.getUniqueId(),
+                            channel.getUniqueId(),
                             UserInfoData(
                                 user,
                                 manager.base.dataManager.getUserRank(user) ?: return@packetHandle,
@@ -224,39 +225,39 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                             )
                         )
                         manager.clients.values
-                            .filter { channel -> channel.hasAttr(AttributeKeys.CURRENT_USER) }
-                            .onEach { channel ->
-                                channel.sendPacket(boardCastPacket)
+                            .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
+                            .onEach { otherChannel ->
+                                otherChannel.sendPacket(boardCastPacket)
                             }
                     }
                     is C2SPacketQueryUsers -> {
-                        if (!ctx.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
+                        if (!channel.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
 
                         val users = HashMap<UUID, UserInfoData>()
 
                         manager.clients.values
-                            .filter { channel -> channel.hasAttr(AttributeKeys.CURRENT_USER) }
-                            .filter { channel ->
+                            .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
+                            .filter { otherChannel ->
                                 if (packet.onlySameServer) {
-                                    channel.attr(AttributeKeys.GAME_INFO).get().server == ctx.attr(AttributeKeys.GAME_INFO).get().server
+                                    otherChannel.attr(AttributeKeys.GAME_INFO).get().server == channel.attr(AttributeKeys.GAME_INFO).get().server
                                 } else {
                                     true
                                 }
                             }
-                            .onEach { channel ->
+                            .onEach { otherChannel ->
                                 run queryUser@ {
-                                    val name = channel.getCurrentUser() ?: return@queryUser
+                                    val name = otherChannel.getCurrentUser() ?: return@queryUser
 
-                                    users[channel.getUniqueId()] = UserInfoData(
+                                    users[otherChannel.getUniqueId()] = UserInfoData(
                                         name,
                                         manager.base.dataManager.getUserRank(name) ?: return@queryUser,
-                                        channel.attr(AttributeKeys.GAME_INFO).get()
+                                        otherChannel.attr(AttributeKeys.GAME_INFO).get()
                                     )
                                 }
                             }
                             .also {
                                 // 告诉客户端这个 id 是 irc 内用户
-                                ctx.sendPacket(
+                                channel.sendPacket(
                                     S2CPacketUpdateMultiUserInfo(
                                         packet.onlySameServer,
                                         true,
@@ -266,14 +267,14 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                             }
                     }
                     is C2SPacketChangePassword -> {
-                        val user = ctx.getCurrentUser() ?: return@packetHandle
+                        val user = channel.getCurrentUser() ?: return@packetHandle
 
                         manager.base.dataManager.setUserPassword(user, packet.password)
 
                         manager.base.networkManager.clients.values
-                            .filter { channel -> channel.getCurrentUser() == user }
-                            .onEach { channel ->
-                                channel.kick(
+                            .filter { otherChannel -> otherChannel.getCurrentUser() == user }
+                            .onEach { otherChannel ->
+                                otherChannel.kick(
                                     reason = "当前账号密码已修改,请重新登录",
                                     logout = true
                                 )
