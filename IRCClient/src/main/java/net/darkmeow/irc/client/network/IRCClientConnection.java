@@ -2,6 +2,12 @@ package net.darkmeow.irc.client.network;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
+import io.netty.channel.epoll.Epoll;
+import io.netty.channel.epoll.EpollEventLoopGroup;
+import io.netty.channel.epoll.EpollSocketChannel;
+import io.netty.channel.kqueue.KQueue;
+import io.netty.channel.kqueue.KQueueEventLoopGroup;
+import io.netty.channel.kqueue.KQueueSocketChannel;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
@@ -9,14 +15,13 @@ import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.proxy.Socks5ProxyHandler;
 import net.darkmeow.irc.client.IRCClient;
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
+import net.darkmeow.irc.client.network.handle.HandleClientConnection;
 import net.darkmeow.irc.client.network.handle.HandleClientEncryption;
 import net.darkmeow.irc.client.network.handle.HandleClientPacketProcess;
 import net.darkmeow.irc.network.PacketUtils;
 import net.darkmeow.irc.network.packet.c2s.C2SPacket;
 
-import java.net.InetAddress;
 import java.net.Proxy;
-import java.util.concurrent.CountDownLatch;
 
 public class IRCClientConnection {
 
@@ -26,70 +31,60 @@ public class IRCClientConnection {
         this.base = base;
     }
 
+    public String host;
+    public int port;
+
     public String key;
     public Channel channel;
 
     @SuppressWarnings("all")
-    public boolean connect(InetAddress host, int port, String key, Proxy proxy) {
+    public boolean connect(String host, int port, String key, Proxy proxy) {
+        this.host = host;
+        this.port = port;
         this.key = key;
 
-        final CountDownLatch latch = new CountDownLatch(1);
-
-        new Thread(() -> {
-            synchronized (this) {
-                EventLoopGroup group = new NioEventLoopGroup();
-
-                try {
-                    channel = new Bootstrap()
-                        .group(group)
-                        .handler(
-                            new ChannelInitializer<SocketChannel>() {
-                                @Override
-                                protected void initChannel(SocketChannel ch) {
-                                    ch.config().setOption(ChannelOption.TCP_NODELAY, Boolean.valueOf(true));
-
-                                    // 代理
-                                    if (proxy.type() == Proxy.Type.SOCKS) {
-                                        ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
-                                    } else if (proxy.type() == Proxy.Type.HTTP) {
-                                        ch.pipeline().addLast("Proxy", new HttpProxyHandler(proxy.address()));
-                                    }
-
-                                    // 处理
-                                    ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
-                                    ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
-                                }
-                            }
-                        )
-                        .channel(NioSocketChannel.class)
-                        .connect(host, port)
-                        .syncUninterruptibly()
-                        .channel();
-
-                    latch.countDown();
-
-                    channel.closeFuture().syncUninterruptibly();
-
-                    channel = null;
-                    group.shutdownGracefully().syncUninterruptibly();
-
-                    base.listenable.onDisconnect(
-                        base.resultManager.disconnectType,
-                        base.resultManager.disconnectReason,
-                        base.resultManager.disconnectLogout
-                    );
-                } catch (Exception e) {
-                    e.printStackTrace();
-
-                    latch.countDown();
-                }
-            }
-        }).start();
-
         try {
-            latch.await();
-        } catch (InterruptedException ignored) {
-            Thread.currentThread().interrupt();
+            Class <? extends SocketChannel > oclass;
+            EventLoopGroup group;
+
+            if (Epoll.isAvailable()) {
+                group = new EpollEventLoopGroup();
+                oclass = EpollSocketChannel.class;
+            } else if (KQueue.isAvailable()) {
+                group = new KQueueEventLoopGroup();
+                oclass = KQueueSocketChannel.class;
+            } else {
+                group = new NioEventLoopGroup();
+                oclass = NioSocketChannel.class;
+            }
+
+            new Bootstrap()
+                .group(group)
+                .handler(
+                    new ChannelInitializer<SocketChannel>() {
+                        @Override
+                        protected void initChannel(SocketChannel ch) {
+                            ch.config().setOption(ChannelOption.TCP_NODELAY, Boolean.valueOf(true));
+
+                            // 代理
+                            if (proxy.type() == Proxy.Type.SOCKS) {
+                                ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
+                            } else if (proxy.type() == Proxy.Type.HTTP) {
+                                ch.pipeline().addLast("Proxy", new HttpProxyHandler(proxy.address()));
+                            }
+
+                            // 处理
+                            ch.pipeline().addLast("BaseConnection", new HandleClientConnection(IRCClientConnection.this));
+                            ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
+                            ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
+                        }
+                    }
+                )
+                .channel(oclass)
+                .connect(host, port)
+                .syncUninterruptibly();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
         return isConnected();
@@ -106,11 +101,12 @@ public class IRCClientConnection {
         }
     }
 
-    @SuppressWarnings("all")
     public void disconnect() {
         if (isConnected()) {
             base.resultManager.disconnectType = EnumDisconnectType.DISCONNECT_BY_USER;
             base.resultManager.disconnectReason = null;
+            base.resultManager.disconnectLogout = false;
+
             channel.close().awaitUninterruptibly();
         }
     }
