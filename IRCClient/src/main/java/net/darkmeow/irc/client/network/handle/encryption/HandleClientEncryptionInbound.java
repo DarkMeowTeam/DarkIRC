@@ -18,7 +18,12 @@ public class HandleClientEncryptionInbound extends ChannelInboundHandlerAdapter 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object data) throws Exception {
         if (data instanceof ByteBuf) {
-            super.channelRead(ctx, EncryptUtils.decrypt(((ByteBuf) data).toString(CharsetUtil.UTF_8), client.key));
+            final ByteBuf buf = (ByteBuf) data;
+            try {
+                super.channelRead(ctx, EncryptUtils.decrypt(buf.toString(CharsetUtil.UTF_8), client.key));
+            } finally {
+                buf.release();
+            }
         }
     }
 
