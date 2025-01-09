@@ -3,12 +3,12 @@ package net.darkmeow.irc.network
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
+import io.netty.channel.ChannelOption
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.haproxy.HAProxyMessageDecoder
-import io.netty.handler.codec.haproxy.HAProxyProxiedProtocol
 import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.network.handles.HandleClientConnection
 import net.darkmeow.irc.network.handles.HandleClientEncryption
@@ -19,7 +19,6 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
 import java.util.concurrent.CountDownLatch
-import kotlin.collections.HashMap
 
 class NetworkManager(
     val base: IRCServer
@@ -53,6 +52,8 @@ class NetworkManager(
                     .channel(NioServerSocketChannel::class.java)
                     .childHandler(object : ChannelInitializer<SocketChannel>() {
                         override fun initChannel(ch: SocketChannel) {
+                            ch.config().setOption(ChannelOption.TCP_NODELAY, true)
+
                             // Network | Proxy Protocol
                             if (base.configManager.configs.proxyProtocol) {
                                 ch.pipeline().addLast("ProxyProtocol", HAProxyMessageDecoder())
@@ -75,9 +76,7 @@ class NetworkManager(
                 latch.countDown()
 
                 keepAliveManager.start()
-
                 future.channel().closeFuture().sync()
-
                 keepAliveManager.stop()
 
                 logger.info("已关闭")
