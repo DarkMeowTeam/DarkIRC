@@ -110,10 +110,12 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
             );
         } else if (serverPacket instanceof S2CPacketDisconnect) {
             final S2CPacketDisconnect packet = (S2CPacketDisconnect) serverPacket;
+
             connection.base.resultManager.disconnectType = EnumDisconnectType.KICK_BY_SERVER;
             connection.base.resultManager.disconnectReason = packet.reason;
             connection.base.resultManager.disconnectLogout = packet.logout;
-            connection.disconnect();
+
+            connection.channel.close();
         }
 
         super.channelRead(ctx, data);
