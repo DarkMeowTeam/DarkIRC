@@ -8,11 +8,13 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.proxy.HttpProxyHandler;
 import io.netty.handler.proxy.Socks5ProxyHandler;
 import net.darkmeow.irc.client.IRCClient;
+import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.network.handle.HandleClientEncryption;
 import net.darkmeow.irc.client.network.handle.HandleClientPacketProcess;
 import net.darkmeow.irc.network.PacketUtils;
 import net.darkmeow.irc.network.packet.c2s.C2SPacket;
 
+import java.net.InetAddress;
 import java.net.Proxy;
 import java.util.concurrent.CountDownLatch;
 
@@ -27,54 +29,60 @@ public class IRCClientConnection {
     public String key;
     public Channel channel;
 
-    public boolean connect(String host, int port, String key) {
-        return this.connect(host, port, key, Proxy.NO_PROXY);
-    }
-
     @SuppressWarnings("all")
-    public boolean connect(String host, int port, String key, Proxy proxy) {
+    public boolean connect(InetAddress host, int port, String key, Proxy proxy) {
         this.key = key;
 
         final CountDownLatch latch = new CountDownLatch(1);
 
         new Thread(() -> {
-            EventLoopGroup group = new NioEventLoopGroup();
+            synchronized (this) {
+                EventLoopGroup group = new NioEventLoopGroup();
 
-            try {
-                Bootstrap bootstrap = new Bootstrap();
-                bootstrap.group(group)
-                    .channel(NioSocketChannel.class)
-                    .handler(new ChannelInitializer<SocketChannel>() {
+                try {
+                    channel = new Bootstrap()
+                        .group(group)
+                        .handler(
+                            new ChannelInitializer<SocketChannel>() {
+                                @Override
+                                protected void initChannel(SocketChannel ch) {
+                                    ch.config().setOption(ChannelOption.TCP_NODELAY, Boolean.valueOf(true));
 
-                        @Override
-                        protected void initChannel(SocketChannel ch) {
-                            // 代理
-                            if (proxy.type() == Proxy.Type.SOCKS) {
-                                ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
-                            } else if (proxy.type() == Proxy.Type.HTTP) {
-                                ch.pipeline().addLast("Proxy", new HttpProxyHandler(proxy.address()));
+                                    // 代理
+                                    if (proxy.type() == Proxy.Type.SOCKS) {
+                                        ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
+                                    } else if (proxy.type() == Proxy.Type.HTTP) {
+                                        ch.pipeline().addLast("Proxy", new HttpProxyHandler(proxy.address()));
+                                    }
+
+                                    // 处理
+                                    ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
+                                    ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
+                                }
                             }
+                        )
+                        .channel(NioSocketChannel.class)
+                        .connect(host, port)
+                        .syncUninterruptibly()
+                        .channel();
 
-                            // 处理
-                            ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
-                            ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
-                        }
-                    });
-                ChannelFuture future = bootstrap.connect(host, port).sync();
-                channel = future.channel();
-                latch.countDown();
+                    latch.countDown();
 
-                channel.closeFuture().sync();
-                base.listenable.onDisconnect(base.resultManager.disconnectReason, base.resultManager.disconnectLogout);
-            } catch (Exception e) {
-                e.printStackTrace();
+                    channel.closeFuture().syncUninterruptibly();
 
-                latch.countDown();
-            } finally {
-                if (channel != null && channel.isActive()) {
-                    channel.close();
+                    channel = null;
+                    group.shutdownGracefully().syncUninterruptibly();
+
+                    base.listenable.onDisconnect(
+                        base.resultManager.disconnectType,
+                        base.resultManager.disconnectReason,
+                        base.resultManager.disconnectLogout
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace();
+
+                    latch.countDown();
                 }
-                group.shutdownGracefully();
             }
         }).start();
 
@@ -101,11 +109,9 @@ public class IRCClientConnection {
     @SuppressWarnings("all")
     public void disconnect() {
         if (isConnected()) {
-            try {
-                channel.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            base.resultManager.disconnectType = EnumDisconnectType.DISCONNECT_BY_USER;
+            base.resultManager.disconnectReason = null;
+            channel.close().awaitUninterruptibly();
         }
     }
 
