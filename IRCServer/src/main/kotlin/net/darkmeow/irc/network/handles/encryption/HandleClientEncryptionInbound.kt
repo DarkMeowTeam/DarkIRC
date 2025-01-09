@@ -11,7 +11,14 @@ class HandleClientEncryptionInbound(private val manager: NetworkManager): Channe
 
     override fun channelRead(ctx: ChannelHandlerContext, data: Any) {
         if (data is ByteBuf) {
-            super.channelRead(ctx, EncryptUtils.decrypt(data.toString(CharsetUtil.UTF_8), manager.base.configManager.configs.key))
+            try {
+                super.channelRead(
+                    ctx,
+                    EncryptUtils.decrypt(data.toString(CharsetUtil.UTF_8), manager.base.configManager.configs.key)
+                )
+            } finally {
+                data.release()
+            }
         }
     }
 

@@ -44,6 +44,7 @@ class HandleClientConnection(private val manager: NetworkManager): ChannelInboun
             ctx.channel().attr(AttributeKeys.ADDRESS).set(
                 "${msg.sourceAddress()}:${msg.sourcePort()}"
             )
+            msg.release()
         } else {
             super.channelRead(ctx, msg)
         }
