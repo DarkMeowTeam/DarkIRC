@@ -63,8 +63,6 @@ public class IRCClientConnection {
                     new ChannelInitializer<SocketChannel>() {
                         @Override
                         protected void initChannel(SocketChannel ch) {
-                            ch.config().setOption(ChannelOption.TCP_NODELAY, Boolean.valueOf(true));
-
                             // 代理
                             if (proxy.type() == Proxy.Type.SOCKS) {
                                 ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
