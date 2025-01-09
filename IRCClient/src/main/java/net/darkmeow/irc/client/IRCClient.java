@@ -1,5 +1,6 @@
 package net.darkmeow.irc.client;
 
+import lombok.Builder;
 import net.darkmeow.irc.IRCLib;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.enums.EnumPremium;
@@ -8,18 +9,15 @@ import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
 import net.darkmeow.irc.client.manager.IRCClientResultManager;
 import net.darkmeow.irc.client.manager.IRCClientUserManager;
 import net.darkmeow.irc.client.network.IRCClientConnection;
+import net.darkmeow.irc.client.network.IRCClientOptions;
 import net.darkmeow.irc.data.ClientBrandData;
 import net.darkmeow.irc.data.CustomSkinData;
 import net.darkmeow.irc.data.GameInfoData;
 import net.darkmeow.irc.data.PlayerSessionData;
 import net.darkmeow.irc.network.packet.c2s.*;
-import net.darkmeow.irc.utils.DeviceUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.InetAddress;
-import java.net.Proxy;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -29,8 +27,13 @@ public class IRCClient {
     @NotNull
     public final IRCClientListenableProvide listenable;
 
-    public IRCClient(@NotNull IRCClientListenableProvide listenable) {
+    @NotNull
+    public final IRCClientOptions options;
+
+    @Builder(toBuilder = true)
+    public IRCClient(@NotNull IRCClientListenableProvide listenable, @NotNull IRCClientOptions options) {
         this.listenable = listenable;
+        this.options = options;
     }
 
     public IRCClientConnection connection = new IRCClientConnection(this);
@@ -41,7 +44,10 @@ public class IRCClient {
 
     public EnumPremium premium;
 
+    @NotNull
     public final IRCClientUserManager userManager = new IRCClientUserManager();
+
+    @NotNull
     public final IRCClientResultManager resultManager = new IRCClientResultManager();
 
     private ClientBrandData brand;
@@ -50,60 +56,31 @@ public class IRCClient {
     /**
      * 连接到 IRC 服务器
      *
-     * @param host 服务器IP
-     * @param port 服务器端口
-     * @param key 密钥
-     *
      * @return 是否成功
      */
-    public boolean connect(@NotNull String host, int port, @NotNull String key) throws UnknownHostException {
-        return this.connect(host, port, key, Proxy.NO_PROXY, DeviceUtils.getDeviceId());
-    }
+    public boolean connect() {
+        int attempt = 0;
 
-    /**
-     * 连接到 IRC 服务器
-     *
-     * @param host 服务器IP
-     * @param port 服务器端口
-     * @param key 密钥
-     * @param deviceId 设备码
-     *
-     * @return 是否成功
-     */
-    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull String deviceId) throws UnknownHostException {
-        return this.connect(host, port, key, Proxy.NO_PROXY, deviceId);
-    }
+        // 临时修复神秘问题
+        while (attempt <= 5) {
+            disconnect();
 
-    /**
-     * 连接到 IRC 服务器
-     *
-     * @param host 服务器IP
-     * @param port 服务器端口
-     * @param key 密钥
-     * @param proxy 代理
-     * @param deviceId 设备码
-     *
-     * @return 是否成功
-     */
-    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull Proxy proxy, @NotNull String deviceId) throws UnknownHostException {
-        this.disconnect();
+            if (connection.connect(options.host, options.port, options.key, options.proxy)) {
+                connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, options.deviceId), false);
 
-        resultManager.reset();
-
-        if (connection.connect(InetAddress.getByName(host), port, key, proxy)) {
-            connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, deviceId), false);
-
-            try {
-                if (resultManager.handShakeLatch.await(5, TimeUnit.SECONDS)) {
-                    return true;
+                try {
+                    if (resultManager.handShakeLatch.await(3, TimeUnit.SECONDS)) {
+                        return true;
+                    }
+                    disconnect();
+                } catch (InterruptedException e) {
+                    disconnect();
                 }
-                disconnect();
-                return false;
-            } catch (InterruptedException e) {
-                disconnect();
-                return false;
             }
+
+            attempt++;
         }
+
         return false;
     }
 
@@ -111,20 +88,14 @@ public class IRCClient {
      * 与 IRC 服务器断开连接
      */
     public void disconnect() {
-        if (connection != null) {
-            connection.disconnect();
-        }
+        connection.disconnect();
     }
 
     /**
      * 获取连接状态
      */
     public boolean isConnected() {
-        if (connection != null) {
-            return connection.isConnected();
-        } else {
-            return false;
-        }
+        return connection.isConnected();
     }
 
     /**
