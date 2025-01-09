@@ -133,6 +133,9 @@ public class IRCClientConnection {
             } else {
                 return false;
             }
+        } catch (UnsupportedOperationException ignored) {
+            // 连接故障
+            return false;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return false;
