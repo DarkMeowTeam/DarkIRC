@@ -52,8 +52,6 @@ class NetworkManager(
                     .channel(NioServerSocketChannel::class.java)
                     .childHandler(object : ChannelInitializer<SocketChannel>() {
                         override fun initChannel(ch: SocketChannel) {
-                            ch.config().setOption(ChannelOption.TCP_NODELAY, true)
-
                             // Network | Proxy Protocol
                             if (base.configManager.configs.proxyProtocol) {
                                 ch.pipeline().addLast("ProxyProtocol", HAProxyMessageDecoder())
