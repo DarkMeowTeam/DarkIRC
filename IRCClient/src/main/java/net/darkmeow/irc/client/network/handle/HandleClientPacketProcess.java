@@ -5,6 +5,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.data.IRCUserInfo;
+import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.enums.EnumPremium;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.network.IRCClientConnection;
@@ -109,6 +110,7 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
             );
         } else if (serverPacket instanceof S2CPacketDisconnect) {
             final S2CPacketDisconnect packet = (S2CPacketDisconnect) serverPacket;
+            connection.base.resultManager.disconnectType = EnumDisconnectType.KICK_BY_SERVER;
             connection.base.resultManager.disconnectReason = packet.reason;
             connection.base.resultManager.disconnectLogout = packet.logout;
             connection.disconnect();
