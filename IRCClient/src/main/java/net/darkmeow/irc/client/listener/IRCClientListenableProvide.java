@@ -1,6 +1,7 @@
 package net.darkmeow.irc.client.listener;
 
 import net.darkmeow.irc.client.data.IRCUserInfo;
+import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.enums.EnumPremium;
 
 public interface IRCClientListenableProvide {
@@ -13,6 +14,6 @@ public interface IRCClientListenableProvide {
 
     void onMessageSystem(String message);
 
-    void onDisconnect(String message, boolean logout);
+    void onDisconnect(EnumDisconnectType type, String reason, boolean logout);
 
 }
