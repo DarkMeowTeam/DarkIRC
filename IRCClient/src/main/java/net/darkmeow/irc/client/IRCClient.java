@@ -59,6 +59,7 @@ public class IRCClient {
      * @return 是否成功
      */
     public boolean connect() {
+        resultManager.reset();
         int attempt = 0;
 
         // 临时修复神秘问题
