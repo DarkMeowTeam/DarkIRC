@@ -20,27 +20,26 @@ import net.darkmeow.irc.client.network.handle.HandleClientEncryption;
 import net.darkmeow.irc.client.network.handle.HandleClientPacketProcess;
 import net.darkmeow.irc.network.PacketUtils;
 import net.darkmeow.irc.network.packet.c2s.C2SPacket;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.Proxy;
 
 public class IRCClientConnection {
 
+    @NotNull
     public IRCClient base;
 
-    public IRCClientConnection(IRCClient base) {
+    public IRCClientConnection(@NotNull IRCClient base) {
         this.base = base;
     }
 
-    public String host;
-    public int port;
+    @NotNull
+    public String key = "";
 
-    public String key;
     public Channel channel;
 
     @SuppressWarnings("all")
-    public boolean connect(String host, int port, String key, Proxy proxy) {
-        this.host = host;
-        this.port = port;
+    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull Proxy proxy) {
         this.key = key;
 
         try {
@@ -74,7 +73,7 @@ public class IRCClientConnection {
                             }
 
                             // 处理
-                            ch.pipeline().addLast("BaseConnection", new HandleClientConnection(IRCClientConnection.this));
+                            ch.pipeline().addLast("BaseConnection", new HandleClientConnection(IRCClientConnection.this, group));
                             ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
                             ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
                         }
