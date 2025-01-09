@@ -17,7 +17,9 @@ import net.darkmeow.irc.utils.DeviceUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
 import java.net.Proxy;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -31,7 +33,7 @@ public class IRCClient {
         this.listenable = listenable;
     }
 
-    public IRCClientConnection connection;
+    public IRCClientConnection connection = new IRCClientConnection(this);
 
     public String name;
 
@@ -54,7 +56,7 @@ public class IRCClient {
      *
      * @return 是否成功
      */
-    public boolean connect(@NotNull String host, int port, @NotNull String key) {
+    public boolean connect(@NotNull String host, int port, @NotNull String key) throws UnknownHostException {
         return this.connect(host, port, key, Proxy.NO_PROXY, DeviceUtils.getDeviceId());
     }
 
@@ -68,7 +70,7 @@ public class IRCClient {
      *
      * @return 是否成功
      */
-    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull String deviceId) {
+    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull String deviceId) throws UnknownHostException {
         return this.connect(host, port, key, Proxy.NO_PROXY, deviceId);
     }
 
@@ -83,14 +85,12 @@ public class IRCClient {
      *
      * @return 是否成功
      */
-    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull Proxy proxy, @NotNull String deviceId) {
+    public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull Proxy proxy, @NotNull String deviceId) throws UnknownHostException {
         this.disconnect();
 
         resultManager.reset();
 
-        connection = new IRCClientConnection(this);
-
-        if (connection.connect(host, port, key, proxy)) {
+        if (connection.connect(InetAddress.getByName(host), port, key, proxy)) {
             connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, deviceId), false);
 
             try {
