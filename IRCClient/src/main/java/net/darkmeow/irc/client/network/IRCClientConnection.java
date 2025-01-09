@@ -65,17 +65,24 @@ public class IRCClientConnection {
                 latch.countDown();
 
                 channel.closeFuture().sync();
-
                 base.listenable.onDisconnect(base.resultManager.disconnectReason, base.resultManager.disconnectLogout);
             } catch (Exception e) {
                 e.printStackTrace();
 
-                group.shutdownGracefully();
                 latch.countDown();
+            } finally {
+                if (channel != null && channel.isActive()) {
+                    channel.close();
+                }
+                group.shutdownGracefully();
             }
         }).start();
 
-        try { latch.await(); } catch (InterruptedException ignored) { }
+        try {
+            latch.await();
+        } catch (InterruptedException ignored) {
+            Thread.currentThread().interrupt();
+        }
 
         return isConnected();
     }
