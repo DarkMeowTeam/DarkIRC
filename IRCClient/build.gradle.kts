@@ -23,7 +23,13 @@ tasks.shadowJar {
     minimize()
 }
 
+val sourceJar = tasks.register<Jar>("sourceJar") {
+    archiveClassifier.set("sources")
+    from(sourceSets.main.get().allSource)
+}
+
 tasks.build {
+    dependsOn(sourceJar)
     dependsOn(tasks.shadowJar)
 }
 
@@ -31,6 +37,7 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             artifact(tasks.shadowJar)
+            artifact(sourceJar)
             groupId = project.group.toString()
             artifactId = "IRCClient"
             version = project.version.toString()
