@@ -3,6 +3,7 @@ package net.darkmeow.irc.client.network.handle;
 import com.google.gson.JsonParser;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
+import net.darkmeow.irc.client.AttributeKeys;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.data.DataSelfSessionInfo;
 import net.darkmeow.irc.client.data.DataOtherSessionInfo;
@@ -28,6 +29,11 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object data) throws Exception {
+        if (ctx.channel().attr(AttributeKeys.UUID).get() != connection.channelUniqueId || connection.channel == null) {
+            ctx.channel().disconnect();
+            return;
+        }
+
         final S2CPacket serverPacket = PacketUtils.resolveServerPacket(JsonParser.parseString(data.toString()).getAsJsonObject());
 
         if (serverPacket instanceof S2CPacketHandShake) {
