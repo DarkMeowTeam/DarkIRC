@@ -5,15 +5,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class GameInfoData {
+public class DataSessionOptions {
 
-    public static GameInfoData EMPTY = new GameInfoData(new PlayerSessionData("", UUID.randomUUID()), ClientBrandData.EMPTY,null, null, 0, "", false);
+    public static DataSessionOptions EMPTY = new DataSessionOptions(new PlayerSessionData("", UUID.randomUUID()),null, null, 0, "", false);
 
     @NotNull
     public final PlayerSessionData session;
-
-    @NotNull
-    public final ClientBrandData client;
 
     @Nullable
     public final CustomSkinData skin;
@@ -28,9 +25,8 @@ public class GameInfoData {
 
     public final boolean attackIRC;
 
-    public GameInfoData(@NotNull PlayerSessionData session, @NotNull ClientBrandData client, @Nullable CustomSkinData skin, @Nullable String server, int clientFPS, @NotNull String namePrefix, boolean attackIRC) {
+    public DataSessionOptions(@NotNull PlayerSessionData session, @Nullable CustomSkinData skin, @Nullable String server, int clientFPS, @NotNull String namePrefix, boolean attackIRC) {
         this.session = session;
-        this.client = client;
         this.skin = skin;
         this.server = server;
         this.clientFPS = clientFPS;

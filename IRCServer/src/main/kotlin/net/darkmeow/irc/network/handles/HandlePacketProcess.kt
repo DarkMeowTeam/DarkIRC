@@ -4,7 +4,7 @@ import com.google.gson.JsonParser
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import net.darkmeow.irc.IRCLib
-import net.darkmeow.irc.data.GameInfoData
+import net.darkmeow.irc.data.DataSessionInfo
 import net.darkmeow.irc.data.UserInfoData
 import net.darkmeow.irc.network.AttributeKeys
 import net.darkmeow.irc.network.NetworkManager
@@ -14,9 +14,13 @@ import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
 import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentUser
 import net.darkmeow.irc.utils.ChannelAttrUtils.getDevice
+import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionInfo
+import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionOptions
 import net.darkmeow.irc.utils.ChannelAttrUtils.getUniqueId
 import net.darkmeow.irc.utils.ChannelAttrUtils.kick
 import net.darkmeow.irc.utils.ChannelAttrUtils.setCurrentUser
+import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionInfo
+import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionOptions
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
 import java.util.UUID
@@ -26,7 +30,6 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
     override fun channelActive(ctx: ChannelHandlerContext) {
         ctx.channel().apply {
             attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
-            attr(AttributeKeys.GAME_INFO).set(GameInfoData.EMPTY)
         }
 
         super.channelActive(ctx)
@@ -46,7 +49,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                         run updateUser@ {
                              // 告诉客户端这个 id 已经离线了
                             otherChannel.sendPacket(
-                                S2CPacketUpdateOtherInfo(
+                                S2CPacketUpdateOtherSessionInfo(
                                     ctx.channel().getUniqueId(),
                                     null
                                 )
@@ -99,7 +102,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                             if (!packet.notOnline) {
                                 // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
                                 channel.sendPacket(
-                                    S2CPacketUpdateMyInfo(
+                                    S2CPacketUpdateMySessionInfo(
                                         packet.name,
                                         manager.base.dataManager.getUserRank(packet.name) ?: "",
                                         manager.base.dataManager.getUserPremium(packet.name),
@@ -124,6 +127,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                     }
 
                                 // 登录成功
+                                channel.setSessionInfo(DataSessionInfo(packet.client))
                                 channel.setCurrentUser(packet.name)
                             }
 
@@ -150,7 +154,8 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                             UserInfoData(
                                 user,
                                 manager.base.dataManager.getUserRank(user) ?: "",
-                                channel.attr(AttributeKeys.GAME_INFO).get()
+                                channel.getSessionInfo(),
+                                channel.getSessionOptions()
                             ),
                             packet.message
                                 .replace("&", "§")
@@ -186,7 +191,8 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                     UserInfoData(
                                         user,
                                         manager.base.dataManager.getUserRank(user) ?: "",
-                                        channel.attr(AttributeKeys.GAME_INFO).get()
+                                        channel.getSessionInfo(),
+                                        channel.getSessionOptions()
                                     ),
                                     packet.message
                                         .replace("&", "§")
@@ -207,23 +213,25 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                         manager.logger.info("[${user}] 使用指令: ${packet.root} ${packet.args.joinToString(" ")}")
                         manager.base.commandManager.handle(channel, packet.root, packet.args.toMutableList())
                     }
-                    is C2SPacketUpdateGameInfo -> {
+                    is C2SPacketUpdateSessionOptions -> {
                         val user = channel.getCurrentUser() ?: return@packetHandle
 
-                        if (runCatching { channel.attr(AttributeKeys.GAME_INFO).get() }.getOrNull()?.let { packet.info.session.name != it.session.name || packet.info.server != it.server } == true) {
-                            manager.logger.info("[${user}] 游戏状态更新: ${packet.info.session.name} ${packet.info.server}")
+                        if (runCatching { channel.getSessionOptions() }.getOrNull()?.let { packet.options.session.name != it.session.name || packet.options.server != it.server } == true) {
+                            manager.logger.info("[${user}] 游戏状态更新: ${packet.options.session.name} ${packet.options.server}")
                         }
 
-                        channel.attr(AttributeKeys.GAME_INFO).set(packet.info)
+                        channel.setSessionOptions(packet.options)
 
-                        val boardCastPacket = S2CPacketUpdateOtherInfo(
-                            channel.getUniqueId(),
-                            UserInfoData(
-                                user,
-                                manager.base.dataManager.getUserRank(user) ?: return@packetHandle,
-                                packet.info
+                        val boardCastPacket =
+                            S2CPacketUpdateOtherSessionInfo(
+                                channel.getUniqueId(),
+                                UserInfoData(
+                                    user,
+                                    manager.base.dataManager.getUserRank(user) ?: return@packetHandle,
+                                    channel.getSessionInfo(),
+                                    packet.options
+                                )
                             )
-                        )
                         manager.clients.values
                             .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
                             .onEach { otherChannel ->
@@ -239,7 +247,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                             .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
                             .filter { otherChannel ->
                                 if (packet.onlySameServer) {
-                                    otherChannel.attr(AttributeKeys.GAME_INFO).get().server == channel.attr(AttributeKeys.GAME_INFO).get().server
+                                    otherChannel.getSessionOptions().server == channel.getSessionOptions().server
                                 } else {
                                     true
                                 }
@@ -251,14 +259,15 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                     users[otherChannel.getUniqueId()] = UserInfoData(
                                         name,
                                         manager.base.dataManager.getUserRank(name) ?: return@queryUser,
-                                        otherChannel.attr(AttributeKeys.GAME_INFO).get()
+                                        otherChannel.getSessionInfo(),
+                                        otherChannel.getSessionOptions()
                                     )
                                 }
                             }
                             .also {
                                 // 告诉客户端这个 id 是 irc 内用户
                                 channel.sendPacket(
-                                    S2CPacketUpdateMultiUserInfo(
+                                    S2CPacketUpdateMultiSessionInfo(
                                         packet.onlySameServer,
                                         true,
                                         users

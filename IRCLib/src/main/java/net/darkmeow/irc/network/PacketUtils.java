@@ -20,7 +20,7 @@ public class PacketUtils {
         clientPackets.put("ChatPublic", C2SPacketChatPublic.class);
         clientPackets.put("ChatPrivate", C2SPacketChatPrivate.class);
         clientPackets.put("Command", C2SPacketCommand.class);
-        clientPackets.put("UpdateGameInfo", C2SPacketUpdateGameInfo.class);
+        clientPackets.put("UpdateSessionOptions", C2SPacketUpdateSessionOptions.class);
         clientPackets.put("QueryUsers", C2SPacketQueryUsers.class);
         clientPackets.put("ChangePassword", C2SPacketChangePassword.class);
         clientPackets.put("CustomPayload", C2SPacketCustomPayload.class);
@@ -28,13 +28,13 @@ public class PacketUtils {
         serverPackets.put("HandShake", S2CPacketHandShake.class);
         serverPackets.put("KeepAlive", S2CPacketKeepAlive.class);
         serverPackets.put("LoginResult", S2CPacketLoginResult.class);
-        serverPackets.put("UpdateMyInfo", S2CPacketUpdateMyInfo.class);
+        serverPackets.put("UpdateMySessionInfo", S2CPacketUpdateMySessionInfo.class);
         serverPackets.put("MessageSystem", S2CPacketMessageSystem.class);
         serverPackets.put("MessagePublic", S2CPacketMessagePublic.class);
         serverPackets.put("MessagePrivate", S2CPacketMessagePrivate.class);
         serverPackets.put("MessagePrivateResult", S2CPacketMessagePrivateResult.class);
-        serverPackets.put("UpdateOtherInfo", S2CPacketUpdateOtherInfo.class);
-        serverPackets.put("UpdateMultiUsersInfo", S2CPacketUpdateMultiUserInfo.class);
+        serverPackets.put("UpdateOtherSessionInfo", S2CPacketUpdateOtherSessionInfo.class);
+        serverPackets.put("UpdateMultiSessionInfo", S2CPacketUpdateMultiSessionInfo.class);
         serverPackets.put("Disconnect", S2CPacketDisconnect.class);
         serverPackets.put("CustomPayload", S2CPacketCustomPayload.class);
     }

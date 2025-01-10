@@ -10,9 +10,7 @@ import net.darkmeow.irc.client.manager.SessionManager;
 import net.darkmeow.irc.client.network.IRCClientConnection;
 import net.darkmeow.irc.client.network.IRCClientOptions;
 import net.darkmeow.irc.data.ClientBrandData;
-import net.darkmeow.irc.data.CustomSkinData;
-import net.darkmeow.irc.data.GameInfoData;
-import net.darkmeow.irc.data.PlayerSessionData;
+import net.darkmeow.irc.data.DataSessionOptions;
 import net.darkmeow.irc.network.packet.c2s.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -42,8 +40,6 @@ public class IRCClient {
 
     @NotNull
     public final IRCClientResultManager resultManager = new IRCClientResultManager();
-
-    private ClientBrandData brand;
 
 
     /**
@@ -103,7 +99,6 @@ public class IRCClient {
     public void login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, @Nullable Consumer<EnumResultLogin> callback) {
         if (isConnected()) {
             resultManager.loginResultCallback = callback;
-            this.brand = brand;
 
             if (
                 !connection.sendPacket(
@@ -150,26 +145,12 @@ public class IRCClient {
     /**
      * 上报客户端数据
      *
-     * @param session 游戏内 ID
-     * @param server 当前游玩服务器 IP
-     * @param skin 皮肤数据
-     * @param clientFPS 客户端帧率
-     * @param attackIRC 是否会攻击 IRC 内成员
+     * @param options 数据
      */
-    public void postGameInfo(@NotNull PlayerSessionData session, @Nullable String server, @Nullable CustomSkinData skin, int clientFPS, @NotNull String namePrefix, boolean attackIRC) {
+    public void postOptions(@NotNull DataSessionOptions options) {
         if (isConnected()) {
             connection.sendPacket(
-                new C2SPacketUpdateGameInfo(
-                    new GameInfoData(
-                        session,
-                        this.brand,
-                        skin,
-                        server,
-                        clientFPS,
-                        namePrefix,
-                        attackIRC
-                    )
-                ),
+                new C2SPacketUpdateSessionOptions(options),
                 true
             );
         }

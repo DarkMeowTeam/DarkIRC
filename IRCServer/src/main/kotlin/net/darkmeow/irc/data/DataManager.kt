@@ -1,7 +1,7 @@
 package net.darkmeow.irc.data
 
 import net.darkmeow.irc.IRCServer
-import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMyInfo.Premium
+import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMySessionInfo.Premium
 import java.sql.Connection
 import java.sql.DriverManager
 

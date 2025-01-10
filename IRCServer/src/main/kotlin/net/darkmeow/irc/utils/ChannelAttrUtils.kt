@@ -1,6 +1,8 @@
 package net.darkmeow.irc.utils
 
 import io.netty.channel.Channel
+import net.darkmeow.irc.data.DataSessionInfo
+import net.darkmeow.irc.data.DataSessionOptions
 import net.darkmeow.irc.network.AttributeKeys
 import net.darkmeow.irc.network.packet.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
@@ -33,6 +35,26 @@ object ChannelAttrUtils {
         ?.attr(AttributeKeys.DEVICE)
         ?.get()
         ?: ""
+
+    fun Channel.getSessionInfo() = this
+        .takeIf { hasAttr(AttributeKeys.SESSION_INFO) }
+        ?.attr(AttributeKeys.SESSION_INFO)
+        ?.get()
+        ?: DataSessionInfo.EMPTY
+
+    fun Channel.setSessionInfo(info: DataSessionInfo) = this
+        .attr(AttributeKeys.SESSION_INFO)
+        .set(info)
+
+    fun Channel.getSessionOptions() = this
+        .takeIf { hasAttr(AttributeKeys.SESSION_OPTIONS) }
+        ?.attr(AttributeKeys.SESSION_OPTIONS)
+        ?.get()
+        ?: DataSessionOptions.EMPTY
+
+    fun Channel.setSessionOptions(info: DataSessionOptions) = this
+        .attr(AttributeKeys.SESSION_OPTIONS)
+        .set(info)
 
     /**
      * 踢出当前客户端

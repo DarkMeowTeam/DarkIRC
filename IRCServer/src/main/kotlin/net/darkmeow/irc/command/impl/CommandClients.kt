@@ -3,7 +3,7 @@ package net.darkmeow.irc.command.impl
 import io.netty.channel.Channel
 import net.darkmeow.irc.command.Command
 import net.darkmeow.irc.command.CommandManager
-import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMyInfo
+import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMySessionInfo
 import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
 import net.darkmeow.irc.utils.DataManagerUtils.getCTXPremium
 import net.darkmeow.irc.utils.MessageUtils.sendCommandUsage
@@ -18,7 +18,7 @@ class CommandClients: Command("Clients") {
                     channel.sendCommandUsage("clients", "create <客户端Id> <客户端Hash> <最低允许登录版本>")
                     return
                 }
-                if (manager.base.dataManager.getCTXPremium(channel) != S2CPacketUpdateMyInfo.Premium.SUPER_ADMIN) {
+                if (manager.base.dataManager.getCTXPremium(channel) != S2CPacketUpdateMySessionInfo.Premium.SUPER_ADMIN) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
@@ -30,7 +30,7 @@ class CommandClients: Command("Clients") {
                     channel.sendCommandUsage("clients", "delete <客户端>")
                     return
                 }
-                if (manager.base.dataManager.getCTXPremium(channel) != S2CPacketUpdateMyInfo.Premium.SUPER_ADMIN) {
+                if (manager.base.dataManager.getCTXPremium(channel) != S2CPacketUpdateMySessionInfo.Premium.SUPER_ADMIN) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
@@ -46,7 +46,7 @@ class CommandClients: Command("Clients") {
                     channel.sendCommandUsage("clients", "version <客户端Id> <最低允许登录版本>")
                     return
                 }
-                if (manager.base.dataManager.getCTXPremium(channel) != S2CPacketUpdateMyInfo.Premium.SUPER_ADMIN) {
+                if (manager.base.dataManager.getCTXPremium(channel) != S2CPacketUpdateMySessionInfo.Premium.SUPER_ADMIN) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
@@ -58,7 +58,7 @@ class CommandClients: Command("Clients") {
                 }
             }
             "list" -> {
-                if (manager.base.dataManager.getCTXPremium(channel) != S2CPacketUpdateMyInfo.Premium.SUPER_ADMIN) {
+                if (manager.base.dataManager.getCTXPremium(channel) != S2CPacketUpdateMySessionInfo.Premium.SUPER_ADMIN) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
