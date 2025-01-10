@@ -177,7 +177,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                         val user = channel.getCurrentUser() ?: return@packetHandle
 
                         manager.clients.values
-                            .filter { otherChannel -> otherChannel.getCurrentUser() == packet.user }
+                            .filter { otherChannel -> otherChannel.getCurrentUser() == packet.user || otherChannel.getUniqueId().toString() == packet.user }
                             .also {
                                 // 接收方不在线
                                 if (it.isEmpty()) {
