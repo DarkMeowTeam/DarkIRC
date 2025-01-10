@@ -3,7 +3,6 @@ package net.darkmeow.irc.client;
 import lombok.Builder;
 import net.darkmeow.irc.IRCLib;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
-import net.darkmeow.irc.client.enums.EnumPremium;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
 import net.darkmeow.irc.client.manager.IRCClientResultManager;
@@ -37,12 +36,6 @@ public class IRCClient {
     }
 
     public IRCClientConnection connection = new IRCClientConnection(this);
-
-    public String name;
-
-    public String rank;
-
-    public EnumPremium premium;
 
     @NotNull
     public final IRCClientUserManager userManager = new IRCClientUserManager();
