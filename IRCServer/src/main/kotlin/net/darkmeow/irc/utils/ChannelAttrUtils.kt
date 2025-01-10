@@ -10,6 +10,17 @@ import java.util.*
 
 object ChannelAttrUtils {
 
+
+    fun Channel.getLatestKeepAlive() = this
+        .takeIf { hasAttr(AttributeKeys.LATEST_KEEPALIVE) }
+        ?.attr(AttributeKeys.LATEST_KEEPALIVE)
+        ?.get()
+        ?: 0L
+
+    fun Channel.setLatestKeepAlive(time: Long) = this
+        .attr(AttributeKeys.LATEST_KEEPALIVE)
+        .set(time)
+
     fun Channel.getProtocolVersion() = this
         .takeIf { hasAttr(AttributeKeys.PROTOCOL) }
         ?.attr(AttributeKeys.PROTOCOL)
