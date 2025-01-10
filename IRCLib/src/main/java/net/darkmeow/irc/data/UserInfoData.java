@@ -5,6 +5,8 @@ import org.jetbrains.annotations.Nullable;
 
 public class UserInfoData {
 
+    public static UserInfoData EMPTY = new UserInfoData("", "" , GameInfoData.EMPTY);
+
     /**
      * IRC 用户名
      */

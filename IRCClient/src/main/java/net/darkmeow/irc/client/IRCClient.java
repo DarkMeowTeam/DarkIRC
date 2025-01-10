@@ -6,7 +6,7 @@ import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
 import net.darkmeow.irc.client.manager.IRCClientResultManager;
-import net.darkmeow.irc.client.manager.IRCClientUserManager;
+import net.darkmeow.irc.client.manager.SessionManager;
 import net.darkmeow.irc.client.network.IRCClientConnection;
 import net.darkmeow.irc.client.network.IRCClientOptions;
 import net.darkmeow.irc.data.ClientBrandData;
@@ -38,7 +38,7 @@ public class IRCClient {
     public IRCClientConnection connection = new IRCClientConnection(this);
 
     @NotNull
-    public final IRCClientUserManager userManager = new IRCClientUserManager();
+    public final SessionManager userManager = new SessionManager();
 
     @NotNull
     public final IRCClientResultManager resultManager = new IRCClientResultManager();
