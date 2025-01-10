@@ -63,7 +63,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
 
     override fun channelRead(ctx: ChannelHandlerContext, data: Any) {
          JsonParser.parseString(data as? String)?.asJsonObject?.also { obj ->
-            PacketUtils.resolveClientPacket(obj).also packetHandle@ { packet ->
+            PacketUtils.resolveClientPacket(obj)?.also packetHandle@ { packet ->
                 val channel = ctx.channel()
 
                 when (packet) {

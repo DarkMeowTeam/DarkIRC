@@ -4,6 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import net.darkmeow.irc.network.packet.c2s.*;
 import net.darkmeow.irc.network.packet.s2c.*;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
@@ -39,21 +41,28 @@ public class PacketUtils {
         serverPackets.put("CustomPayload", S2CPacketCustomPayload.class);
     }
 
-    public static C2SPacket resolveClientPacket(JsonObject obj) {
-        return gson.fromJson(
-            obj.get("data"),
-            clientPackets.get(obj.get("type").getAsString())
-        );
+
+    public static @Nullable C2SPacket resolveClientPacket(@NotNull JsonObject obj) {
+        final Class<? extends C2SPacket> clazz = clientPackets.get(obj.get("type").getAsString());
+
+        if (clazz != null) {
+            return gson.fromJson(obj.get("data"), clazz);
+        } else {
+            return null;
+        }
     }
 
-    public static S2CPacket resolveServerPacket(JsonObject obj) {
-        return gson.fromJson(
-            obj.get("data"),
-            serverPackets.get(obj.get("type").getAsString())
-        );
+    public static @Nullable S2CPacket resolveServerPacket(@NotNull JsonObject obj) {
+        final Class<? extends S2CPacket> clazz = serverPackets.get(obj.get("type").getAsString());
+
+        if (clazz != null) {
+            return gson.fromJson(obj.get("data"), clazz);
+        } else {
+            return null;
+        }
     }
 
-    public static String generatePacket(C2SPacket packet) {
+    public static @NotNull String generatePacket(@NotNull C2SPacket packet) {
         final JsonObject json = new JsonObject();
 
         final String type = clientPackets.entrySet().stream()
@@ -70,7 +79,7 @@ public class PacketUtils {
         return json.toString();
     }
 
-    public static String generatePacket(S2CPacket packet) {
+    public static @NotNull String generatePacket(@NotNull S2CPacket packet) {
         final JsonObject json = new JsonObject();
 
         final String type = serverPackets.entrySet().stream()
