@@ -20,6 +20,7 @@ import net.darkmeow.irc.utils.ChannelAttrUtils.getUniqueId
 import net.darkmeow.irc.utils.ChannelAttrUtils.kick
 import net.darkmeow.irc.utils.ChannelAttrUtils.setCurrentUser
 import net.darkmeow.irc.utils.ChannelAttrUtils.setDevice
+import net.darkmeow.irc.utils.ChannelAttrUtils.setLatestKeepAlive
 import net.darkmeow.irc.utils.ChannelAttrUtils.setProtocolVersion
 import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionInfo
 import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionOptions
@@ -74,7 +75,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                         channel.setDevice(packet.deviceId)
                         channel.sendPacket(S2CPacketHandShake(IRCLib.PROTOCOL_VERSION))
                     }
-                    is C2SPacketKeepAlive -> channel.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
+                    is C2SPacketKeepAlive -> channel.setLatestKeepAlive(System.currentTimeMillis())
                     is C2SPacketLogin -> run {
                         class ExceptionLoginResult(val result: LoginResult): Exception()
 
