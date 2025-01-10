@@ -5,18 +5,26 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.EventLoopGroup;
 import net.darkmeow.irc.client.AttributeKeys;
 import net.darkmeow.irc.client.network.IRCClientConnection;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 public class HandleClientConnection extends ChannelInboundHandlerAdapter {
 
+    @NotNull
     public final IRCClientConnection client;
 
+    @NotNull
     public final EventLoopGroup group;
 
-    public HandleClientConnection(IRCClientConnection client, EventLoopGroup group) {
+    @NotNull
+    private final CountDownLatch channelActiveLatch;
+
+    public HandleClientConnection(@NotNull IRCClientConnection client, @NotNull EventLoopGroup group, @NotNull CountDownLatch channelActiveLatch) {
         this.client = client;
         this.group = group;
+        this.channelActiveLatch = channelActiveLatch;
     }
 
     @Override
@@ -27,6 +35,8 @@ public class HandleClientConnection extends ChannelInboundHandlerAdapter {
 
         client.channel = ctx.channel();
         client.channelUniqueId = uniqueID;
+
+        channelActiveLatch.countDown();
 
         super.channelActive(ctx);
     }
@@ -42,12 +52,13 @@ public class HandleClientConnection extends ChannelInboundHandlerAdapter {
             new Thread(() -> {
                 client.base.userManager.reset();
 
-                group.shutdownGracefully().syncUninterruptibly();
                 client.base.listenable.onDisconnect(
                     client.base.resultManager.disconnectType,
                     client.base.resultManager.disconnectReason,
                     client.base.resultManager.disconnectLogout
                 );
+
+                group.shutdownGracefully().syncUninterruptibly();
             }).start();
         }
 
