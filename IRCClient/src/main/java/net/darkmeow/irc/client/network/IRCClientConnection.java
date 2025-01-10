@@ -96,6 +96,7 @@ public class IRCClientConnection {
                 .syncUninterruptibly();
 
             channelActiveLatch.await(3, TimeUnit.SECONDS);
+            if (channelActiveLatch.getCount() == 1) channelActiveLatch.countDown();
         } catch (Exception e) {
             e.printStackTrace();
         }

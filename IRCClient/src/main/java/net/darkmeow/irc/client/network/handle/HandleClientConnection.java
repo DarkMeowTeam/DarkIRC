@@ -29,14 +29,18 @@ public class HandleClientConnection extends ChannelInboundHandlerAdapter {
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) throws Exception {
-        final UUID uniqueID = UUID.randomUUID();
+        if (channelActiveLatch.getCount() == 1) {
+            final UUID uniqueID = UUID.randomUUID();
 
-        ctx.channel().attr(AttributeKeys.UUID).set(uniqueID);
+            ctx.channel().attr(AttributeKeys.UUID).set(uniqueID);
 
-        client.channel = ctx.channel();
-        client.channelUniqueId = uniqueID;
+            client.channel = ctx.channel();
+            client.channelUniqueId = uniqueID;
 
-        channelActiveLatch.countDown();
+            channelActiveLatch.countDown();
+        } else {
+            ctx.channel().close();
+        }
 
         super.channelActive(ctx);
     }
