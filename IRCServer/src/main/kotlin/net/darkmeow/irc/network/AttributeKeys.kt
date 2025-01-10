@@ -6,12 +6,13 @@ import net.darkmeow.irc.data.DataSessionOptions
 import java.util.*
 
 object AttributeKeys {
-    val UUID = AttributeKey.newInstance<UUID>("uuid")
-    val ADDRESS = AttributeKey.newInstance<String>("address")
-    val DEVICE = AttributeKey.newInstance<String>("device")
-    val LATEST_KEEPALIVE = AttributeKey.newInstance<Long>("latestKeepAlive")
-    val CURRENT_USER = AttributeKey.newInstance<String>("currentUser")
+    val PROTOCOL: AttributeKey<Int> = AttributeKey.newInstance("protocol")
+    val UUID: AttributeKey<UUID> = AttributeKey.newInstance("uuid")
+    val ADDRESS: AttributeKey<String> = AttributeKey.newInstance("address")
+    val DEVICE: AttributeKey<String> = AttributeKey.newInstance("device")
+    val LATEST_KEEPALIVE: AttributeKey<Long> = AttributeKey.newInstance("latestKeepAlive")
+    val CURRENT_USER: AttributeKey<String> = AttributeKey.newInstance("currentUser")
 
-    val SESSION_INFO = AttributeKey.newInstance<DataSessionInfo>("sessionInfo")
-    val SESSION_OPTIONS = AttributeKey.newInstance<DataSessionOptions>("sessionOptions")
+    val SESSION_INFO: AttributeKey<DataSessionInfo> = AttributeKey.newInstance("sessionInfo")
+    val SESSION_OPTIONS: AttributeKey<DataSessionOptions> = AttributeKey.newInstance("sessionOptions")
 }
