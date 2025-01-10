@@ -10,6 +10,15 @@ import java.util.*
 
 object ChannelAttrUtils {
 
+    fun Channel.getProtocolVersion() = this
+        .takeIf { hasAttr(AttributeKeys.PROTOCOL) }
+        ?.attr(AttributeKeys.PROTOCOL)
+        ?.get()
+        ?: 0
+
+    fun Channel.setProtocolVersion(version: Int) = this
+        .attr(AttributeKeys.PROTOCOL)
+        .set(version)
     /**
      * 获取连接唯一标识
      *
@@ -20,6 +29,10 @@ object ChannelAttrUtils {
         ?.attr(AttributeKeys.UUID)
         ?.get()
         ?: UUID(0L, 0L)
+
+    fun Channel.setUniqueId(id: UUID) = this
+        .attr(AttributeKeys.UUID)
+        .set(id)
 
     fun Channel.getCurrentUser() = this
         .takeIf { hasAttr(AttributeKeys.CURRENT_USER) }
@@ -35,6 +48,10 @@ object ChannelAttrUtils {
         ?.attr(AttributeKeys.DEVICE)
         ?.get()
         ?: ""
+
+    fun Channel.setDevice(device: String) = this
+        .attr(AttributeKeys.DEVICE)
+        .set(device)
 
     fun Channel.getSessionInfo() = this
         .takeIf { hasAttr(AttributeKeys.SESSION_INFO) }

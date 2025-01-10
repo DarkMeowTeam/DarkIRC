@@ -19,6 +19,8 @@ import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionOptions
 import net.darkmeow.irc.utils.ChannelAttrUtils.getUniqueId
 import net.darkmeow.irc.utils.ChannelAttrUtils.kick
 import net.darkmeow.irc.utils.ChannelAttrUtils.setCurrentUser
+import net.darkmeow.irc.utils.ChannelAttrUtils.setDevice
+import net.darkmeow.irc.utils.ChannelAttrUtils.setProtocolVersion
 import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionInfo
 import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionOptions
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
@@ -68,13 +70,9 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
 
                 when (packet) {
                     is C2SPacketHandShake -> {
-                        channel.attr(AttributeKeys.DEVICE).set(packet.deviceId)
-
+                        channel.setProtocolVersion(packet.protocolVersion)
+                        channel.setDevice(packet.deviceId)
                         channel.sendPacket(S2CPacketHandShake(IRCLib.PROTOCOL_VERSION))
-
-                        if (packet.protocolVersion < IRCLib.PROTOCOL_VERSION) {
-                            channel.sendSystemMessage("您的 IRC 客户端协议版本已过时, 可能会存在一些问题.")
-                        }
                     }
                     is C2SPacketKeepAlive -> channel.attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
                     is C2SPacketLogin -> run {

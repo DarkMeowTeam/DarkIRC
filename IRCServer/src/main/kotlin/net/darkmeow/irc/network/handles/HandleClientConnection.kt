@@ -5,6 +5,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.haproxy.HAProxyMessage
 import net.darkmeow.irc.network.AttributeKeys
 import net.darkmeow.irc.network.NetworkManager
+import net.darkmeow.irc.utils.ChannelAttrUtils.setUniqueId
 import java.net.InetSocketAddress
 import java.util.*
 
@@ -13,7 +14,7 @@ class HandleClientConnection(private val manager: NetworkManager): ChannelInboun
     override fun channelActive(ctx: ChannelHandlerContext) {
         ctx.channel().also { channel ->
             UUID.randomUUID().also { uuid ->
-                channel.attr(AttributeKeys.UUID).set(uuid)
+                channel.setUniqueId(uuid)
 
                 manager.clients[uuid] = channel
 
