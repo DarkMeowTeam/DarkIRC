@@ -49,26 +49,20 @@ public class IRCClient {
      */
     public boolean connect() {
         resultManager.reset();
-        int attempt = 0;
 
-        // 临时修复神秘问题
-        while (attempt <= 5) {
-            disconnect();
+        disconnect();
 
-            if (connection.connect(options.host, options.port, options.key, options.proxy)) {
-                connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, options.deviceId), false);
+        if (connection.connect(options.host, options.port, options.key, options.proxy)) {
+            connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, options.deviceId), false);
 
-                try {
-                    if (resultManager.handShakeLatch.await(3, TimeUnit.SECONDS)) {
-                        return true;
-                    }
-                    disconnect();
-                } catch (InterruptedException e) {
-                    disconnect();
+            try {
+                if (resultManager.handShakeLatch.await(2, TimeUnit.SECONDS)) {
+                    return true;
                 }
+                disconnect();
+            } catch (InterruptedException e) {
+                disconnect();
             }
-
-            attempt++;
         }
 
         return false;

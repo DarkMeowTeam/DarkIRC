@@ -25,6 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.Proxy;
 import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 public class IRCClientConnection {
 
@@ -43,6 +45,7 @@ public class IRCClientConnection {
     @Nullable
     public UUID channelUniqueId;
 
+
     @SuppressWarnings("all")
     public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull Proxy proxy) {
         this.key = key;
@@ -51,6 +54,8 @@ public class IRCClientConnection {
         this.channel = null;
 
         try {
+            CountDownLatch channelActiveLatch = new CountDownLatch(1);
+
             Class <? extends SocketChannel > oclass;
             EventLoopGroup group;
 
@@ -67,6 +72,7 @@ public class IRCClientConnection {
 
             new Bootstrap()
                 .group(group)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
                 .handler(
                     new ChannelInitializer<SocketChannel>() {
                         @Override
@@ -79,7 +85,7 @@ public class IRCClientConnection {
                             }
 
                             // 处理
-                            ch.pipeline().addLast("BaseConnection", new HandleClientConnection(IRCClientConnection.this, group));
+                            ch.pipeline().addLast("BaseConnection", new HandleClientConnection(IRCClientConnection.this, group, channelActiveLatch));
                             ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
                             ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
                         }
@@ -88,6 +94,8 @@ public class IRCClientConnection {
                 .channel(oclass)
                 .connect(host, port)
                 .syncUninterruptibly();
+
+            channelActiveLatch.await(3, TimeUnit.SECONDS);
         } catch (Exception e) {
             e.printStackTrace();
         }
