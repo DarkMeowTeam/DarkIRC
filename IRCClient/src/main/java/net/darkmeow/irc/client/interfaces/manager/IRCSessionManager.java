@@ -12,7 +12,7 @@ public interface IRCSessionManager {
     /**
      * 获取自身会话信息
      *
-     * @return 自身会话信息
+     * @return 自身会话信息 如果未登录则为空
      */
     @Nullable IRCDataSelfSessionInfo getSelfSession();
     /**

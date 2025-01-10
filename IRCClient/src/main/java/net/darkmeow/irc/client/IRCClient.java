@@ -4,6 +4,8 @@ import lombok.Builder;
 import net.darkmeow.irc.IRCLib;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
+import net.darkmeow.irc.client.interfaces.IRCClientProvider;
+import net.darkmeow.irc.client.interfaces.manager.IRCSessionManager;
 import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
 import net.darkmeow.irc.client.manager.IRCClientResultManager;
 import net.darkmeow.irc.client.manager.SessionManager;
@@ -19,7 +21,11 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-public class IRCClient {
+public class IRCClient implements IRCClientProvider {
+
+    public static @NotNull IRCClientProvider newInstance(@NotNull IRCClientListenableProvide listenable, @NotNull IRCClientOptions options) {
+        return new IRCClient(listenable, options);
+    }
 
     @NotNull
     public final IRCClientListenableProvide listenable;
@@ -41,12 +47,7 @@ public class IRCClient {
     @NotNull
     public final IRCClientResultManager resultManager = new IRCClientResultManager();
 
-
-    /**
-     * 连接到 IRC 服务器
-     *
-     * @return 是否成功
-     */
+    @Override
     public boolean connect() {
         resultManager.reset();
 
@@ -68,28 +69,23 @@ public class IRCClient {
         return false;
     }
 
-    /**
-     * 与 IRC 服务器断开连接
-     */
+    @Override
     public void disconnect() {
         connection.disconnect();
     }
 
-    /**
-     * 获取连接状态
-     */
+    @Override
     public boolean isConnected() {
         return connection.isConnected();
     }
 
-    /**
-     * 登录到 IRC 服务器
-     *
-     * @param username 用户名
-     * @param password 密码
-     * @param brand 客户端信息
-     * @param callback 异步执行结果返回
-     */
+    @Override
+    public boolean isLogin() {
+        return connection.isConnected() && userManager.self != null;
+    }
+
+
+    @Override
     public void login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, @Nullable Consumer<EnumResultLogin> callback) {
         if (isConnected()) {
             resultManager.loginResultCallback = callback;
@@ -107,7 +103,13 @@ public class IRCClient {
         }
     }
 
-    public void sendMessage(@NotNull String message) {
+    @Override
+    public @NotNull IRCSessionManager getSessionManager() {
+        return userManager;
+    }
+
+    @Override
+    public void sendMessageToPublic(@NotNull String message) {
         if (isConnected()) {
             connection.sendPacket(
                 new C2SPacketChatPublic(message),
@@ -116,17 +118,19 @@ public class IRCClient {
         }
     }
 
-    public void sendMessageToPrivate(@NotNull String user, @NotNull String message, @Nullable Consumer<IRCResultSendMessageToPrivate> callback) {
+    @Override
+    public void sendMessageToPrivate(@NotNull String receiver, @NotNull String message, @Nullable Consumer<IRCResultSendMessageToPrivate> callback) {
         if (isConnected()) {
             resultManager.privateResultCallback = callback;
 
             connection.sendPacket(
-                new C2SPacketChatPrivate(user, message),
+                new C2SPacketChatPrivate(receiver, message),
                 true
             );
         }
     }
 
+    @Override
     public void sendCommand(@NotNull String root, @NotNull ArrayList<String> args) {
         if (isConnected()) {
             connection.sendPacket(
@@ -136,12 +140,8 @@ public class IRCClient {
         }
     }
 
-    /**
-     * 上报客户端数据
-     *
-     * @param options 数据
-     */
-    public void postOptions(@NotNull DataSessionOptions options) {
+    @Override
+    public void uploadSessionOptions(@NotNull DataSessionOptions options) {
         if (isConnected()) {
             connection.sendPacket(
                 new C2SPacketUpdateSessionOptions(options),
@@ -150,13 +150,8 @@ public class IRCClient {
         }
     }
 
-    /**
-     * 更新当前登录账号的密码
-     * 更新后客户端将登陆失效了需要重新登录
-     *
-     * @param password 新密码
-     */
-    public void changePassword(@NotNull String password) {
+    @Override
+    public void updatePassword(@NotNull String password) {
         if (isConnected()) {
             connection.sendPacket(
                 new C2SPacketChangePassword(password),
