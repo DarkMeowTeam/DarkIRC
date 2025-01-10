@@ -40,8 +40,7 @@ public class HandleClientConnection extends ChannelInboundHandlerAdapter {
             client.channelUniqueId = null;
 
             new Thread(() -> {
-                client.base.userManager.selfInfo = null;
-                client.base.userManager.users.clear();
+                client.base.userManager.reset();
 
                 group.shutdownGracefully().syncUninterruptibly();
                 client.base.listenable.onDisconnect(

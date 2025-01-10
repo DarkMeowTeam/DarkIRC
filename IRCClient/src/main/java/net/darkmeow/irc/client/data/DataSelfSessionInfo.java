@@ -1,17 +1,12 @@
 package net.darkmeow.irc.client.data;
 
 import net.darkmeow.irc.client.enums.EnumPremium;
-import net.darkmeow.irc.client.interfaces.data.IRCDataSelfInfo;
+import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
-public class DataSelfInfo implements IRCDataSelfInfo {
-
-    public boolean invalid = false;
-
-    @NotNull
-    public UUID uniqueId;
+public final class DataSelfSessionInfo extends DataSessionInfo implements IRCDataSelfSessionInfo {
 
     @NotNull
     public String name;
@@ -22,8 +17,9 @@ public class DataSelfInfo implements IRCDataSelfInfo {
     @NotNull
     public EnumPremium premium;
 
-    public DataSelfInfo(@NotNull UUID clientUniqueId, @NotNull String name, @NotNull String rank, @NotNull EnumPremium premium) {
-        this.uniqueId = clientUniqueId;
+    public DataSelfSessionInfo(@NotNull UUID clientUniqueId, @NotNull String name, @NotNull String rank, @NotNull EnumPremium premium) {
+        super(clientUniqueId);
+
         this.name = name;
         this.rank = rank;
         this.premium = premium;
@@ -37,22 +33,10 @@ public class DataSelfInfo implements IRCDataSelfInfo {
      * @param premium 权限等级
      */
     public void update(@NotNull String name, @NotNull String rank, @NotNull EnumPremium premium) {
-        this.invalid = false;
+        this.valid = true;
         this.name = name;
         this.rank = rank;
         this.premium = premium;
-    }
-
-    /**
-     * 标记 IRCSelfInfo 数据为失效 (连接断开)
-     */
-    public void markInvalid() {
-        this.invalid = true;
-    }
-
-    @Override
-    public boolean isInvalid() {
-        return this.invalid;
     }
 
     @Override

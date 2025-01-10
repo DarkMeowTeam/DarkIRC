@@ -1,16 +1,16 @@
 package net.darkmeow.irc.client.listener;
 
-import net.darkmeow.irc.client.data.IRCUserInfo;
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
-import net.darkmeow.irc.client.interfaces.data.IRCDataSelfInfo;
+import net.darkmeow.irc.client.interfaces.data.IRCDataOtherSessionInfo;
+import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
 
 public interface IRCClientListenableProvide {
 
-    void onUpdateUserInfo(IRCDataSelfInfo info, boolean isFirstLogin);
+    void onUpdateUserInfo(IRCDataSelfSessionInfo info, boolean isFirstLogin);
 
-    void onMessagePublic(IRCUserInfo sender, String message);
+    void onMessagePublic(IRCDataOtherSessionInfo sender, String message);
 
-    void onMessagePrivate(IRCUserInfo sender, String message);
+    void onMessagePrivate(IRCDataOtherSessionInfo sender, String message);
 
     void onMessageSystem(String message);
 
