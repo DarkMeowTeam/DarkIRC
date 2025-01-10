@@ -6,7 +6,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class S2CPacketUpdateOtherInfo implements S2CPacket {
+public class S2CPacketUpdateOtherSessionInfo implements S2CPacket {
 
     @NotNull
     public UUID sessionUniqueId;
@@ -19,7 +19,7 @@ public class S2CPacketUpdateOtherInfo implements S2CPacket {
      * @param sessionUniqueId 客户端唯一标识
      * @param info 客户端数据 为空代表删除数据
      */
-    public S2CPacketUpdateOtherInfo(@NotNull UUID sessionUniqueId, @Nullable UserInfoData info) {
+    public S2CPacketUpdateOtherSessionInfo(@NotNull UUID sessionUniqueId, @Nullable UserInfoData info) {
         this.sessionUniqueId = sessionUniqueId;
         this.info = info;
     }

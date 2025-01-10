@@ -4,7 +4,7 @@ import io.netty.channel.Channel
 import net.darkmeow.irc.command.Command
 import net.darkmeow.irc.command.CommandManager
 import net.darkmeow.irc.network.packet.s2c.S2CPacketDisconnect
-import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMyInfo
+import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMySessionInfo
 import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentUser
 import net.darkmeow.irc.utils.ChannelAttrUtils.getUniqueId
 import net.darkmeow.irc.utils.ChannelAttrUtils.kick
@@ -20,14 +20,14 @@ class CommandUsers: Command("Users") {
         when (if (args.isEmpty()) "" else args[0]) {
             "create" -> {
                 if (args.size != 5) {
-                    channel.sendCommandUsage("users", "create <用户名> <密码> <初始头衔> <等级(${S2CPacketUpdateMyInfo.Premium.entries.joinToString (",") { it.name }})>")
+                    channel.sendCommandUsage("users", "create <用户名> <密码> <初始头衔> <等级(${S2CPacketUpdateMySessionInfo.Premium.entries.joinToString (",") { it.name }})>")
                     return
                 }
-                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMyInfo.Premium.ADMIN.ordinal) {
+                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMySessionInfo.Premium.ADMIN.ordinal) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
-                manager.base.dataManager.createUser(args[1], args[2], args[3], S2CPacketUpdateMyInfo.Premium.valueOf(args[4]))
+                manager.base.dataManager.createUser(args[1], args[2], args[3], S2CPacketUpdateMySessionInfo.Premium.valueOf(args[4]))
                 channel.sendSystemMessage("成功创建用户 ${args[1]}")
             }
             "delete" -> {
@@ -35,7 +35,7 @@ class CommandUsers: Command("Users") {
                     channel.sendCommandUsage("users", "delete <用户名>")
                     return
                 }
-                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMyInfo.Premium.ADMIN.ordinal) {
+                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMySessionInfo.Premium.ADMIN.ordinal) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
@@ -63,7 +63,7 @@ class CommandUsers: Command("Users") {
                     channel.sendCommandUsage("users", "rank <用户名> <新头衔>")
                     return
                 }
-                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMyInfo.Premium.ADMIN.ordinal) {
+                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMySessionInfo.Premium.ADMIN.ordinal) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
@@ -79,7 +79,7 @@ class CommandUsers: Command("Users") {
                         }
                         .onEach { (_, otherChannel) ->
                             otherChannel.sendPacket(
-                                S2CPacketUpdateMyInfo(
+                                S2CPacketUpdateMySessionInfo(
                                     args[1],
                                     args[2],
                                     premium,
@@ -95,17 +95,17 @@ class CommandUsers: Command("Users") {
             }
             "premium" -> {
                 if (args.size != 3) {
-                    channel.sendCommandUsage("users", "premium <用户名> <等级(${S2CPacketUpdateMyInfo.Premium.entries.joinToString (",") { it.name }})>")
+                    channel.sendCommandUsage("users", "premium <用户名> <等级(${S2CPacketUpdateMySessionInfo.Premium.entries.joinToString (",") { it.name }})>")
                     return
                 }
-                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMyInfo.Premium.ADMIN.ordinal) {
+                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMySessionInfo.Premium.ADMIN.ordinal) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
                 if (manager.base.dataManager.userExist(args[1])) {
                     val rank = manager.base.dataManager.getUserRank(args[1]) ?: ""
 
-                    manager.base.dataManager.setUserPremium(args[1],  S2CPacketUpdateMyInfo.Premium.valueOf(args[2]))
+                    manager.base.dataManager.setUserPremium(args[1],  S2CPacketUpdateMySessionInfo.Premium.valueOf(args[2]))
 
                     // 更新该用户客户端数据
                     manager.base.networkManager.clients
@@ -114,16 +114,18 @@ class CommandUsers: Command("Users") {
                         }
                         .onEach { (_, otherChannel) ->
                             otherChannel.sendPacket(
-                                S2CPacketUpdateMyInfo(
+                                S2CPacketUpdateMySessionInfo(
                                     args[1],
                                     rank,
-                                    S2CPacketUpdateMyInfo.Premium.valueOf(args[2]),
+                                    S2CPacketUpdateMySessionInfo.Premium.valueOf(
+                                        args[2]
+                                    ),
                                     otherChannel.getUniqueId()
                                 )
                             )
                         }
 
-                    channel.sendSystemMessage("成功设置用户 ${args[1]} 的等级为 ${ S2CPacketUpdateMyInfo.Premium.valueOf(args[2])}")
+                    channel.sendSystemMessage("成功设置用户 ${args[1]} 的等级为 ${ S2CPacketUpdateMySessionInfo.Premium.valueOf(args[2])}")
                 } else {
                     channel.sendSystemMessage("用户 ${args[1]} 不存在")
                 }
@@ -133,7 +135,7 @@ class CommandUsers: Command("Users") {
                     channel.sendCommandUsage("users", "kick <用户名> <原因>")
                     return
                 }
-                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMyInfo.Premium.ADMIN.ordinal) {
+                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMySessionInfo.Premium.ADMIN.ordinal) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
@@ -162,7 +164,7 @@ class CommandUsers: Command("Users") {
                 }
             }
             "list" -> {
-                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMyInfo.Premium.ADMIN.ordinal) {
+                if (manager.base.dataManager.getCTXPremium(channel).ordinal < S2CPacketUpdateMySessionInfo.Premium.ADMIN.ordinal) {
                     channel.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }

@@ -6,7 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class S2CPacketUpdateMultiUserInfo implements S2CPacket {
+public class S2CPacketUpdateMultiSessionInfo implements S2CPacket {
 
     /**
      * 是否启用仅同服务器玩家可见
@@ -26,7 +26,7 @@ public class S2CPacketUpdateMultiUserInfo implements S2CPacket {
     @NotNull
     public HashMap<UUID, UserInfoData> users;
 
-    public S2CPacketUpdateMultiUserInfo(boolean onlySameServer, boolean overrideAll, @NotNull HashMap<UUID, UserInfoData> users) {
+    public S2CPacketUpdateMultiSessionInfo(boolean onlySameServer, boolean overrideAll, @NotNull HashMap<UUID, UserInfoData> users) {
         this.onlySameServer = onlySameServer;
         this.overrideAll = overrideAll;
         this.users = users;

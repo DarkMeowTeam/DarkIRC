@@ -1,11 +1,10 @@
 package net.darkmeow.irc.data;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public class UserInfoData {
 
-    public static UserInfoData EMPTY = new UserInfoData("", "" , GameInfoData.EMPTY);
+    public static UserInfoData EMPTY = new UserInfoData("", "" , DataSessionInfo.EMPTY, DataSessionOptions.EMPTY);
 
     /**
      * IRC 用户名
@@ -20,14 +19,23 @@ public class UserInfoData {
     public String rank;
 
     /**
-     * IRC 客户端游戏内信息/参数
+     * 会话信息
+     * 由服务端生成
      */
     @NotNull
-    public GameInfoData info;
+    public DataSessionInfo info;
 
-    public UserInfoData(@NotNull String name, @NotNull String rank, @NotNull GameInfoData info) {
+    /**
+     * 会话自定义信息
+     * 由其它客户端生成
+     */
+    @NotNull
+    public DataSessionOptions options;
+
+    public UserInfoData(@NotNull String name, @NotNull String rank, @NotNull DataSessionInfo info, @NotNull DataSessionOptions options) {
         this.name = name;
         this.rank = rank;
         this.info = info;
+        this.options = options;
     }
 }

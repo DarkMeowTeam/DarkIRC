@@ -50,8 +50,8 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
                     connection.sendPacket(new C2SPacketQueryUsers(false), true);
                 }
             }
-        } else if (serverPacket instanceof S2CPacketUpdateMyInfo) {
-            final S2CPacketUpdateMyInfo packet = (S2CPacketUpdateMyInfo) serverPacket;
+        } else if (serverPacket instanceof S2CPacketUpdateMySessionInfo) {
+            final S2CPacketUpdateMySessionInfo packet = (S2CPacketUpdateMySessionInfo) serverPacket;
             boolean isFirstLogin;
 
             if (connection.base.userManager.self == null) {
@@ -113,19 +113,19 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
                     )
                 );
             }
-        } else if (serverPacket instanceof S2CPacketUpdateOtherInfo) {
-            final S2CPacketUpdateOtherInfo packet = (S2CPacketUpdateOtherInfo) serverPacket;
+        } else if (serverPacket instanceof S2CPacketUpdateOtherSessionInfo) {
+            final S2CPacketUpdateOtherSessionInfo packet = (S2CPacketUpdateOtherSessionInfo) serverPacket;
 
             if (packet.info == null) {
-                connection.base.userManager.users.remove(((S2CPacketUpdateOtherInfo) serverPacket).sessionUniqueId);
+                connection.base.userManager.users.remove(((S2CPacketUpdateOtherSessionInfo) serverPacket).sessionUniqueId);
             } else {
                 connection.base.userManager.users.computeIfAbsent(
-                    ((S2CPacketUpdateOtherInfo) serverPacket).sessionUniqueId,
+                    ((S2CPacketUpdateOtherSessionInfo) serverPacket).sessionUniqueId,
                     DataOtherSessionInfo::new
                 ).update(packet.info);
             }
-        } else if (serverPacket instanceof S2CPacketUpdateMultiUserInfo) {
-            final S2CPacketUpdateMultiUserInfo packet = (S2CPacketUpdateMultiUserInfo) serverPacket;
+        } else if (serverPacket instanceof S2CPacketUpdateMultiSessionInfo) {
+            final S2CPacketUpdateMultiSessionInfo packet = (S2CPacketUpdateMultiSessionInfo) serverPacket;
             final ArrayList<UUID> updates = new ArrayList<>();
 
             packet.users.forEach((uuid, info) -> {
