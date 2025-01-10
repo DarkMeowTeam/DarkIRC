@@ -21,8 +21,10 @@ import net.darkmeow.irc.client.network.handle.HandleClientPacketProcess;
 import net.darkmeow.irc.network.PacketUtils;
 import net.darkmeow.irc.network.packet.c2s.C2SPacket;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.Proxy;
+import java.util.UUID;
 
 public class IRCClientConnection {
 
@@ -38,9 +40,15 @@ public class IRCClientConnection {
 
     public Channel channel;
 
+    @Nullable
+    public UUID channelUniqueId;
+
     @SuppressWarnings("all")
     public boolean connect(@NotNull String host, int port, @NotNull String key, @NotNull Proxy proxy) {
         this.key = key;
+
+        this.channelUniqueId = null;
+        this.channel = null;
 
         try {
             Class <? extends SocketChannel > oclass;
