@@ -4,6 +4,7 @@ import com.google.gson.JsonParser;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
+import net.darkmeow.irc.client.data.DataSelfInfo;
 import net.darkmeow.irc.client.data.IRCUserInfo;
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.enums.EnumPremium;
@@ -47,11 +48,36 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
                 }
             }
         } else if (serverPacket instanceof S2CPacketUpdateMyInfo) {
-            connection.base.name = ((S2CPacketUpdateMyInfo) serverPacket).name;
-            connection.base.rank = ((S2CPacketUpdateMyInfo) serverPacket).rank;
-            connection.base.premium =  EnumPremium.getEnumPremiumFromPacket(((S2CPacketUpdateMyInfo) serverPacket).premium);
+            final S2CPacketUpdateMyInfo packet = (S2CPacketUpdateMyInfo) serverPacket;
+            boolean isFirstLogin;
 
-            connection.base.listenable.onUpdateUserInfo(connection.base.name, connection.base.rank, connection.base.premium);
+            if (connection.base.userManager.selfInfo == null) {
+                connection.base.userManager.selfInfo = new DataSelfInfo(
+                    packet.sessionUniqueId,
+                    packet.name,
+                    packet.rank,
+                    EnumPremium.getEnumPremiumFromPacket(packet.premium)
+                );
+                isFirstLogin = true;
+            } else if (connection.base.userManager.selfInfo.uniqueId != packet.sessionUniqueId || connection.base.userManager.selfInfo.invalid) {
+                connection.base.userManager.selfInfo.markInvalid();
+                connection.base.userManager.selfInfo = new DataSelfInfo(
+                    packet.sessionUniqueId,
+                    packet.name,
+                    packet.rank,
+                    EnumPremium.getEnumPremiumFromPacket(packet.premium)
+                );
+                isFirstLogin = true;
+            }else {
+                connection.base.userManager.selfInfo.update(
+                    packet.name,
+                    packet.rank,
+                    EnumPremium.getEnumPremiumFromPacket(packet.premium)
+                );
+                isFirstLogin = false;
+            }
+
+            connection.base.listenable.onUpdateUserInfo(connection.base.userManager.selfInfo, isFirstLogin);
         } else if (serverPacket instanceof S2CPacketMessagePublic) {
             final S2CPacketMessagePublic packet = (S2CPacketMessagePublic) serverPacket;
 
