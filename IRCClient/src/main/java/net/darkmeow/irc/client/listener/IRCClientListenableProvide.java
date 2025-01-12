@@ -6,6 +6,8 @@ import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
 
 public interface IRCClientListenableProvide {
 
+    void onUpdateSession(String token);
+
     void onUpdateUserInfo(IRCDataSelfSessionInfo info, boolean isFirstLogin);
 
     void onMessagePublic(IRCDataOtherSessionInfo sender, String message);

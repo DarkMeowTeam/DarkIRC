@@ -79,6 +79,8 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                     is C2SPacketLogin -> run {
                         class ExceptionLoginResult(val result: LoginResult): Exception()
 
+                        val isTokenLogin = packet.password.length == 128
+
                         runCatching {
                             if (!channel.hasAttr(AttributeKeys.DEVICE)) {
                                 throw ExceptionLoginResult(LoginResult.OUTDATED_CLIENT_VERSION)
@@ -91,23 +93,39 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                 }
                                 ?: throw ExceptionLoginResult(LoginResult.INVALID_CLIENT)
 
-                            manager.base.dataManager
-                                .checkUserPassword(packet.name, packet.password)
-                                .takeIf { !it }
-                                ?.also {
-                                    throw ExceptionLoginResult(LoginResult.USER_OR_PASSWORD_WRONG)
-                                }
+                            when (isTokenLogin) {
+                                // session token
+                                true -> manager.base.dataManager
+                                    .getSessionLinkUser(packet.password)
+                                    ?.takeIf { it != packet.name }
+                                    ?.also {
+                                        throw ExceptionLoginResult(LoginResult.INVALID_TOKEN)
+                                    }
+                                // password
+                                false -> manager.base.dataManager
+                                    .checkUserPassword(packet.name, packet.password)
+                                    .takeIf { !it }
+                                    ?.also {
+                                        throw ExceptionLoginResult(LoginResult.USER_OR_PASSWORD_WRONG)
+                                    }
+                            }
+
 
                             if (!packet.notOnline) {
-                                // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
-                                channel.sendPacket(
-                                    S2CPacketUpdateMySessionInfo(
-                                        packet.name,
-                                        manager.base.dataManager.getUserRank(packet.name) ?: "",
-                                        manager.base.dataManager.getUserPremium(packet.name),
-                                        channel.getUniqueId()
+
+                                if (isTokenLogin) {
+                                    // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
+                                    channel.sendPacket(
+                                        S2CPacketUpdateMySessionInfo(
+                                            packet.name,
+                                            manager.base.dataManager.getUserRank(packet.name) ?: "",
+                                            manager.base.dataManager.getUserPremium(packet.name),
+                                            channel.getUniqueId()
+                                        )
                                     )
-                                )
+                                } else {
+
+                                }
 
                                 // 登出其他客户端
                                 manager.clients
@@ -136,9 +154,21 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                         }
                             .onFailure { t ->
                                 when (t) {
-                                    is ExceptionLoginResult -> channel.sendPacket(
-                                        S2CPacketLoginResult(t.result)
-                                    )
+                                    is ExceptionLoginResult -> when (isTokenLogin) {
+                                        true -> {
+                                            manager.base.dataManager.setSessionLastLogin(packet.password, System.currentTimeMillis())
+                                            channel.sendPacket(S2CPacketLoginResult(t.result))
+                                        }
+                                        false -> {
+                                            val token =  (1..128)
+                                                .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }
+                                                .joinToString("")
+
+                                            manager.base.dataManager.createSession(token, packet.name, System.currentTimeMillis())
+
+                                            channel.sendPacket(S2CPacketLoginResult(t.result, token))
+                                        }
+                                    }
                                     else -> channel.sendPacket(
                                         S2CPacketMessageSystem("系统错误: ${t.message}")
                                     )
