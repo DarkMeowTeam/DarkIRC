@@ -52,6 +52,7 @@ class CommandUsers: Command("Users") {
                             )
                         }
 
+                    manager.base.dataManager.deleteSessionByUser(args[1])
                     manager.base.dataManager.deleteUser(args[1])
                     channel.sendSystemMessage("成功删除用户 ${args[1]}")
                 } else {

@@ -313,6 +313,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                         val user = channel.getCurrentUser() ?: return@packetHandle
 
                         manager.base.dataManager.setUserPassword(user, packet.password)
+                        manager.base.dataManager.deleteSessionByUser(user)
 
                         manager.base.networkManager.clients.values
                             .filter { otherChannel -> otherChannel.getCurrentUser() == user }
