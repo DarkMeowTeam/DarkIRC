@@ -93,7 +93,11 @@ public class IRCClientConnection {
                 )
                 .channel(oclass)
                 .connect(host, port)
-                .syncUninterruptibly();
+                .addListener((ChannelFutureListener) future -> {
+                    if (!future.isSuccess()) {
+                        future.cause().printStackTrace();
+                    }
+                });
 
             channelActiveLatch.await(3, TimeUnit.SECONDS);
             if (channelActiveLatch.getCount() == 1) channelActiveLatch.countDown();
