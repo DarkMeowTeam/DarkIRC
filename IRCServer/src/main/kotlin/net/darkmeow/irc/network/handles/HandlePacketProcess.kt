@@ -12,6 +12,7 @@ import net.darkmeow.irc.network.PacketUtils
 import net.darkmeow.irc.network.packet.c2s.*
 import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
+import net.darkmeow.irc.utils.ChannelAttrUtils.getAddress
 import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentUser
 import net.darkmeow.irc.utils.ChannelAttrUtils.getDevice
 import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionInfo
@@ -112,20 +113,15 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
 
 
                             if (!packet.notOnline) {
-
-                                if (isTokenLogin) {
-                                    // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
-                                    channel.sendPacket(
-                                        S2CPacketUpdateMySessionInfo(
-                                            packet.name,
-                                            manager.base.dataManager.getUserRank(packet.name) ?: "",
-                                            manager.base.dataManager.getUserPremium(packet.name),
-                                            channel.getUniqueId()
-                                        )
+                                // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
+                                channel.sendPacket(
+                                    S2CPacketUpdateMySessionInfo(
+                                        packet.name,
+                                        manager.base.dataManager.getUserRank(packet.name) ?: "",
+                                        manager.base.dataManager.getUserPremium(packet.name),
+                                        channel.getUniqueId()
                                     )
-                                } else {
-
-                                }
+                                )
 
                                 // 登出其他客户端
                                 manager.clients
@@ -148,23 +144,23 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                 channel.setCurrentUser(packet.name)
                             }
 
-                            manager.logger.info("[+] ${packet.name}  (${channel.attr(AttributeKeys.ADDRESS).get()} ${channel.attr(AttributeKeys.DEVICE).get()})${if(packet.notOnline) " (仅验证密码)" else ""}")
+                            manager.logger.info("[+] ${packet.name}  (${channel.getAddress()} ${channel.getDevice()})${if(packet.notOnline) " (仅验证密码)" else ""}")
 
                             throw ExceptionLoginResult(LoginResult.SUCCESS)
                         }
                             .onFailure { t ->
                                 when (t) {
-                                    is ExceptionLoginResult -> when (isTokenLogin) {
+                                    is ExceptionLoginResult -> when (isTokenLogin || packet.notOnline) {
                                         true -> {
-                                            manager.base.dataManager.setSessionLastLogin(packet.password, System.currentTimeMillis())
+                                            manager.base.dataManager.updateSessionInfo(packet.password, System.currentTimeMillis(), channel.getDevice(), channel.getAddress())
                                             channel.sendPacket(S2CPacketLoginResult(t.result))
                                         }
                                         false -> {
-                                            val token =  (1..128)
+                                            val token = (1..128)
                                                 .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }
                                                 .joinToString("")
 
-                                            manager.base.dataManager.createSession(token, packet.name, System.currentTimeMillis())
+                                            manager.base.dataManager.createSession(token, packet.name, System.currentTimeMillis(), channel.getDevice(), channel.getAddress())
 
                                             channel.sendPacket(S2CPacketLoginResult(t.result, token))
                                         }

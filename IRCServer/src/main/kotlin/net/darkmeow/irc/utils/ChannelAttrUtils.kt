@@ -11,6 +11,16 @@ import java.util.*
 object ChannelAttrUtils {
 
 
+    fun Channel.getAddress() = this
+        .takeIf { hasAttr(AttributeKeys.ADDRESS) }
+        ?.attr(AttributeKeys.ADDRESS)
+        ?.get()
+        ?: "unknown"
+
+    fun Channel.setAddress(address: String) = this
+        .attr(AttributeKeys.ADDRESS)
+        .set(address)
+
     fun Channel.getLatestKeepAlive() = this
         .takeIf { hasAttr(AttributeKeys.LATEST_KEEPALIVE) }
         ?.attr(AttributeKeys.LATEST_KEEPALIVE)
@@ -20,6 +30,7 @@ object ChannelAttrUtils {
     fun Channel.setLatestKeepAlive(time: Long) = this
         .attr(AttributeKeys.LATEST_KEEPALIVE)
         .set(time)
+
 
     fun Channel.getProtocolVersion() = this
         .takeIf { hasAttr(AttributeKeys.PROTOCOL) }
