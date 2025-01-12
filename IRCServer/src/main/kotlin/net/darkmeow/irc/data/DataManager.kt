@@ -2,15 +2,18 @@ package net.darkmeow.irc.data
 
 import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMySessionInfo.Premium
+import org.apache.logging.log4j.LogManager
 import java.sql.Connection
 import java.sql.DriverManager
 
 class DataManager(
     private val base: IRCServer
 ) {
+    val logger = LogManager.getLogger("DataManager")
     lateinit var connection: Connection
 
     fun connect(url: String) {
+        logger.info("[数据库管理] 正在连接数据库..")
         connection = DriverManager.getConnection(url)
 
         connection.createStatement()
@@ -31,6 +34,8 @@ class DataManager(
                             VALUES ('DarkMeow', '114514', 0);
                         """.trimIndent()
                     )
+
+                    logger.info("[数据库管理] 创建表 clients")
                 }
                 if (!it.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='users';").next()) {
                     connection.createStatement().executeUpdate(
@@ -49,6 +54,8 @@ class DataManager(
                             VALUES ('Administrator', '123456', '管理员', ${Premium.SUPER_ADMIN.ordinal});
                         """.trimIndent()
                     )
+
+                    logger.info("[数据库管理] 创建表 users")
                 }
                 if (!it.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions';").next()) {
                     connection.createStatement().executeUpdate(
@@ -56,13 +63,19 @@ class DataManager(
                             CREATE TABLE IF NOT EXISTS sessions (
                                 token TEXT PRIMARY KEY,
                                 linkUser TEXT NOT NULL,
-                                latestLogin INTEGER NOT NULL
+                                latestLogin INTEGER NOT NULL,
+                                device INTEGER NOT NULL,
+                                ip INTEGER NOT NULL
                             );
                         """.trimIndent()
                     )
+
+                    logger.info("[数据库管理] 创建表 sessions")
                 }
             }
             .close()
+
+        logger.info("[数据库管理] 数据库连接成功")
     }
 
     fun disconnect() {
@@ -257,24 +270,28 @@ class DataManager(
         ?.getLong("latestLogin")
         ?: 0L
 
-    fun setSessionLastLogin(session: String, latestLogin: Long): Boolean = connection
-        .prepareStatement("UPDATE sessions SET latestLogin = ? WHERE token = ?;")
+    fun updateSessionInfo(token: String, latestLogin: Long, device: String, ip: String): Boolean = connection
+        .prepareStatement("UPDATE sessions SET latestLogin = ?, device = ?, ip = ? WHERE token = ?;")
         .apply {
-            setString(1, session)
-            setLong(2, latestLogin)
+            setLong(1, latestLogin)
+            setString(2, device)
+            setString(3, ip)
+            setString(4, token)
         }
         .executeUpdate() > 0
 
-    fun createSession(token: String, linkUser: String, latestLogin: Long): Boolean = connection
+    fun createSession(token: String, linkUser: String, latestLogin: Long, device: String, ip: String): Boolean = connection
         .prepareStatement(
             """
-                INSERT INTO sessions (token, linkUser, latestLogin) 
-                VALUES (?, ?, ?);
+                INSERT INTO sessions (token, linkUser, latestLogin, device, ip) 
+                VALUES (?, ?, ?, ?, ?);
             """.trimIndent()
         ).apply {
             setString(1, token)
             setString(2, linkUser)
             setLong(3, latestLogin)
+            setString(4, device)
+            setString(5, ip)
         }
         .executeUpdate() > 0
 
