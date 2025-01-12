@@ -50,6 +50,17 @@ class DataManager(
                         """.trimIndent()
                     )
                 }
+                if (!it.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions';").next()) {
+                    connection.createStatement().executeUpdate(
+                        """
+                            CREATE TABLE IF NOT EXISTS sessions (
+                                token TEXT PRIMARY KEY,
+                                linkUser TEXT NOT NULL,
+                                latestLogin INTEGER NOT NULL
+                            );
+                        """.trimIndent()
+                    )
+                }
             }
             .close()
     }
@@ -216,6 +227,65 @@ class DataManager(
         .apply {
             setInt(1, newPremium.ordinal)
             setString(2, user)
+        }
+        .executeUpdate() > 0
+
+    fun sessionExist(token: String): Boolean = connection
+        .prepareStatement("SELECT 1 FROM sessions WHERE token = ?;")
+        .apply {
+            setString(1, token)
+        }
+        .executeQuery()
+        .next()
+
+    fun getSessionLinkUser(token: String): String? = connection
+        .prepareStatement("SELECT linkUser FROM sessions WHERE token = ?;")
+        .apply {
+            setString(1, token)
+        }
+        .executeQuery()
+        .takeIf { it.next() }
+        ?.getString("linkUser")
+
+    fun getSessionLastLogin(token: String): Long = connection
+        .prepareStatement("SELECT latestLogin FROM sessions WHERE token = ?;")
+        .apply {
+            setString(1, token)
+        }
+        .executeQuery()
+        .takeIf { it.next() }
+        ?.getLong("latestLogin")
+        ?: 0L
+
+    fun setSessionLastLogin(session: String, latestLogin: Long): Boolean = connection
+        .prepareStatement("UPDATE sessions SET latestLogin = ? WHERE token = ?;")
+        .apply {
+            setString(1, session)
+            setLong(2, latestLogin)
+        }
+        .executeUpdate() > 0
+
+    fun createSession(token: String, linkUser: String, latestLogin: Long): Boolean = connection
+        .prepareStatement(
+            """
+                INSERT INTO sessions (token, linkUser, latestLogin) 
+                VALUES (?, ?, ?);
+            """.trimIndent()
+        ).apply {
+            setString(1, token)
+            setString(2, linkUser)
+            setLong(3, latestLogin)
+        }
+        .executeUpdate() > 0
+
+    fun deleteSession(token: String): Boolean = connection
+        .prepareStatement(
+            """
+                DELETE FROM sessions
+                WHERE token = ?;
+            """.trimIndent()
+        ).apply {
+            setString(1, token)
         }
         .executeUpdate() > 0
 

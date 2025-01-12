@@ -43,8 +43,11 @@ public final class HandleClientPacketProcess extends ChannelInboundHandlerAdapte
             // 心跳包 服务端发送 客户端回应
             connection.sendPacket(new C2SPacketKeepAlive(((S2CPacketKeepAlive) serverPacket).id), true);
         } else if (serverPacket instanceof S2CPacketLoginResult) {
+            final S2CPacketLoginResult packet = (S2CPacketLoginResult) serverPacket;
+
             if (connection.base.resultManager.loginResultCallback != null) {
-                final S2CPacketLoginResult.LoginResult result = ((S2CPacketLoginResult) serverPacket).result;
+                final S2CPacketLoginResult.LoginResult result = packet.result;
+
                 if (result == S2CPacketLoginResult.LoginResult.INVALID_CLIENT) {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.INVALID_CLIENT);
                 } else if (result == S2CPacketLoginResult.LoginResult.OUTDATED_CLIENT_VERSION) {
@@ -54,6 +57,10 @@ public final class HandleClientPacketProcess extends ChannelInboundHandlerAdapte
                 } else if (result == S2CPacketLoginResult.LoginResult.SUCCESS) {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.SUCCESS);
                     connection.sendPacket(new C2SPacketQueryUsers(false), true);
+
+                    if (packet.token != null) {
+                        connection.base.listenable.onUpdateSession(packet.token);
+                    }
                 }
             }
         } else if (serverPacket instanceof S2CPacketUpdateMySessionInfo) {

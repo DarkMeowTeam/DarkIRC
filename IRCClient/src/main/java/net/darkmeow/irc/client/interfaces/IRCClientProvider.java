@@ -43,7 +43,7 @@ public interface IRCClientProvider {
      * 注意: 在登录前 请使用 {@link #connect()} 连接
      *
      * @param username 用户名
-     * @param password 密码
+     * @param password 密码/token
      * @param brand 客户端信息
      * @param callback 异步执行结果返回
      */
