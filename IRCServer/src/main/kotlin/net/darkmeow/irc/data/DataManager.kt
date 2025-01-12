@@ -306,4 +306,14 @@ class DataManager(
         }
         .executeUpdate() > 0
 
+    fun deleteSessionByUser(linkUser: String): Int = connection
+        .prepareStatement(
+            """
+            DELETE FROM sessions
+            WHERE linkUser = ?;
+        """.trimIndent()
+        ).apply {
+            setString(1, linkUser)
+        }
+        .executeUpdate()
 }
