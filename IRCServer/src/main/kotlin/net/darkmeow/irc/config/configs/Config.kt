@@ -27,4 +27,10 @@ class Config {
          */
         var allowMultiDeviceLogin: Boolean = false
     }
+
+    var webServer: WebServer = WebServer()
+
+    class WebServer {
+        var port: Int = 8888
+    }
 }
