@@ -8,7 +8,7 @@ import net.darkmeow.irc.client.network.handle.encryption.HandleClientEncryptionI
 import net.darkmeow.irc.client.network.handle.encryption.HandleClientEncryptionOutbound;
 import net.darkmeow.irc.network.IRCNetworkBaseConfig;
 
-public class HandleClientEncryption extends ChannelInboundHandlerAdapter {
+public final class HandleClientEncryption extends ChannelInboundHandlerAdapter {
 
     public final IRCClientConnection client;
 

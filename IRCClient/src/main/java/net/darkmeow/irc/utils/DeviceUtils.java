@@ -4,7 +4,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 @SuppressWarnings("SpellCheckingInspection")
-public class DeviceUtils {
+public final class DeviceUtils {
 
     private DeviceUtils() {
 

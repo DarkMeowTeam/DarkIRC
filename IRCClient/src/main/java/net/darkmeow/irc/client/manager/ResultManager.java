@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.concurrent.CountDownLatch;
 import java.util.function.Consumer;
 
-public class IRCClientResultManager {
+public final class ResultManager {
     public CountDownLatch handShakeLatch = new CountDownLatch(1);
 
     public Consumer<EnumResultLogin> loginResultCallback;

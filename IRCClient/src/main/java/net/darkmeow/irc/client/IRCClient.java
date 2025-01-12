@@ -1,13 +1,12 @@
 package net.darkmeow.irc.client;
 
-import lombok.Builder;
 import net.darkmeow.irc.IRCLib;
 import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
 import net.darkmeow.irc.client.enums.EnumResultLogin;
 import net.darkmeow.irc.client.interfaces.IRCClientProvider;
 import net.darkmeow.irc.client.interfaces.manager.IRCSessionManager;
 import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
-import net.darkmeow.irc.client.manager.IRCClientResultManager;
+import net.darkmeow.irc.client.manager.ResultManager;
 import net.darkmeow.irc.client.manager.SessionManager;
 import net.darkmeow.irc.client.network.IRCClientConnection;
 import net.darkmeow.irc.client.network.IRCClientOptions;
@@ -23,6 +22,14 @@ import java.util.function.Consumer;
 
 public class IRCClient implements IRCClientProvider {
 
+    /**
+     * 创建一个新的 IRCClient 实例
+     *
+     * @param listenable 事件监听器
+     * @param options 连接配置
+     *
+     * @return IRCClient
+     */
     public static @NotNull IRCClientProvider newInstance(@NotNull IRCClientListenableProvide listenable, @NotNull IRCClientOptions options) {
         return new IRCClient(listenable, options);
     }
@@ -33,7 +40,6 @@ public class IRCClient implements IRCClientProvider {
     @NotNull
     public final IRCClientOptions options;
 
-    @Builder(toBuilder = true)
     public IRCClient(@NotNull IRCClientListenableProvide listenable, @NotNull IRCClientOptions options) {
         this.listenable = listenable;
         this.options = options;
@@ -42,10 +48,10 @@ public class IRCClient implements IRCClientProvider {
     public IRCClientConnection connection = new IRCClientConnection(this);
 
     @NotNull
-    public final SessionManager userManager = new SessionManager();
+    public final SessionManager sessionManager = new SessionManager();
 
     @NotNull
-    public final IRCClientResultManager resultManager = new IRCClientResultManager();
+    public final ResultManager resultManager = new ResultManager();
 
     @Override
     public boolean connect() {
@@ -81,7 +87,7 @@ public class IRCClient implements IRCClientProvider {
 
     @Override
     public boolean isLogin() {
-        return connection.isConnected() && userManager.self != null;
+        return connection.isConnected() && sessionManager.self != null;
     }
 
 
@@ -105,7 +111,7 @@ public class IRCClient implements IRCClientProvider {
 
     @Override
     public @NotNull IRCSessionManager getSessionManager() {
-        return userManager;
+        return sessionManager;
     }
 
     @Override

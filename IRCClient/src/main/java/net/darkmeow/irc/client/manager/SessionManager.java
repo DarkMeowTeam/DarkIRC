@@ -11,7 +11,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SessionManager implements IRCSessionManager {
+public final class SessionManager implements IRCSessionManager {
 
     @Nullable
     public DataSelfSessionInfo self;
