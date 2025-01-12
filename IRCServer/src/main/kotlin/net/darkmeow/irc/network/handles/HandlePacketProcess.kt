@@ -97,9 +97,18 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                             when (isTokenLogin) {
                                 // session token
                                 true -> manager.base.dataManager
-                                    .getSessionLinkUser(packet.password)
-                                    ?.takeIf { it != packet.name }
+                                    .let {
+                                        arrayOf(
+                                            it.getSessionLinkUser(packet.password) != packet.name,
+                                            !it.userExist(packet.name)
+                                        ).any { flag -> flag }
+                                    }
+                                    .takeIf { it }
                                     ?.also {
+                                        if (manager.base.dataManager.sessionExist(packet.password)) {
+                                            manager.base.dataManager.deleteSession(packet.password)
+                                        }
+
                                         throw ExceptionLoginResult(LoginResult.INVALID_TOKEN)
                                     }
                                 // password
