@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-public class HandleClientConnection extends ChannelInboundHandlerAdapter {
+public final class HandleClientConnection extends ChannelInboundHandlerAdapter {
 
     @NotNull
     public final IRCClientConnection client;
@@ -54,7 +54,7 @@ public class HandleClientConnection extends ChannelInboundHandlerAdapter {
             client.channelUniqueId = null;
 
             new Thread(() -> {
-                client.base.userManager.reset();
+                client.base.sessionManager.reset();
 
                 client.base.listenable.onDisconnect(
                     client.base.resultManager.disconnectType,

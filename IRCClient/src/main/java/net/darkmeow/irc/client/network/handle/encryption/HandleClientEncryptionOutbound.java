@@ -9,7 +9,7 @@ import io.netty.util.CharsetUtil;
 import net.darkmeow.irc.client.network.IRCClientConnection;
 import net.darkmeow.irc.utils.EncryptUtils;
 
-public class HandleClientEncryptionOutbound extends ChannelOutboundHandlerAdapter {
+public final class HandleClientEncryptionOutbound extends ChannelOutboundHandlerAdapter {
 
     public final IRCClientConnection client;
 

@@ -19,7 +19,7 @@ import net.darkmeow.irc.network.packet.s2c.*;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
+public final class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
 
     public final IRCClientConnection connection;
 
@@ -60,17 +60,17 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
             final S2CPacketUpdateMySessionInfo packet = (S2CPacketUpdateMySessionInfo) serverPacket;
             boolean isFirstLogin;
 
-            if (connection.base.userManager.self == null) {
-                connection.base.userManager.self = new DataSelfSessionInfo(
+            if (connection.base.sessionManager.self == null) {
+                connection.base.sessionManager.self = new DataSelfSessionInfo(
                     packet.sessionUniqueId,
                     packet.name,
                     packet.rank,
                     EnumPremium.getEnumPremiumFromPacket(packet.premium)
                 );
                 isFirstLogin = true;
-            } else if (connection.base.userManager.self.uniqueId != packet.sessionUniqueId || !connection.base.userManager.self.isValid()) {
-                connection.base.userManager.self.markInvalid();
-                connection.base.userManager.self = new DataSelfSessionInfo(
+            } else if (connection.base.sessionManager.self.uniqueId != packet.sessionUniqueId || !connection.base.sessionManager.self.isValid()) {
+                connection.base.sessionManager.self.markInvalid();
+                connection.base.sessionManager.self = new DataSelfSessionInfo(
                     packet.sessionUniqueId,
                     packet.name,
                     packet.rank,
@@ -78,7 +78,7 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
                 );
                 isFirstLogin = true;
             }else {
-                connection.base.userManager.self.update(
+                connection.base.sessionManager.self.update(
                     packet.name,
                     packet.rank,
                     EnumPremium.getEnumPremiumFromPacket(packet.premium)
@@ -86,11 +86,11 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
                 isFirstLogin = false;
             }
 
-            connection.base.listenable.onUpdateUserInfo(connection.base.userManager.self, isFirstLogin);
+            connection.base.listenable.onUpdateUserInfo(connection.base.sessionManager.self, isFirstLogin);
         } else if (serverPacket instanceof S2CPacketMessagePublic) {
             final S2CPacketMessagePublic packet = (S2CPacketMessagePublic) serverPacket;
 
-            final DataOtherSessionInfo info = connection.base.userManager.users.computeIfAbsent(
+            final DataOtherSessionInfo info = connection.base.sessionManager.users.computeIfAbsent(
                 packet.sessionUniqueId,
                 DataOtherSessionInfo::new
             );
@@ -100,7 +100,7 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
         } else if (serverPacket instanceof S2CPacketMessagePrivate) {
             final S2CPacketMessagePrivate packet = (S2CPacketMessagePrivate) serverPacket;
 
-            final DataOtherSessionInfo info = connection.base.userManager.users.computeIfAbsent(
+            final DataOtherSessionInfo info = connection.base.sessionManager.users.computeIfAbsent(
                 packet.sessionUniqueId,
                 DataOtherSessionInfo::new
             );
@@ -123,9 +123,9 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
             final S2CPacketUpdateOtherSessionInfo packet = (S2CPacketUpdateOtherSessionInfo) serverPacket;
 
             if (packet.info == null) {
-                connection.base.userManager.users.remove(((S2CPacketUpdateOtherSessionInfo) serverPacket).sessionUniqueId);
+                connection.base.sessionManager.users.remove(((S2CPacketUpdateOtherSessionInfo) serverPacket).sessionUniqueId);
             } else {
-                connection.base.userManager.users.computeIfAbsent(
+                connection.base.sessionManager.users.computeIfAbsent(
                     ((S2CPacketUpdateOtherSessionInfo) serverPacket).sessionUniqueId,
                     DataOtherSessionInfo::new
                 ).update(packet.info);
@@ -135,7 +135,7 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
             final ArrayList<UUID> updates = new ArrayList<>();
 
             packet.users.forEach((uuid, info) -> {
-                connection.base.userManager.users.computeIfAbsent(
+                connection.base.sessionManager.users.computeIfAbsent(
                     uuid,
                     DataOtherSessionInfo::new
                 ).update(info);
@@ -143,12 +143,12 @@ public class HandleClientPacketProcess extends ChannelInboundHandlerAdapter {
             });
 
             if (packet.overrideAll) {
-                connection.base.userManager.users.forEach((uuid, info) -> {
+                connection.base.sessionManager.users.forEach((uuid, info) -> {
                     if (!updates.contains(uuid)) {
                         info.markInvalid();
                     }
                 });
-                connection.base.userManager.clearInvalidUsers();
+                connection.base.sessionManager.clearInvalidUsers();
             }
         } else if (serverPacket instanceof S2CPacketDisconnect) {
             final S2CPacketDisconnect packet = (S2CPacketDisconnect) serverPacket;
