@@ -56,20 +56,23 @@ public class IRCClient implements IRCClientProvider {
     @Override
     public boolean connect() {
         resultManager.reset();
-
         disconnect();
 
         if (connection.connect(options.host, options.port, options.key, options.proxy)) {
-            connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, options.deviceId), false);
+            for (int attempt = 1; attempt <= 3; attempt++) {
+                // 神秘问题 小概率收不到 S2CPacketHandShake 但是其他包没问题
+                connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, options.deviceId), false);
 
-            try {
-                if (resultManager.handShakeLatch.await(2, TimeUnit.SECONDS)) {
-                    return true;
+                try {
+                    if (resultManager.handShakeLatch.await(1, TimeUnit.SECONDS)) {
+                        return true;
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
                 }
-                disconnect();
-            } catch (InterruptedException e) {
-                disconnect();
             }
+            disconnect();
         }
 
         return false;

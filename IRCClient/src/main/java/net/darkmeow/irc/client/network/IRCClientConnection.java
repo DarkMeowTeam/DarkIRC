@@ -56,48 +56,50 @@ public class IRCClientConnection {
         try {
             CountDownLatch channelActiveLatch = new CountDownLatch(1);
 
-            Class <? extends SocketChannel > oclass;
-            EventLoopGroup group;
+            new Thread(() -> {
+                Class <? extends SocketChannel > oclass;
+                EventLoopGroup group;
 
-            if (Epoll.isAvailable()) {
-                group = new EpollEventLoopGroup();
-                oclass = EpollSocketChannel.class;
-            } else if (KQueue.isAvailable()) {
-                group = new KQueueEventLoopGroup();
-                oclass = KQueueSocketChannel.class;
-            } else {
-                group = new NioEventLoopGroup();
-                oclass = NioSocketChannel.class;
-            }
+                if (Epoll.isAvailable()) {
+                    group = new EpollEventLoopGroup();
+                    oclass = EpollSocketChannel.class;
+                } else if (KQueue.isAvailable()) {
+                    group = new KQueueEventLoopGroup();
+                    oclass = KQueueSocketChannel.class;
+                } else {
+                    group = new NioEventLoopGroup();
+                    oclass = NioSocketChannel.class;
+                }
 
-            new Bootstrap()
-                .group(group)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
-                .handler(
-                    new ChannelInitializer<SocketChannel>() {
-                        @Override
-                        protected void initChannel(SocketChannel ch) {
-                            // 代理
-                            if (proxy.type() == Proxy.Type.SOCKS) {
-                                ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
-                            } else if (proxy.type() == Proxy.Type.HTTP) {
-                                ch.pipeline().addLast("Proxy", new HttpProxyHandler(proxy.address()));
+                new Bootstrap()
+                    .group(group)
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
+                    .handler(
+                        new ChannelInitializer<SocketChannel>() {
+                            @Override
+                            protected void initChannel(SocketChannel ch) {
+                                // 代理
+                                if (proxy.type() == Proxy.Type.SOCKS) {
+                                    ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
+                                } else if (proxy.type() == Proxy.Type.HTTP) {
+                                    ch.pipeline().addLast("Proxy", new HttpProxyHandler(proxy.address()));
+                                }
+
+                                // 处理
+                                ch.pipeline().addLast("BaseConnection", new HandleClientConnection(IRCClientConnection.this, group, channelActiveLatch));
+                                ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
+                                ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
                             }
-
-                            // 处理
-                            ch.pipeline().addLast("BaseConnection", new HandleClientConnection(IRCClientConnection.this, group, channelActiveLatch));
-                            ch.pipeline().addLast("BaseEncryption", new HandleClientEncryption(IRCClientConnection.this));
-                            ch.pipeline().addLast("Handler", new HandleClientPacketProcess(IRCClientConnection.this));
                         }
-                    }
-                )
-                .channel(oclass)
-                .connect(host, port)
-                .addListener((ChannelFutureListener) future -> {
-                    if (!future.isSuccess()) {
-                        future.cause().printStackTrace();
-                    }
-                });
+                    )
+                    .channel(oclass)
+                    .connect(host, port)
+                    .addListener((ChannelFutureListener) future -> {
+                        if (!future.isSuccess()) {
+                            future.cause().printStackTrace();
+                        }
+                    });
+            }).start();
 
             channelActiveLatch.await(3, TimeUnit.SECONDS);
             if (channelActiveLatch.getCount() == 1) channelActiveLatch.countDown();
