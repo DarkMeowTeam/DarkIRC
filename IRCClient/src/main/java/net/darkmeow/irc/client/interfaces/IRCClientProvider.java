@@ -49,6 +49,10 @@ public interface IRCClientProvider {
      */
     void login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, @Nullable Consumer<EnumResultLogin> callback);
     /**
+     * 退出登录(使token失效)
+     */
+    void logout();
+    /**
      * 获取会话管理器
      * 可以通过会话管理器获取已连接到服务器的其它会话和自身会话信息
      *
