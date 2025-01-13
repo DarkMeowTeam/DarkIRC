@@ -346,7 +346,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                 manager.base.dataManager.deleteSession(it)
                             }
 
-                        channel.disconnect()
+                        channel.kick(reason = "您已退出登录", logout = packet.destroyToken)
                     }
                     else -> { }
                 }
