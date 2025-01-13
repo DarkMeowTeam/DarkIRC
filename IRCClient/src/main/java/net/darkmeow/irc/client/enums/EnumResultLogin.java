@@ -18,6 +18,10 @@ public enum EnumResultLogin {
      */
     USER_OR_PASSWORD_WRONG,
     /**
+     * 无效的平局
+     */
+    INVALID_TOKEN,
+    /**
      * 未连接服务器
      */
     NOT_CONNECT

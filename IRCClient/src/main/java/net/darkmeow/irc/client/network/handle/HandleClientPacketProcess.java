@@ -54,6 +54,8 @@ public final class HandleClientPacketProcess extends ChannelInboundHandlerAdapte
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.OUTDATED_CLIENT_VERSION);
                 } else if (result == S2CPacketLoginResult.LoginResult.USER_OR_PASSWORD_WRONG) {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.USER_OR_PASSWORD_WRONG);
+                } else if (result == S2CPacketLoginResult.LoginResult.INVALID_TOKEN) {
+                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.INVALID_TOKEN);
                 } else if (result == S2CPacketLoginResult.LoginResult.SUCCESS) {
                     connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.SUCCESS);
                     connection.sendPacket(new C2SPacketQueryUsers(false), true);
