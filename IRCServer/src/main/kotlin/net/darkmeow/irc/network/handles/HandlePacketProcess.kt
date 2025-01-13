@@ -13,12 +13,14 @@ import net.darkmeow.irc.network.packet.c2s.*
 import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
 import net.darkmeow.irc.utils.ChannelAttrUtils.getAddress
+import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentToken
 import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentUser
 import net.darkmeow.irc.utils.ChannelAttrUtils.getDevice
 import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionInfo
 import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionOptions
 import net.darkmeow.irc.utils.ChannelAttrUtils.getUniqueId
 import net.darkmeow.irc.utils.ChannelAttrUtils.kick
+import net.darkmeow.irc.utils.ChannelAttrUtils.setCurrentToken
 import net.darkmeow.irc.utils.ChannelAttrUtils.setCurrentUser
 import net.darkmeow.irc.utils.ChannelAttrUtils.setDevice
 import net.darkmeow.irc.utils.ChannelAttrUtils.setLatestKeepAlive
@@ -119,65 +121,77 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                         throw ExceptionLoginResult(LoginResult.USER_OR_PASSWORD_WRONG)
                                     }
                             }
-
-
-                            if (!packet.notOnline) {
-                                // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
-                                channel.sendPacket(
-                                    S2CPacketUpdateMySessionInfo(
-                                        packet.name,
-                                        manager.base.dataManager.getUserRank(packet.name) ?: "",
-                                        manager.base.dataManager.getUserPremium(packet.name),
-                                        channel.getUniqueId()
-                                    )
-                                )
-
-                                // 登出其他客户端
-                                manager.clients
-                                    .takeIf { !manager.base.configManager.configs.userLimit.allowMultiDeviceLogin }
-                                    ?.filter { (_, otherChannel) ->
-                                        otherChannel.getCurrentUser() == packet.name
-                                    }
-                                    ?.filter { (_, otherChannel) ->
-                                        otherChannel.getDevice() != channel.getDevice()
-                                    }
-                                    ?.onEach { (_, otherChannel) ->
-                                        otherChannel.kick(
-                                            reason = "账号在另一设备登录",
-                                            logout = false
-                                        )
-                                    }
-
-                                // 登录成功
-                                channel.setSessionInfo(DataSessionInfo(packet.client))
-                                channel.setCurrentUser(packet.name)
-                            }
-
-                            manager.logger.info("[+] ${packet.name}  (${channel.getAddress()} ${channel.getDevice()})${if(packet.notOnline) " (仅验证密码)" else ""}")
-
-                            throw ExceptionLoginResult(LoginResult.SUCCESS)
                         }
                             .onFailure { t ->
                                 when (t) {
-                                    is ExceptionLoginResult -> when (isTokenLogin || packet.notOnline) {
-                                        true -> {
-                                            manager.base.dataManager.updateSessionInfo(packet.password, System.currentTimeMillis(), channel.getDevice(), channel.getAddress())
-                                            channel.sendPacket(S2CPacketLoginResult(t.result))
-                                        }
-                                        false -> {
-                                            val token = (1..128)
-                                                .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }
-                                                .joinToString("")
-
-                                            manager.base.dataManager.createSession(token, packet.name, System.currentTimeMillis(), channel.getDevice(), channel.getAddress())
-
-                                            channel.sendPacket(S2CPacketLoginResult(t.result, token))
-                                        }
-                                    }
-                                    else -> channel.sendPacket(
-                                        S2CPacketMessageSystem("系统错误: ${t.message}")
-                                    )
+                                    is ExceptionLoginResult -> channel.sendPacket(S2CPacketLoginResult(t.result))
+                                    else -> channel.sendPacket(S2CPacketMessageSystem("系统错误: ${t.message}"))
                                 }
+                            }
+                            .onSuccess {
+                                when (isTokenLogin || packet.notOnline) {
+                                    true -> {
+                                        manager.base.dataManager.updateSessionInfo(
+                                            packet.password,
+                                            System.currentTimeMillis(),
+                                            channel.getDevice(),
+                                            channel.getAddress()
+                                        )
+
+                                        channel.setCurrentToken(packet.password)
+                                        channel.sendPacket(S2CPacketLoginResult(LoginResult.SUCCESS))
+                                    }
+                                    false -> {
+                                        val token = (1..128)
+                                            .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }
+                                            .joinToString("")
+
+                                        manager.base.dataManager.createSession(
+                                            token,
+                                            packet.name,
+                                            System.currentTimeMillis(),
+                                            channel.getDevice(),
+                                            channel.getAddress()
+                                        )
+
+                                        channel.setCurrentToken(token)
+                                        channel.sendPacket(S2CPacketLoginResult(LoginResult.SUCCESS, token))
+                                    }
+                                }
+
+                                if (!packet.notOnline) {
+                                    // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
+                                    channel.sendPacket(
+                                        S2CPacketUpdateMySessionInfo(
+                                            packet.name,
+                                            manager.base.dataManager.getUserRank(packet.name) ?: "",
+                                            manager.base.dataManager.getUserPremium(packet.name),
+                                            channel.getUniqueId()
+                                        )
+                                    )
+
+                                    // 登出其他客户端
+                                    manager.clients
+                                        .takeIf { !manager.base.configManager.configs.userLimit.allowMultiDeviceLogin }
+                                        ?.filter { (_, otherChannel) ->
+                                            otherChannel.getCurrentUser() == packet.name
+                                        }
+                                        ?.filter { (_, otherChannel) ->
+                                            otherChannel.getDevice() != channel.getDevice()
+                                        }
+                                        ?.onEach { (_, otherChannel) ->
+                                            otherChannel.kick(
+                                                reason = "账号在另一设备登录",
+                                                logout = false
+                                            )
+                                        }
+
+                                    // 登录成功
+                                    channel.setSessionInfo(DataSessionInfo(packet.client))
+                                    channel.setCurrentUser(packet.name)
+                                }
+
+                                manager.logger.info("[+] ${packet.name}  (${channel.getAddress()} ${channel.getDevice()})${if(packet.notOnline) " (仅验证密码)" else ""}")
                             }
                     }
                     is C2SPacketChatPublic -> {

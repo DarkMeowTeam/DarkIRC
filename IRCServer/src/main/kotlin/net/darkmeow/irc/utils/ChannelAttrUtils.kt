@@ -65,6 +65,15 @@ object ChannelAttrUtils {
         .attr(AttributeKeys.CURRENT_USER)
         .set(user)
 
+    fun Channel.getCurrentToken() = this
+        .takeIf { hasAttr(AttributeKeys.CURRENT_TOKEN) }
+        ?.attr(AttributeKeys.CURRENT_TOKEN)
+        ?.get()
+
+    fun Channel.setCurrentToken(user: String) = this
+        .attr(AttributeKeys.CURRENT_TOKEN)
+        .set(user)
+
     fun Channel.getDevice() = this
         .takeIf { hasAttr(AttributeKeys.DEVICE) }
         ?.attr(AttributeKeys.DEVICE)
