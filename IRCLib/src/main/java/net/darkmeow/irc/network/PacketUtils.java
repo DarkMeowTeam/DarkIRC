@@ -25,6 +25,7 @@ public class PacketUtils {
         clientPackets.put("UpdateSessionOptions", C2SPacketUpdateSessionOptions.class);
         clientPackets.put("QueryUsers", C2SPacketQueryUsers.class);
         clientPackets.put("ChangePassword", C2SPacketChangePassword.class);
+        clientPackets.put("Disconnect", C2SPacketDisconnect.class);
         clientPackets.put("CustomPayload", C2SPacketCustomPayload.class);
 
         serverPackets.put("HandShake", S2CPacketHandShake.class);
