@@ -338,6 +338,16 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                 )
                             }
                     }
+                    is C2SPacketDisconnect -> {
+                        channel
+                            .takeIf { packet.destroyToken }
+                            ?.getCurrentToken()
+                            ?.also {
+                                manager.base.dataManager.deleteSession(it)
+                            }
+
+                        channel.disconnect()
+                    }
                     else -> { }
                 }
             }
