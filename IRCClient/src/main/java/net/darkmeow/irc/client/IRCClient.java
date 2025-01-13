@@ -113,6 +113,16 @@ public class IRCClient implements IRCClientProvider {
     }
 
     @Override
+    public void logout() {
+        if (isConnected()) {
+            connection.sendPacket(
+                new C2SPacketDisconnect(true),
+                true
+            );
+        }
+    }
+
+    @Override
     public @NotNull IRCSessionManager getSessionManager() {
         return sessionManager;
     }
