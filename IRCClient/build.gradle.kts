@@ -17,9 +17,14 @@ java {
 tasks.shadowJar {
     archiveClassifier.set("all")
 
+    exclude("**/module-info.class")
+    exclude("**/pom.xml")
+    exclude("**/pom.properties")
+    exclude("**/gson.pro")
+
     relocate("com.google", "${project.group}.irc.lib.com.google")
     relocate("io.netty", "${project.group}.irc.lib.io.netty")
-
+    
     minimize()
 }
 
