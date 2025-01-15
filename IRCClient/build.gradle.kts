@@ -24,7 +24,7 @@ tasks.shadowJar {
 
     relocate("com.google", "${project.group}.irc.lib.com.google")
     relocate("io.netty", "${project.group}.irc.lib.io.netty")
-    
+
     minimize()
 }
 
