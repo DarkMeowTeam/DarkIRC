@@ -38,12 +38,12 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-### Forge ###
+### Run ###
 run/
 
 ### Kotlin ###
 .kotlin/
 
-## Craush ###
+## Crash ###
 *.log
 *.mdmp
