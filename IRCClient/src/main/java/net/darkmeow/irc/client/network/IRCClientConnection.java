@@ -23,6 +23,8 @@ import net.darkmeow.irc.network.packet.c2s.C2SPacket;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -54,6 +56,8 @@ public class IRCClientConnection {
         this.channel = null;
 
         try {
+            InetSocketAddress address = new InetSocketAddress(InetAddress.getByName(host), port);
+
             CountDownLatch channelActiveLatch = new CountDownLatch(1);
 
             new Thread(() -> {
@@ -93,7 +97,7 @@ public class IRCClientConnection {
                         }
                     )
                     .channel(oclass)
-                    .connect(host, port)
+                    .connect(address)
                     .addListener((ChannelFutureListener) future -> {
                         if (!future.isSuccess()) {
                             future.cause().printStackTrace();
