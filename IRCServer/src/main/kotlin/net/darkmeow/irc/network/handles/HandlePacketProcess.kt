@@ -241,7 +241,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                             .also {
                                 // 接收方不在线
                                 if (it.isEmpty()) {
-                                    channel.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message, false))
+                                    channel.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message))
                                     return@packetHandle
                                 }
                             }
@@ -260,7 +260,16 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                         .replace("\r", "")
                                 )
 
-                                channel.sendPacket(S2CPacketMessagePrivateResult(packet.user, packet.message, true))
+
+                                channel.sendPacket(
+                                    S2CPacketMessagePrivateResult(
+                                        packet.user,
+                                        packet.message,
+                                        it
+                                            .map { otherChannel -> otherChannel.getUniqueId() }
+                                            .toCollection(ArrayList())
+                                    )
+                                )
                                 // 兼容多客户端登录 (适用于 同一设备多开客户端)
                                 it.onEach { otherChannel ->
                                     otherChannel.sendPacket(boardCastPacket)
