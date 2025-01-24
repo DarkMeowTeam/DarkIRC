@@ -121,13 +121,11 @@ public final class HandleClientPacketProcess extends ChannelInboundHandlerAdapte
         } else if (serverPacket instanceof S2CPacketMessageSystem) {
             connection.base.listenable.onMessageSystem(((S2CPacketMessageSystem) serverPacket).message);
         } else if (serverPacket instanceof S2CPacketMessagePrivateResult) {
+            final S2CPacketMessagePrivateResult packet = (S2CPacketMessagePrivateResult) serverPacket;
+
             if (connection.base.resultManager.privateResultCallback != null) {
                 connection.base.resultManager.privateResultCallback.accept(
-                    new IRCResultSendMessageToPrivate(
-                        ((S2CPacketMessagePrivateResult) serverPacket).success,
-                        ((S2CPacketMessagePrivateResult) serverPacket).name,
-                        ((S2CPacketMessagePrivateResult) serverPacket).message
-                    )
+                    new IRCResultSendMessageToPrivate(packet.success, packet.name, packet.message)
                 );
             }
         } else if (serverPacket instanceof S2CPacketUpdateOtherSessionInfo) {
