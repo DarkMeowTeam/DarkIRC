@@ -14,6 +14,7 @@ import net.darkmeow.irc.network.handles.HandleClientConnection
 import net.darkmeow.irc.network.handles.HandleClientEncryption
 import net.darkmeow.irc.network.handles.HandlePacketProcess
 import net.darkmeow.irc.network.packet.s2c.S2CPacketDisconnect
+import net.darkmeow.irc.utils.ChannelAttrUtils.kick
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
@@ -99,8 +100,7 @@ class NetworkManager(
     fun stop() = runCatching {
         clients.values.onEach { channel ->
             runCatching {
-                channel.sendPacket(S2CPacketDisconnect("Server closed."))
-                channel.disconnect()
+                channel.kick(reason = "服务器被管理员关闭 请稍后重新连接", logout = false)
             }
         }
 
