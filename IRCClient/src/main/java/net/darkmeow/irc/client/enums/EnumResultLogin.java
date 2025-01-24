@@ -22,6 +22,10 @@ public enum EnumResultLogin {
      */
     INVALID_TOKEN,
     /**
+     * 无权限登录当前客户端
+     */
+    NO_PREMIUM_LOGIN_THIS_CLIENT,
+    /**
      * 未连接服务器
      */
     NOT_CONNECT

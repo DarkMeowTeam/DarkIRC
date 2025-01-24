@@ -12,6 +12,7 @@ import net.darkmeow.irc.network.PacketUtils
 import net.darkmeow.irc.network.packet.c2s.*
 import net.darkmeow.irc.network.packet.s2c.*
 import net.darkmeow.irc.network.packet.s2c.S2CPacketLoginResult.LoginResult
+import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMySessionInfo.Premium
 import net.darkmeow.irc.utils.ChannelAttrUtils.getAddress
 import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentToken
 import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentUser
@@ -121,6 +122,17 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                         throw ExceptionLoginResult(LoginResult.USER_OR_PASSWORD_WRONG)
                                     }
                             }
+
+                            // 客户端权限检查
+                            manager.base.dataManager
+                                // 忽略 IRC 管理员
+                                .takeIf { it.getUserPremium(packet.name).ordinal < Premium.ADMIN.ordinal }
+                                // 客户端管理员/客户端用户
+                                ?.takeIf { it.getClientUsers(packet.client.id)?.contains(packet.name) != true }
+                                ?.takeIf { it.getClientAdministrators(packet.client.id)?.contains(packet.name) != true }
+                                ?.also {
+                                    throw ExceptionLoginResult(LoginResult.NO_PREMIUM_LOGIN_THIS_CLIENT)
+                                }
                         }
                             .onFailure { t ->
                                 when (t) {

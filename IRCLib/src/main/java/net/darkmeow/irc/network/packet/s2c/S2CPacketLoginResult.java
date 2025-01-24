@@ -25,7 +25,8 @@ public class S2CPacketLoginResult implements S2CPacket {
         USER_OR_PASSWORD_WRONG,
         INVALID_TOKEN,
         INVALID_CLIENT,
-        OUTDATED_CLIENT_VERSION
+        OUTDATED_CLIENT_VERSION,
+        NO_PREMIUM_LOGIN_THIS_CLIENT
     }
 
 }
