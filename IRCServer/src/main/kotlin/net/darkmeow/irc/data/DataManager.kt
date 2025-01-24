@@ -24,14 +24,16 @@ class DataManager(
                             CREATE TABLE IF NOT EXISTS clients (
                                 id TEXT PRIMARY KEY,
                                 hash TEXT NOT NULL,
-                                allow_login_min_version INTEGER
+                                allow_login_min_version INTEGER,
+                                users_allow_login TEXT NOT NULL, -- 允许登录
+                                users_client_administrator TEXT NOT NULL -- 客户端管理员
                             );
                         """.trimIndent()
                     )
                     connection.createStatement().executeUpdate(
                         """
-                            INSERT INTO clients (id, hash, allow_login_min_version) 
-                            VALUES ('DarkMeow', '114514', 0);
+                            INSERT INTO clients (id, hash, allow_login_min_version, users_allow_login, users_client_administrator) 
+                            VALUES ('DarkMeow', '114514', 0, '', '');
                         """.trimIndent()
                     )
 
@@ -102,11 +104,59 @@ class DataManager(
         .takeIf { it.next() }
         ?.getInt("allow_login_min_version")
 
+    fun getClientUsers(id: String): MutableSet<String>? = connection
+        .prepareStatement("SELECT users_allow_login FROM clients WHERE id = ?;")
+        .apply {
+            setString(1, id)
+        }
+        .executeQuery()
+        .takeIf { it.next() }
+        ?.getString("users_allow_login")
+        ?.split(",")
+        ?.filter { it.isNotEmpty() }
+        ?.toMutableSet()
+
+    fun setClientUsers(id: String, users: Set<String>): Boolean = connection
+        .prepareStatement(
+            """
+                UPDATE clients 
+                SET users_allow_login = ? 
+                WHERE id = ?;
+            """.trimIndent()
+        ).apply {
+            setString(1, users.joinToString(","))
+            setString(2, id)
+        }.executeUpdate() > 0
+
+    fun getClientAdministrators(id: String): MutableSet<String>? = connection
+        .prepareStatement("SELECT users_client_administrator FROM clients WHERE id = ?;")
+        .apply {
+            setString(1, id)
+        }
+        .executeQuery()
+        .takeIf { it.next() }
+        ?.getString("users_client_administrator")
+        ?.split(",")
+        ?.filter { it.isNotEmpty() }
+        ?.toMutableSet()
+
+    fun setClientAdministrators(id: String, administrators: Set<String>): Boolean = connection
+        .prepareStatement(
+            """
+                UPDATE clients 
+                SET users_client_administrator = ? 
+                WHERE id = ?;
+            """.trimIndent()
+        ).apply {
+            setString(1, administrators.joinToString(","))
+            setString(2, id)
+        }.executeUpdate() > 0
+
     fun createClient(id: String, hash: String, allowLoginMinVersion: Int): Boolean = connection
         .prepareStatement(
             """
-                INSERT INTO clients (id, hash, allow_login_min_version) 
-                VALUES (?, ?, ?);
+                INSERT INTO clients (id, hash, allow_login_min_version, users_allow_login, users_client_administrator) 
+                VALUES (?, ?, ?, '', '');
             """.trimIndent()
         ).apply {
             setString(1, id)
