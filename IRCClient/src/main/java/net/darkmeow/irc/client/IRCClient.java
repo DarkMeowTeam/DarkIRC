@@ -93,15 +93,14 @@ public class IRCClient implements IRCClientProvider {
         return connection.isConnected() && sessionManager.self != null;
     }
 
-
     @Override
-    public void login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, @Nullable Consumer<EnumResultLogin> callback) {
+    public void login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, boolean invisible, @Nullable Consumer<EnumResultLogin> callback) {
         if (isConnected()) {
             resultManager.loginResultCallback = callback;
 
             if (
                 !connection.sendPacket(
-                    new C2SPacketLogin(username, password, brand),
+                    new C2SPacketLogin(username, password, brand, invisible ? C2SPacketLogin.Mode.INVISIBLE : C2SPacketLogin.Mode.NORMAL),
                     false
                 )
             ) {

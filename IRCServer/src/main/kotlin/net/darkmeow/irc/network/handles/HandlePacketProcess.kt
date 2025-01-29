@@ -18,6 +18,7 @@ import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentToken
 import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentUser
 import net.darkmeow.irc.utils.ChannelAttrUtils.getDevice
 import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionInfo
+import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionIsInvisible
 import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionOptions
 import net.darkmeow.irc.utils.ChannelAttrUtils.getUniqueId
 import net.darkmeow.irc.utils.ChannelAttrUtils.kick
@@ -27,43 +28,41 @@ import net.darkmeow.irc.utils.ChannelAttrUtils.setDevice
 import net.darkmeow.irc.utils.ChannelAttrUtils.setLatestKeepAlive
 import net.darkmeow.irc.utils.ChannelAttrUtils.setProtocolVersion
 import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionInfo
+import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionIsInvisible
 import net.darkmeow.irc.utils.ChannelAttrUtils.setSessionOptions
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
-import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
 import java.util.UUID
 
 class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHandlerAdapter() {
 
     override fun channelActive(ctx: ChannelHandlerContext) {
-        ctx.channel().apply {
-            attr(AttributeKeys.LATEST_KEEPALIVE).set(System.currentTimeMillis())
-        }
+        ctx.channel().setLatestKeepAlive(System.currentTimeMillis())
 
         super.channelActive(ctx)
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        ctx.channel()
-            .takeIf { it.hasAttr(AttributeKeys.CURRENT_USER) }
-            ?.attr(AttributeKeys.CURRENT_USER)
-            ?.get()
-            ?.also { name ->
-                manager.logger.info("[-] $name")
+        val channel = ctx.channel()
 
-                manager.clients.values
-                    .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
-                    .onEach { otherChannel ->
-                        run updateUser@ {
-                             // 告诉客户端这个 id 已经离线了
-                            otherChannel.sendPacket(
-                                S2CPacketUpdateOtherSessionInfo(
-                                    ctx.channel().getUniqueId(),
-                                    null
-                                )
+        channel.getCurrentUser()?.also { user ->
+            manager.logger.info("[-] $user")
+
+            manager.clients.values
+                .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
+                // 隐身会话不发送
+                .filter { otherChannel -> !channel.getSessionIsInvisible() || otherChannel.getCurrentUser() == user }
+                .onEach { otherChannel ->
+                    run updateUser@ {
+                        // 告诉客户端这个 id 已经离线了
+                        otherChannel.sendPacket(
+                            S2CPacketUpdateOtherSessionInfo(
+                                ctx.channel().getUniqueId(),
+                                null
                             )
-                        }
+                        )
                     }
-            }
+                }
+        }
 
         super.channelInactive(ctx)
     }
@@ -141,7 +140,7 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                 }
                             }
                             .onSuccess {
-                                when (isTokenLogin || packet.notOnline) {
+                                when (isTokenLogin || packet.mode == C2SPacketLogin.Mode.ONLY_VERIFY_PASSWORD) {
                                     true -> {
                                         manager.base.dataManager.updateSessionInfo(
                                             packet.password,
@@ -171,13 +170,19 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                     }
                                 }
 
-                                if (!packet.notOnline) {
+                                if (packet.mode != C2SPacketLogin.Mode.ONLY_VERIFY_PASSWORD) {
+                                    // 隐身登录
+                                    if (packet.mode == C2SPacketLogin.Mode.INVISIBLE) {
+                                        channel.setSessionIsInvisible(true)
+                                    }
+
                                     // 登录成功上报 (但是不设置信息 因为等会需要失效其它设备)
                                     channel.sendPacket(
                                         S2CPacketUpdateMySessionInfo(
                                             packet.name,
                                             manager.base.dataManager.getUserRank(packet.name) ?: "",
                                             manager.base.dataManager.getUserPremium(packet.name),
+                                            channel.getSessionIsInvisible(),
                                             channel.getUniqueId()
                                         )
                                     )
@@ -203,7 +208,15 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                     channel.setCurrentUser(packet.name)
                                 }
 
-                                manager.logger.info("[+] ${packet.name}  (${channel.getAddress()} ${channel.getDevice()})${if(packet.notOnline) " (仅验证密码)" else ""}")
+                                manager.logger.info(
+                                    StringBuilder()
+                                        .append("[+] ${packet.name}")
+                                        .append("  ")
+                                        .append("(${channel.getAddress()} ${channel.getDevice()})")
+                                        .append(if(packet.mode == C2SPacketLogin.Mode.ONLY_VERIFY_PASSWORD) " (仅验证密码)" else "")
+                                        .append(if(channel.getSessionIsInvisible()) " (隐身登录)" else "")
+                                        .toString()
+                                )
                             }
                     }
                     is C2SPacketChatPublic -> {
@@ -302,18 +315,22 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
                                 )
                             )
                         manager.clients.values
-                            .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
+                            .filter { otherChannel -> otherChannel.getCurrentUser() != null }
+                            // 隐身会话不发送
+                            .filter { otherChannel -> !channel.getSessionIsInvisible() || otherChannel.getCurrentUser() == user }
                             .onEach { otherChannel ->
                                 otherChannel.sendPacket(boardCastPacket)
                             }
                     }
                     is C2SPacketQueryUsers -> {
-                        if (!channel.hasAttr(AttributeKeys.CURRENT_USER)) return@packetHandle
+                        val user = channel.getCurrentUser() ?: return@packetHandle
 
                         val users = HashMap<UUID, UserInfoData>()
 
                         manager.clients.values
-                            .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
+                            .filter { otherChannel -> otherChannel.getCurrentUser() != null }
+                            // 隐身会话不发送
+                            .filter { otherChannel -> !otherChannel.getSessionIsInvisible() || otherChannel.getCurrentUser() == user }
                             .filter { otherChannel ->
                                 if (packet.onlySameServer) {
                                     otherChannel.getSessionOptions().server == channel.getSessionOptions().server

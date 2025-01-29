@@ -22,4 +22,10 @@ public interface IRCDataSelfSessionInfo extends IRCDataSessionInfo {
      * @return 权限等级
      */
     @NotNull EnumPremium getPremium();
+    /**
+     * 获取自身是否开启了隐身模式
+     *
+     * @return 隐身登录状态
+     */
+    boolean getIsInvisible();
 }

@@ -6,6 +6,7 @@ import net.darkmeow.irc.command.CommandManager
 import net.darkmeow.irc.network.packet.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMySessionInfo
 import net.darkmeow.irc.utils.ChannelAttrUtils.getCurrentUser
+import net.darkmeow.irc.utils.ChannelAttrUtils.getSessionIsInvisible
 import net.darkmeow.irc.utils.ChannelAttrUtils.getUniqueId
 import net.darkmeow.irc.utils.ChannelAttrUtils.kick
 import net.darkmeow.irc.utils.ChannelUtils.sendPacket
@@ -84,6 +85,7 @@ class CommandUsers: Command("Users") {
                                     args[1],
                                     args[2],
                                     premium,
+                                    otherChannel.getSessionIsInvisible(),
                                     otherChannel.getUniqueId()
                                 )
                             )
@@ -121,6 +123,7 @@ class CommandUsers: Command("Users") {
                                     S2CPacketUpdateMySessionInfo.Premium.valueOf(
                                         args[2]
                                     ),
+                                    otherChannel.getSessionIsInvisible(),
                                     otherChannel.getUniqueId()
                                 )
                             )

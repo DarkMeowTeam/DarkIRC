@@ -15,13 +15,16 @@ public class S2CPacketUpdateMySessionInfo implements S2CPacket {
     @NotNull
     public Premium premium;
 
+    public boolean invisible;
+
     @NotNull
     public UUID sessionUniqueId;
 
-    public S2CPacketUpdateMySessionInfo(@NotNull String name, @NotNull String rank, @NotNull Premium premium, @NotNull UUID sessionUniqueId) {
+    public S2CPacketUpdateMySessionInfo(@NotNull String name, @NotNull String rank, @NotNull Premium premium, boolean invisible, @NotNull UUID sessionUniqueId) {
         this.name = name;
         this.rank = rank;
         this.premium = premium;
+        this.invisible = invisible;
         this.sessionUniqueId = sessionUniqueId;
     }
 
