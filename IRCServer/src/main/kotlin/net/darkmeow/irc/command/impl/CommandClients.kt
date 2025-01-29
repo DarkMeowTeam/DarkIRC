@@ -43,7 +43,7 @@ class CommandClients: Command("Clients") {
                 }
             }
             "version" -> {
-                if (args.size != 2) {
+                if (args.size != 3) {
                     channel.sendCommandUsage("clients", "version <客户端Id> <最低允许登录版本>")
                     return
                 }
