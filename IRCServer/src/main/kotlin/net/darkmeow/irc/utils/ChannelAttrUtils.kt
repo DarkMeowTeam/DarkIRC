@@ -104,6 +104,17 @@ object ChannelAttrUtils {
         .attr(AttributeKeys.SESSION_OPTIONS)
         .set(info)
 
+
+    fun Channel.getSessionIsInvisible() = this
+        .takeIf { hasAttr(AttributeKeys.SESSION_IS_INVISIBLE) }
+        ?.attr(AttributeKeys.SESSION_IS_INVISIBLE)
+        ?.get()
+        ?: false
+
+    fun Channel.setSessionIsInvisible(flag: Boolean) = this
+        .attr(AttributeKeys.SESSION_IS_INVISIBLE)
+        .set(flag)
+
     /**
      * 踢出当前客户端
      *

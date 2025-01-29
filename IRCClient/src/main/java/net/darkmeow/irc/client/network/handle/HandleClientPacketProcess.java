@@ -76,7 +76,8 @@ public final class HandleClientPacketProcess extends ChannelInboundHandlerAdapte
                     packet.sessionUniqueId,
                     packet.name,
                     packet.rank,
-                    EnumPremium.getEnumPremiumFromPacket(packet.premium)
+                    EnumPremium.getEnumPremiumFromPacket(packet.premium),
+                    packet.invisible
                 );
                 isFirstLogin = true;
             } else if (connection.base.sessionManager.self.uniqueId != packet.sessionUniqueId || !connection.base.sessionManager.self.isValid()) {
@@ -85,14 +86,16 @@ public final class HandleClientPacketProcess extends ChannelInboundHandlerAdapte
                     packet.sessionUniqueId,
                     packet.name,
                     packet.rank,
-                    EnumPremium.getEnumPremiumFromPacket(packet.premium)
+                    EnumPremium.getEnumPremiumFromPacket(packet.premium),
+                    packet.invisible
                 );
                 isFirstLogin = true;
             }else {
                 connection.base.sessionManager.self.update(
                     packet.name,
                     packet.rank,
-                    EnumPremium.getEnumPremiumFromPacket(packet.premium)
+                    EnumPremium.getEnumPremiumFromPacket(packet.premium),
+                    packet.invisible
                 );
                 isFirstLogin = false;
             }

@@ -17,4 +17,6 @@ object AttributeKeys {
 
     val SESSION_INFO: AttributeKey<DataSessionInfo> = AttributeKey.newInstance("sessionInfo")
     val SESSION_OPTIONS: AttributeKey<DataSessionOptions> = AttributeKey.newInstance("sessionOptions")
+    val SESSION_IS_INVISIBLE: AttributeKey<Boolean> = AttributeKey.newInstance("sessionIsInvisible")
+
 }

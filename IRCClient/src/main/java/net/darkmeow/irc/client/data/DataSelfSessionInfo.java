@@ -17,12 +17,15 @@ public final class DataSelfSessionInfo extends DataSessionInfo implements IRCDat
     @NotNull
     public EnumPremium premium;
 
-    public DataSelfSessionInfo(@NotNull UUID clientUniqueId, @NotNull String name, @NotNull String rank, @NotNull EnumPremium premium) {
+    public boolean invisible;
+
+    public DataSelfSessionInfo(@NotNull UUID clientUniqueId, @NotNull String name, @NotNull String rank, @NotNull EnumPremium premium, boolean invisible) {
         super(clientUniqueId);
 
         this.name = name;
         this.rank = rank;
         this.premium = premium;
+        this.invisible = invisible;
     }
 
     /**
@@ -32,11 +35,12 @@ public final class DataSelfSessionInfo extends DataSessionInfo implements IRCDat
      * @param rank 头衔
      * @param premium 权限等级
      */
-    public void update(@NotNull String name, @NotNull String rank, @NotNull EnumPremium premium) {
+    public void update(@NotNull String name, @NotNull String rank, @NotNull EnumPremium premium, boolean invisible) {
         this.valid = true;
         this.name = name;
         this.rank = rank;
         this.premium = premium;
+        this.invisible = invisible;
     }
 
     @Override
@@ -58,4 +62,10 @@ public final class DataSelfSessionInfo extends DataSessionInfo implements IRCDat
     public @NotNull EnumPremium getPremium() {
         return this.premium;
     }
+
+    @Override
+    public boolean getIsInvisible() {
+        return false;
+    }
+
 }

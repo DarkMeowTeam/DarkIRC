@@ -25,22 +25,38 @@ public class C2SPacketLogin implements C2SPacket {
     public ClientBrandData client;
 
     /**
-     * 只验证用户名密码不上线
+     * 登录模式
      */
-    public boolean notOnline;
+    @NotNull
+    public Mode mode;
+
+    public enum Mode {
+        /**
+         * 正常登录
+         */
+        NORMAL,
+        /**
+         * 隐身登录 （其他人无法在 IRC 中看到 友好模式将被关闭)
+         */
+        INVISIBLE,
+        /**
+         * 仅验证用户名密码是否正确 (不上线)
+         */
+        ONLY_VERIFY_PASSWORD
+    }
 
     public C2SPacketLogin(@NotNull String name, @NotNull String password, @NotNull ClientBrandData client) {
         this.name = name;
         this.password = password;
         this.client = client;
-        this.notOnline = false;
+        this.mode = Mode.NORMAL;
     }
 
-    public C2SPacketLogin(@NotNull String name, @NotNull String password, @NotNull ClientBrandData client, boolean notOnline) {
+    public C2SPacketLogin(@NotNull String name, @NotNull String password, @NotNull ClientBrandData client, @NotNull Mode mode) {
         this.name = name;
         this.password = password;
         this.client = client;
-        this.notOnline = notOnline;
+        this.mode = mode;
     }
 
 }
