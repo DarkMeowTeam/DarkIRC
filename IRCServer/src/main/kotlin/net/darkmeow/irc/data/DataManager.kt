@@ -74,6 +74,18 @@ class DataManager(
 
                     logger.info("[数据库管理] 创建表 sessions")
                 }
+                if (!it.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='userdata';").next()) {
+                    connection.createStatement().executeUpdate(
+                        """
+                            CREATE TABLE IF NOT EXISTS userdata (
+                                name TEXT PRIMARY KEY,
+                                ignores TEXT NOT NULL -- 屏蔽用户列表
+                            );
+                        """.trimIndent()
+                    )
+
+                    logger.info("[数据库管理] 创建表 userdata")
+                }
             }
             .close()
 
@@ -366,4 +378,39 @@ class DataManager(
             setString(1, linkUser)
         }
         .executeUpdate()
+
+
+    fun userdataExist(name: String): Boolean = connection
+        .prepareStatement("SELECT 1 FROM userdata WHERE name = ?;")
+        .apply {
+            setString(1, name)
+        }
+        .executeQuery()
+        .next()
+
+    fun getUserdataIgnores(name: String): MutableSet<String> = connection
+        .prepareStatement("SELECT ignores FROM userdata WHERE name = ?;")
+        .apply {
+            setString(1, name)
+        }
+        .executeQuery()
+        .takeIf { it.next() }
+        ?.getString("ignores")
+        ?.split(",")
+        ?.filter { it.isNotEmpty() }
+        ?.toMutableSet()
+        ?: mutableSetOf()
+
+    fun setUserdataIgnores(name: String, ignores: Set<String>): Boolean = connection
+        .prepareStatement(
+            if (userdataExist(name)) {
+                "UPDATE userdata SET ignores = ? WHERE name = ?"
+            } else {
+                "INSERT INTO userdata (ignores, name) VALUES (?, ?)"
+            }
+        ).apply {
+            setString(1, ignores.joinToString(","))
+            setString(2, name)
+        }.executeUpdate() > 0
+
 }

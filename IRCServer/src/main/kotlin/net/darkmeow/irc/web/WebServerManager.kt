@@ -13,6 +13,7 @@ import net.darkmeow.irc.web.utils.throwables.ParamNotFoundException
 import net.darkmeow.irc.web.utils.throwables.WebServerHandleException
 import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.web.api.api.BoardCastMessage
+import net.darkmeow.irc.web.api.api.BoardCastServiceMessage
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.io.IOException
@@ -60,7 +61,7 @@ class WebServerManager (
         addEndPoint("/ReloadConfig", ReloadConfig())
 
         addEndPoint("/api/BoardCastMessage", BoardCastMessage())
-
+        addEndPoint("/api/BoardCastServiceMessage", BoardCastServiceMessage())
     }
 
     fun stop() {

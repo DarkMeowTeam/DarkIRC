@@ -240,8 +240,9 @@ class HandlePacketProcess(private val manager: NetworkManager): ChannelInboundHa
 
                         manager.clients
                             .values
-                            .filter { otherChannel -> otherChannel.hasAttr(AttributeKeys.CURRENT_USER) }
-                            .onEach { otherChannel ->
+                            .mapNotNull { otherChannel -> otherChannel.getCurrentUser()?.let { Pair(otherChannel, it)} }
+                            .filter { (_, name) -> !manager.base.dataManager.getUserdataIgnores(name).contains(user) }
+                            .onEach { (otherChannel, _) ->
                                 // 同时也会发送给发送者客户端上 这不是bug 而是刻意这么设计的
                                 otherChannel.sendPacket(boardCastPacket)
                             }
