@@ -28,5 +28,9 @@ public enum EnumResultLogin {
     /**
      * 未连接服务器
      */
-    NOT_CONNECT
+    NOT_CONNECT,
+    /**
+     * 登录超时
+     */
+    TIME_OUT
 }

@@ -45,28 +45,26 @@ public final class HandleClientPacketProcess extends ChannelInboundHandlerAdapte
         } else if (serverPacket instanceof S2CPacketLoginResult) {
             final S2CPacketLoginResult packet = (S2CPacketLoginResult) serverPacket;
 
-            if (connection.base.resultManager.loginResultCallback != null) {
-                final S2CPacketLoginResult.LoginResult result = packet.result;
+            if (packet.result == S2CPacketLoginResult.LoginResult.INVALID_CLIENT) {
+                connection.base.resultManager.loginResult = EnumResultLogin.INVALID_CLIENT;
+            } else if (packet.result == S2CPacketLoginResult.LoginResult.OUTDATED_CLIENT_VERSION) {
+                connection.base.resultManager.loginResult = EnumResultLogin.OUTDATED_CLIENT_VERSION;
+            } else if (packet.result == S2CPacketLoginResult.LoginResult.USER_OR_PASSWORD_WRONG) {
+                connection.base.resultManager.loginResult = EnumResultLogin.USER_OR_PASSWORD_WRONG;
+            } else if (packet.result == S2CPacketLoginResult.LoginResult.NO_PREMIUM_LOGIN_THIS_CLIENT) {
+                connection.base.resultManager.loginResult = EnumResultLogin.NO_PREMIUM_LOGIN_THIS_CLIENT;
+            } else if (packet.result == S2CPacketLoginResult.LoginResult.INVALID_TOKEN) {
+                connection.base.resultManager.loginResult = EnumResultLogin.INVALID_TOKEN;
+            } else if (packet.result == S2CPacketLoginResult.LoginResult.SUCCESS) {
+                connection.base.resultManager.loginResult = EnumResultLogin.SUCCESS;
+                connection.sendPacket(new C2SPacketQueryUsers(false), true);
 
-                if (result == S2CPacketLoginResult.LoginResult.INVALID_CLIENT) {
-                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.INVALID_CLIENT);
-                } else if (result == S2CPacketLoginResult.LoginResult.OUTDATED_CLIENT_VERSION) {
-                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.OUTDATED_CLIENT_VERSION);
-                } else if (result == S2CPacketLoginResult.LoginResult.USER_OR_PASSWORD_WRONG) {
-                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.USER_OR_PASSWORD_WRONG);
-                } else if (result == S2CPacketLoginResult.LoginResult.NO_PREMIUM_LOGIN_THIS_CLIENT) {
-                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.NO_PREMIUM_LOGIN_THIS_CLIENT);
-                } else if (result == S2CPacketLoginResult.LoginResult.INVALID_TOKEN) {
-                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.INVALID_TOKEN);
-                } else if (result == S2CPacketLoginResult.LoginResult.SUCCESS) {
-                    connection.base.resultManager.loginResultCallback.accept(EnumResultLogin.SUCCESS);
-                    connection.sendPacket(new C2SPacketQueryUsers(false), true);
-
-                    if (packet.token != null) {
-                        connection.base.listenable.onUpdateSession(packet.token);
-                    }
+                if (packet.token != null) {
+                    connection.base.listenable.onUpdateSession(packet.token);
                 }
             }
+
+            connection.base.resultManager.loginLatch.countDown();
         } else if (serverPacket instanceof S2CPacketUpdateMySessionInfo) {
             final S2CPacketUpdateMySessionInfo packet = (S2CPacketUpdateMySessionInfo) serverPacket;
             boolean isFirstLogin;
