@@ -12,7 +12,11 @@ import java.util.function.Consumer;
 public final class ResultManager {
     public CountDownLatch handShakeLatch = new CountDownLatch(1);
 
-    public Consumer<EnumResultLogin> loginResultCallback;
+    @NotNull
+    public CountDownLatch loginLatch = new CountDownLatch(1);
+    @NotNull
+    public EnumResultLogin loginResult = EnumResultLogin.TIME_OUT;
+
     public Consumer<IRCResultSendMessageToPrivate> privateResultCallback;
 
     @NotNull
@@ -23,7 +27,8 @@ public final class ResultManager {
 
     public void reset() {
         this.handShakeLatch = new CountDownLatch(1);
-        this.loginResultCallback = null;
+        this.loginLatch = new CountDownLatch(1);
+        this.loginResult = EnumResultLogin.TIME_OUT;
         this.privateResultCallback = null;
         this.disconnectType = EnumDisconnectType.OTHER;
         this.disconnectReason = null;

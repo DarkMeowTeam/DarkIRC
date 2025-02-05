@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -94,20 +95,52 @@ public class IRCClient implements IRCClientProvider {
     }
 
     @Override
-    public void login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, boolean invisible, @Nullable Consumer<EnumResultLogin> callback) {
+    public EnumResultLogin login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, boolean invisible) {
         if (isConnected()) {
-            resultManager.loginResultCallback = callback;
+            try {
+                if (connection.sendPacket(new C2SPacketLogin(username, password, brand, invisible ? C2SPacketLogin.Mode.INVISIBLE : C2SPacketLogin.Mode.NORMAL), false)) {
+                    resultManager.loginResult = EnumResultLogin.TIME_OUT;
+                    resultManager.loginLatch = new CountDownLatch(1);
 
-            if (
-                !connection.sendPacket(
-                    new C2SPacketLogin(username, password, brand, invisible ? C2SPacketLogin.Mode.INVISIBLE : C2SPacketLogin.Mode.NORMAL),
-                    false
-                )
-            ) {
-                if (callback != null) callback.accept(EnumResultLogin.NOT_CONNECT);
+                    if (resultManager.loginLatch.await(3, TimeUnit.SECONDS)) {
+                        return resultManager.loginResult;
+                    } else {
+                        return EnumResultLogin.TIME_OUT;
+                    }
+                } else {
+                    return EnumResultLogin.NOT_CONNECT;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return EnumResultLogin.NOT_CONNECT;
             }
         } else {
-            if (callback != null) callback.accept(EnumResultLogin.NOT_CONNECT);
+            return EnumResultLogin.NOT_CONNECT;
+        }
+    }
+
+    @Override
+    public EnumResultLogin loginNotOnline(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand) {
+        if (isConnected()) {
+            try {
+                if (connection.sendPacket(new C2SPacketLogin(username, password, brand, C2SPacketLogin.Mode.ONLY_VERIFY_PASSWORD), false)) {
+                    resultManager.loginResult = EnumResultLogin.TIME_OUT;
+                    resultManager.loginLatch = new CountDownLatch(1);
+
+                    if (resultManager.loginLatch.await(3, TimeUnit.SECONDS)) {
+                        return resultManager.loginResult;
+                    } else {
+                        return EnumResultLogin.TIME_OUT;
+                    }
+                } else {
+                    return EnumResultLogin.NOT_CONNECT;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return EnumResultLogin.NOT_CONNECT;
+            }
+        } else {
+            return EnumResultLogin.NOT_CONNECT;
         }
     }
 
