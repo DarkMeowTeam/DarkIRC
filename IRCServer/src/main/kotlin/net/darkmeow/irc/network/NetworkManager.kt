@@ -1,6 +1,7 @@
 package net.darkmeow.irc.network
 
 import io.netty.bootstrap.ServerBootstrap
+import io.netty.buffer.PooledByteBufAllocator
 import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
@@ -66,6 +67,8 @@ class NetworkManager(
                             ch.pipeline().addLast("Handler", HandlePacketProcess(this@NetworkManager))
                         }
                     })
+                    .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
+                    .childOption(ChannelOption.SO_REUSEADDR, true)
 
                 val future = bootstrap.bind(port).sync()
                 serverChannel = future.channel()
