@@ -81,7 +81,7 @@ class WebServerManager (
         @Throws(IOException::class)
         override fun handle(t: HttpExchange) {
             try {
-                logger.info("[WebServer] ${t.remoteAddress.hostString}:${t.remoteAddress.port}  ${t.requestMethod} ${t.requestURI.path}")
+                manager.logger.info("[WebServer] ${t.remoteAddress.hostString}:${t.remoteAddress.port}  ${t.requestMethod} ${t.requestURI.path}")
                 t.responseHeaders["Access-Control-Allow-Origin"] = "*"
                 when (t.requestMethod) {
                     "OPTIONS" -> {
@@ -95,29 +95,58 @@ class WebServerManager (
                         return
                     }
                     "GET" -> {
-                        val handle = Handle(manager, t.requestURI.path.lowercase(Locale.getDefault()), RequestParamsUtils.getParams(t))
+                        val handle = Handle(
+                            manager,
+                            t.requestURI.path.lowercase(Locale.getDefault()),
+                            RequestParamsUtils.getParams(t)
+                        )
                         var response = Response()
 
-                        manager.apis[handle.requestPath]?.let {
-                            try {
-                                response = it.handle(handle)
-                            } catch (e: WebServerHandleException) {
-                                when(e) {
-                                    is ParamNotFoundException -> {
-                                        response.code = 400
-                                        response.msg = "参数 ${e.param} 不存在"
-                                    }
-                                    is ParamInvalidException -> {
-                                        response.code = 400
-                                        response.msg = "参数 ${e.param} 无效"
+                        manager
+                            .apis[handle.requestPath]
+                            ?.takeIf {
+                                val ipWhiteList = manager.base.configManager.configs.webServer.ipWhiteList
+                                val key = manager.base.configManager.configs.webServer.key
+
+                                if (t.requestHeaders["key"]?.firstOrNull() != key && handle.requestParams["key"] != key) {
+                                    response.code = 403
+                                    response.msg = "无权限"
+
+                                    return@takeIf false
+                                }
+
+                                if (ipWhiteList.isNotEmpty() && !ipWhiteList.contains(t.remoteAddress.hostString)) {
+                                    response.code = 403
+                                    response.msg = "无权限"
+
+                                    return@takeIf false
+                                }
+
+                                return@takeIf true
+                            }
+                            ?.let {
+                                try {
+                                    response = it.handle(handle)
+                                } catch (e: WebServerHandleException) {
+                                    when (e) {
+                                        is ParamNotFoundException -> {
+                                            response.code = 400
+                                            response.msg = "参数 ${e.param} 不存在"
+                                        }
+                                        is ParamInvalidException -> {
+                                            response.code = 400
+                                            response.msg = "参数 ${e.param} 无效"
+                                        }
                                     }
                                 }
                             }
-                        } ?: run {
-                            response.code = 404
-                            response.msg = "404 Not Found."
-                            response.data.addProperty("node", handle.requestPath)
-                        }
+                            ?: run {
+                                if (response.code == 200) {
+                                    response.code = 404
+                                    response.msg = "404 Not Found."
+                                    response.data.addProperty("node", handle.requestPath)
+                                }
+                            }
 
                         t.responseHeaders["Content-Type"] = response.headerContentType
 
@@ -137,20 +166,10 @@ class WebServerManager (
                         t.close()
                     }
                 }
-
-
-        } catch (e: Exception) {
-            logger.error("[WebServer] 处理请求时发生异常", e)
-            throw e
+            } catch (e: Exception) {
+                manager.logger.error("[WebServer] 处理请求时发生异常", e)
+                throw e
+            }
         }
     }
-
-
-
-    companion object {
-        private val logger: Logger = LogManager.getLogger(
-            WebServerManager::class.java
-        )
-    }
-}
 }
