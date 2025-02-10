@@ -14,7 +14,7 @@ class HandleClientEncryptionOutbound(private val manager: NetworkManager): Chann
         if (data is String) {
             val buffer = Unpooled.buffer()
 
-            val encryptedData = EncryptUtils.encrypt(data, manager.base.configManager.configs.key).toByteArray(CharsetUtil.UTF_8)
+            val encryptedData = EncryptUtils.encrypt(data, manager.base.configManager.configs.ircServer.key).toByteArray(CharsetUtil.UTF_8)
 
             buffer.writeInt(encryptedData.size)
             buffer.writeBytes(encryptedData)

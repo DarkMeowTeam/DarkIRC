@@ -41,7 +41,7 @@ class NetworkManager(
     private var bossGroup: EventLoopGroup? = null
     private var workerGroup: EventLoopGroup? = null
 
-    fun start(port: Int): Boolean {
+    fun start(): Boolean {
         val latch = CountDownLatch(1)
         Thread {
             runCatching {
@@ -55,7 +55,7 @@ class NetworkManager(
                     .childHandler(object : ChannelInitializer<SocketChannel>() {
                         override fun initChannel(ch: SocketChannel) {
                             // Network | Proxy Protocol
-                            if (base.configManager.configs.proxyProtocol) {
+                            if (base.configManager.configs.ircServer.proxyProtocol) {
                                 ch.pipeline().addLast("ProxyProtocol", HAProxyMessageDecoder())
                             }
 
@@ -70,10 +70,10 @@ class NetworkManager(
                     .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .childOption(ChannelOption.SO_REUSEADDR, true)
 
-                val future = bootstrap.bind(port).sync()
+                val future = bootstrap.bind(base.configManager.configs.ircServer.host, base.configManager.configs.ircServer.port).sync()
                 serverChannel = future.channel()
 
-                logger.info("监听于 0.0.0.0:$port")
+                logger.info("监听于 ${base.configManager.configs.ircServer.host}:${base.configManager.configs.ircServer.port}")
 
                 latch.countDown()
 
