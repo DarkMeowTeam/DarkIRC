@@ -31,6 +31,19 @@ class Config {
     var webServer: WebServer = WebServer()
 
     class WebServer {
-        var port: Int = 8888
+        /**
+         * Web API 端口
+         */
+        var port = 8888
+        /**
+         * Web API 密钥
+         */
+        var key = ""
+
+        /**
+         * Web API IP 白名单
+         * 留空关闭
+         */
+        var ipWhiteList = mutableSetOf<String>()
     }
 }
