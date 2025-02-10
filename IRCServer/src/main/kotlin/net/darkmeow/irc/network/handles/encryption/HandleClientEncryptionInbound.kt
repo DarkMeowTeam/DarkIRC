@@ -6,19 +6,26 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.util.CharsetUtil
 import net.darkmeow.irc.network.NetworkManager
 import net.darkmeow.irc.utils.EncryptUtils
+import javax.crypto.BadPaddingException
 
 class HandleClientEncryptionInbound(private val manager: NetworkManager): ChannelInboundHandlerAdapter() {
 
     override fun channelRead(ctx: ChannelHandlerContext, data: Any) {
         if (data is ByteBuf) {
-            try {
+            runCatching {
                 super.channelRead(
                     ctx,
-                    EncryptUtils.decrypt(data.toString(CharsetUtil.UTF_8), manager.base.configManager.configs.key)
+                    EncryptUtils.decrypt(data.toString(CharsetUtil.UTF_8), manager.base.configManager.configs.ircServer.key)
                 )
-            } finally {
-                data.release()
             }
+                .onFailure { e ->
+                    if (e !is BadPaddingException && e !is IllegalArgumentException) {
+                        throw e
+                    }
+                }
+                .also {
+                    data.release()
+                }
         }
     }
 

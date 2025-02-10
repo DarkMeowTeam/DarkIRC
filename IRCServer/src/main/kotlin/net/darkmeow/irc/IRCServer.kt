@@ -21,7 +21,7 @@ class IRCServer {
     fun start() {
         configManager.readConfig()
         dataManager.connect(configManager.configs.database)
-        networkManager.start(configManager.configs.port)
+        networkManager.start()
         webServerManager.start()
 
         Runtime.getRuntime().addShutdownHook(Thread {
