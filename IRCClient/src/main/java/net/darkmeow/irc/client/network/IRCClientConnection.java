@@ -57,8 +57,6 @@ public class IRCClientConnection {
         this.channel = null;
 
         try {
-            InetSocketAddress address = new InetSocketAddress(InetAddress.getByName(host), port);
-
             CountDownLatch channelActiveLatch = new CountDownLatch(1);
 
             Class <? extends SocketChannel > oclass;
@@ -96,17 +94,17 @@ public class IRCClientConnection {
                     }
                 )
                 .channel(oclass)
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 3000)
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
                 .option(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                 .option(ChannelOption.SO_REUSEADDR, true)
-                .connect(address)
+                .connect(host, port)
                 .addListener((ChannelFutureListener) future -> {
                     if (!future.isSuccess()) {
                         future.cause().printStackTrace();
                     }
                 });
 
-            channelActiveLatch.await(3, TimeUnit.SECONDS);
+            channelActiveLatch.await(5, TimeUnit.SECONDS);
             if (channelActiveLatch.getCount() == 1) channelActiveLatch.countDown();
         } catch (Exception e) {
             e.printStackTrace();
