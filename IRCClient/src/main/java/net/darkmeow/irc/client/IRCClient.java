@@ -98,7 +98,7 @@ public class IRCClient implements IRCClientProvider {
     @Override
     public void sendMessageToPrivate(@NotNull String receiver, @NotNull String message) {
         if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
-            connection.sendPacket(new C2SPacketMessage(message, receiver));
+            connection.sendPacket(new C2SPacketMessage(receiver, message));
         }
     }
 
