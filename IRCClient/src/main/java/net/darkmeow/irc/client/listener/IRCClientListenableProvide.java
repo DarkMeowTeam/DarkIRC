@@ -7,6 +7,8 @@ import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+
 public interface IRCClientListenableProvide {
     /**
      * 连接服务器成功 可以开始登录
@@ -44,6 +46,13 @@ public interface IRCClientListenableProvide {
      * @param message 消息内容
      */
     void onMessagePrivate(@NotNull IRCDataOtherSessionInfo sender, @NotNull String message);
+    /**
+     * 收到其它客户端更新输入状态时调用
+     *
+     * @param publicInputs 正在向公开聊天输入消息的客户端
+     * @param privateInputs 正在向私有聊天输入消息的客户端 (仅向当前客户端)
+     */
+    void onUpdateOtherInputs(@NotNull Set publicInputs, @NotNull Set privateInputs);
     /**
      * 发送私有聊天成功时调用
      *

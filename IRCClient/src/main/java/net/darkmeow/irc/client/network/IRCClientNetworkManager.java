@@ -69,6 +69,7 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                         ch.pipeline().addLast("handler_online_keepalive", new HandleProcessClientOnlineKeepAlive(networkManager));
                         ch.pipeline().addLast("handler_online_update_my_profile", new HandleProcessClientOnlineUpdateMyProfile(networkManager));
                         ch.pipeline().addLast("handler_online_message", new HandleProcessClientOnlineMessage(networkManager));
+                        ch.pipeline().addLast("handler_online_input_status", new HandleProcessClientOnlineInputStatus(networkManager));
                         ch.pipeline().addLast("handler_online_other_user_data", new HandleProcessClientOnlineOtherSession(networkManager));
                         ch.pipeline().addLast("handler_online_remote_disconnect", new HandleProcessClientOnlineRemoteDisconnect(networkManager));
                     }
