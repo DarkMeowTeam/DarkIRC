@@ -1,13 +1,18 @@
 package net.darkmeow.irc.utils
 
-import io.netty.channel.Channel
-import io.netty.channel.ChannelHandlerContext
-import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
+import net.darkmeow.irc.IRCServer
+import net.darkmeow.irc.network.IRCNetworkManagerServer
 
 object MessageUtils {
 
-    fun Channel.sendCommandUsage(root: String,syntax: String) = this.sendSystemMessage("§7指令用法: /irc:$root $syntax")
+    fun IRCNetworkManagerServer.sendServiceMessage(base: IRCServer, service: String, message: String) {
+        if (base.dataManager.getUserdataIgnores(user).contains(service)) return
 
-    fun Channel.sendMessageError(message: String) = this.sendSystemMessage("§c$message")
+        sendSystemMessage(message)
+    }
+
+    fun IRCNetworkManagerServer.sendCommandUsage(root: String,syntax: String) = this.sendSystemMessage("§7指令用法: /irc:$root $syntax")
+
+    fun IRCNetworkManagerServer.sendMessageError(message: String) = this.sendSystemMessage("§c$message")
 
 }

@@ -1,0 +1,93 @@
+package net.darkmeow.irc.network
+
+import io.netty.channel.ChannelHandlerContext
+import io.netty.util.concurrent.Future
+import io.netty.util.concurrent.GenericFutureListener
+import net.darkmeow.irc.data.DataClientBrand
+import net.darkmeow.irc.data.DataUserState
+import net.darkmeow.irc.data.enmus.EnumUserPremium
+import net.darkmeow.irc.network.packet.online.s2c.S2CPacketDisconnect
+import net.darkmeow.irc.network.packet.online.s2c.S2CPacketSystemMessage
+import java.util.UUID
+
+
+class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetworkManager() {
+
+    /**
+     * 会话唯一标识
+     */
+    lateinit var sessionId: UUID
+    /**
+     * 客户端 IP 地址
+     */
+    var address: String = "unknown"
+    /**
+     * 协议版本
+     */
+    var protocolVersion: Int = 0
+    /**
+     * 连接客户端信息
+     */
+    lateinit var brand: DataClientBrand
+    /**
+     * 硬件唯一标识
+     */
+    lateinit var hardWareUniqueId: String
+
+    /**
+     * 当前登录用户名称
+     */
+    var user: String = ""
+    /**
+     * 当前会话对于登录用户的权限级别
+     */
+    var userPremium: EnumUserPremium = EnumUserPremium.BANNED
+    /**
+     * 当前登录使用的 Token
+     */
+    var currentToken: String? = null
+    /**
+     * 会话状态信息 (来自客户端上报)
+     */
+    var sessionState: DataUserState = DataUserState.EMPTY
+    /**
+     * 会话是否开启隐身
+     */
+    var currentIsInvisible: Boolean = false
+
+    var lastKeepAlive: Long
+        get() {
+            return channel?.attr(AttributeKeys.LATEST_KEEPALIVE)?.get() ?: System.currentTimeMillis()
+        }
+        set(value) {
+            channel?.attr(AttributeKeys.LATEST_KEEPALIVE)?.set(value)
+        }
+
+    /**
+     * 是否已登录
+     * 只有已登录的会话才有 sessionId
+     */
+    fun isLogin() = user.isNotEmpty()
+
+    fun updateLastKeepAlive() {
+        lastKeepAlive = System.currentTimeMillis()
+    }
+
+    fun sendSystemMessage(message: String) {
+        sendPacket(S2CPacketSystemMessage(message, UUID.randomUUID()))
+    }
+
+    fun disconnect(reason: String = "", logout: Boolean = false) {
+        sendPacket(S2CPacketDisconnect(logout, reason), GenericFutureListener<Future<Void>> { future ->
+            close()
+        })
+    }
+
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        if (isLogin()) {
+            bossNetworkManager.clients.remove(sessionId)
+            bossNetworkManager.logger.info("[-] $user")
+        }
+    }
+
+}

@@ -1,5 +1,6 @@
 package net.darkmeow.irc.client.manager;
 
+import lombok.Getter;
 import net.darkmeow.irc.client.data.DataSelfSessionInfo;
 import net.darkmeow.irc.client.data.DataOtherSessionInfo;
 import net.darkmeow.irc.client.interfaces.data.IRCDataOtherSessionInfo;
@@ -13,6 +14,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public final class SessionManager implements IRCSessionManager {
 
+    @Getter
+    @Nullable
+    public UUID sessionId;
+
     @Nullable
     public DataSelfSessionInfo self;
 
@@ -23,12 +28,11 @@ public final class SessionManager implements IRCSessionManager {
         users.entrySet().removeIf(entry -> !entry.getValue().isValid());
     }
 
-    public void reset() {
-        self = null;
-        users.forEach((uuid, info) -> {
-            info.markInvalid();
-        });
-        users.clear();
+    public void reset(UUID sessionId) {
+        this.self = null;
+        this.users.forEach((uuid, info) -> info.markInvalid());
+        this.users.clear();
+        this.sessionId = sessionId;
     }
 
     @Override

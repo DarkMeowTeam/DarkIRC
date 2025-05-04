@@ -1,6 +1,6 @@
 package net.darkmeow.irc.client.interfaces.data;
 
-import net.darkmeow.irc.client.enums.EnumPremium;
+import net.darkmeow.irc.data.enmus.EnumUserPremium;
 import org.jetbrains.annotations.NotNull;
 
 public interface IRCDataSelfSessionInfo extends IRCDataSessionInfo {
@@ -11,17 +11,11 @@ public interface IRCDataSelfSessionInfo extends IRCDataSessionInfo {
      */
     @NotNull String getName();
     /**
-     * 获取当前自身头衔
-     *
-     * @return 头衔
-     */
-    @NotNull String getRank();
-    /**
      * 获取当前自身权限等级
      *
      * @return 权限等级
      */
-    @NotNull EnumPremium getPremium();
+    @NotNull EnumUserPremium getPremium();
     /**
      * 获取自身是否开启了隐身模式
      *

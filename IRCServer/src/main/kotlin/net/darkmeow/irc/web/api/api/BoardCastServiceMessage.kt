@@ -1,6 +1,6 @@
 package net.darkmeow.irc.web.api.api
 
-import net.darkmeow.irc.utils.ChannelUtils.sendServiceMessage
+import net.darkmeow.irc.utils.MessageUtils.sendServiceMessage
 import net.darkmeow.irc.web.APIHandler
 import net.darkmeow.irc.web.Handle
 import net.darkmeow.irc.web.Response

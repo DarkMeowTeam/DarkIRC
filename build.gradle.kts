@@ -2,7 +2,6 @@ val baseGroup: String by project
 val baseVersion: String by project
 
 val nettyVersion: String by project
-val gsonVersion: String by project
 
 plugins {
     idea
@@ -33,7 +32,6 @@ allprojects {
 
     dependencies {
         implementation("io.netty:netty-all:${nettyVersion}")
-        implementation("com.google.code.gson:gson:${gsonVersion}")
 
         compileOnly("org.jetbrains:annotations:24.0.0")
 

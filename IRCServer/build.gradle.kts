@@ -1,3 +1,5 @@
+val gsonVersion: String by project
+
 plugins {
     java
     kotlin("jvm")
@@ -13,6 +15,7 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
+    implementation("com.google.code.gson:gson:${gsonVersion}")
     implementation("org.apache.logging.log4j:log4j-core:2.20.0")
     implementation("com.esotericsoftware.yamlbeans:yamlbeans:1.17")
     implementation("org.xerial:sqlite-jdbc:3.47.1.0")

@@ -1,7 +1,7 @@
 package net.darkmeow.irc.data
 
 import net.darkmeow.irc.IRCServer
-import net.darkmeow.irc.network.packet.s2c.S2CPacketUpdateMySessionInfo.Premium
+import net.darkmeow.irc.data.enmus.EnumUserPremium
 import org.apache.logging.log4j.LogManager
 import java.sql.Connection
 import java.sql.DriverManager
@@ -53,7 +53,7 @@ class DataManager(
                     connection.createStatement().executeUpdate(
                         """
                             INSERT INTO users (name, password, rank, premium) 
-                            VALUES ('Administrator', '123456', '管理员', ${Premium.SUPER_ADMIN.ordinal});
+                            VALUES ('Administrator', '123456', '管理员', ${EnumUserPremium.OWNER.ordinal});
                         """.trimIndent()
                     )
 
@@ -237,7 +237,7 @@ class DataManager(
                 }
         }
 
-    fun createUser(name: String, password: String, rank: String, premium: Premium): Boolean = connection
+    fun createUser(name: String, password: String, rank: String, premium: EnumUserPremium): Boolean = connection
         .prepareStatement(
             """
                 INSERT INTO users (name, password, rank, premium) 
@@ -270,24 +270,7 @@ class DataManager(
         .executeQuery()
         .next()
 
-    fun getUserRank(user: String): String? = connection
-        .prepareStatement("SELECT rank FROM users WHERE name = ?;")
-        .apply {
-            setString(1, user)
-        }
-        .executeQuery()
-        .takeIf { it.next() }
-        ?.getString("rank")
-
-    fun setUserRank(user: String, newRank: String): Boolean = connection
-        .prepareStatement("UPDATE users SET rank = ? WHERE name = ?;")
-        .apply {
-            setString(1, newRank)
-            setString(2, user)
-        }
-        .executeUpdate() > 0
-
-    fun getUserPremium(user: String): Premium = connection
+    fun getUserPremium(user: String): EnumUserPremium = connection
         .prepareStatement("SELECT premium FROM users WHERE name = ?;")
         .apply {
             setString(1, user)
@@ -295,9 +278,9 @@ class DataManager(
         .executeQuery()
         .takeIf { it.next() }
         ?.getInt("premium")
-        ?.let { Premium.entries[it] } ?: Premium.GUEST
+        ?.let { EnumUserPremium.entries[it] } ?: EnumUserPremium.USER
 
-    fun setUserPremium(user: String, newPremium: Premium): Boolean = connection
+    fun setUserPremium(user: String, newPremium: EnumUserPremium): Boolean = connection
         .prepareStatement("UPDATE users SET premium = ? WHERE name = ?;")
         .apply {
             setInt(1, newPremium.ordinal)

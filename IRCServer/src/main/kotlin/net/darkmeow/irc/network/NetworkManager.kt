@@ -10,13 +10,19 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.haproxy.HAProxyMessageDecoder
+import io.netty.handler.timeout.ReadTimeoutHandler
 import net.darkmeow.irc.IRCServer
-import net.darkmeow.irc.network.handles.HandleClientConnection
-import net.darkmeow.irc.network.handles.HandleClientEncryption
-import net.darkmeow.irc.network.handles.HandlePacketProcess
-import net.darkmeow.irc.network.packet.s2c.S2CPacketDisconnect
-import net.darkmeow.irc.utils.ChannelAttrUtils.kick
-import net.darkmeow.irc.utils.ChannelUtils.sendPacket
+import net.darkmeow.irc.network.handle.frame.NettyVarInt21FrameDecoder
+import net.darkmeow.irc.network.handle.frame.NettyVarInt21FrameEncoder
+import net.darkmeow.irc.network.handle.packet.NettyPacketDecoder
+import net.darkmeow.irc.network.handle.packet.NettyPacketEncoder
+import net.darkmeow.irc.network.handles.netty.NettyAddressLogger
+import net.darkmeow.irc.network.handles.handshake.HandlePacketHandShake
+import net.darkmeow.irc.network.handles.login.HandlePacketLogin
+import net.darkmeow.irc.network.handles.online.HandlePacketDisconnect
+import net.darkmeow.irc.network.handles.online.HandlePacketKeepAlive
+import net.darkmeow.irc.network.handles.online.HandlePacketMessage
+import net.darkmeow.irc.network.handles.online.HandlePacketSessionState
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
@@ -34,7 +40,7 @@ class NetworkManager(
      * 已连接的客户端
      */
     @JvmField
-    val clients: MutableMap<UUID, Channel> = Collections.synchronizedMap(hashMapOf())
+    val clients: MutableMap<UUID, IRCNetworkManagerServer> = Collections.synchronizedMap(hashMapOf())
 
     private var serverChannel: Channel? = null
 
@@ -54,17 +60,30 @@ class NetworkManager(
                     .channel(NioServerSocketChannel::class.java)
                     .childHandler(object : ChannelInitializer<SocketChannel>() {
                         override fun initChannel(ch: SocketChannel) {
+                            val subNetworkManager = IRCNetworkManagerServer(this@NetworkManager)
+
                             // Network | Proxy Protocol
                             if (base.configManager.configs.ircServer.proxyProtocol) {
-                                ch.pipeline().addLast("ProxyProtocol", HAProxyMessageDecoder())
+                                ch.pipeline().addLast("proxy_protocol", HAProxyMessageDecoder())
                             }
 
-                            // Base | 客户端连接状态距离
-                            ch.pipeline().addLast("BaseConnection", HandleClientConnection(this@NetworkManager))
-                            // Base | 客户端传输加密
-                            ch.pipeline().addLast("BaseEncryption", HandleClientEncryption(this@NetworkManager))
+                            ch.pipeline().addLast("netty_address_logger", NettyAddressLogger(subNetworkManager))
+                            // 超时断开
+                            ch.pipeline().addLast("timeout", ReadTimeoutHandler(IRCNetworkBaseConfig.READ_TIMEOUT_SECOND))
+                            // 入站包分片和解码
+                            ch.pipeline().addLast("splitter", NettyVarInt21FrameDecoder())
+                            ch.pipeline().addLast("decoder", NettyPacketDecoder(EnumPacketDirection.SERVER_BOUND))
+                            // 出站包分片和编码
+                            ch.pipeline().addLast("prepender", NettyVarInt21FrameEncoder())
+                            ch.pipeline().addLast("encoder", NettyPacketEncoder(EnumPacketDirection.CLIENT_BOUND))
 
-                            ch.pipeline().addLast("Handler", HandlePacketProcess(this@NetworkManager))
+                            ch.pipeline().addLast("base", subNetworkManager)
+                            ch.pipeline().addLast("handler_hand_shake", HandlePacketHandShake(this@NetworkManager, subNetworkManager))
+                            ch.pipeline().addLast("handler_login", HandlePacketLogin(this@NetworkManager, subNetworkManager))
+                            ch.pipeline().addLast("handler_online_keepalive", HandlePacketKeepAlive(subNetworkManager))
+                            ch.pipeline().addLast("handler_online_message", HandlePacketMessage(subNetworkManager))
+                            ch.pipeline().addLast("handler_online_session_state", HandlePacketSessionState(subNetworkManager))
+                            ch.pipeline().addLast("handler_online_disconnect", HandlePacketDisconnect(subNetworkManager))
                         }
                     })
                     .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
@@ -101,10 +120,8 @@ class NetworkManager(
      * @return 是否成功
      */
     fun stop() = runCatching {
-        clients.values.onEach { channel ->
-            runCatching {
-                channel.kick(reason = "服务器被管理员关闭 请稍后重新连接", logout = false)
-            }
+        clients.values.onEach { other ->
+            other.disconnect(reason = "服务器被管理员关闭 请稍后重新连接", logout = false)
         }
 
         serverChannel?.close()?.sync() // 关闭 Channel
