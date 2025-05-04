@@ -11,12 +11,12 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.UUID;
 
-public final class HandleProcessClientOnlineOtherSession extends ChannelInboundHandlerAdapter {
+public final class HandleProcessClientOnlineSessionStatus extends ChannelInboundHandlerAdapter {
 
     @NotNull
     public final IRCClientNetworkManager connection;
 
-    public HandleProcessClientOnlineOtherSession(@NotNull IRCClientNetworkManager connection) {
+    public HandleProcessClientOnlineSessionStatus(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 

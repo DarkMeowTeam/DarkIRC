@@ -28,6 +28,11 @@ public class IRCClientListenableSimple implements IRCClientListenableProvide {
     }
 
     @Override
+    public void onUpdateSessionSkin(@NotNull IRCDataOtherSessionInfo info) {
+
+    }
+
+    @Override
     public void onMessagePublic(@NotNull IRCDataOtherSessionInfo sender, @NotNull String message) {
 
     }

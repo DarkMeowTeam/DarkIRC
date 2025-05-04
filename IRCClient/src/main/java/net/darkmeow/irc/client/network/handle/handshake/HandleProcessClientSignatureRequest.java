@@ -22,7 +22,7 @@ public final class HandleProcessClientSignatureRequest extends SimpleChannelInbo
         if (connection.base.options.key != null) {
             this.connection.sendPacket(new C2SPacketSignatureResponse(packet.getCode(), connection.base.options.key));
         } else {
-            this.connection.base.closeChannel(EnumDisconnectType.OTHER, "未配置签名私钥, 无法通过服务端认证", false);
+            this.connection.base.closeChannel(EnumDisconnectType.KICK_BY_SERVER, "未配置签名私钥, 无法通过服务端认证", false);
         }
 
     }

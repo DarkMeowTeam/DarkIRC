@@ -31,7 +31,12 @@ public interface IRCClientListenableProvide {
      * @param isFirstLogin 是否为首次登录成功
      */
     void onUpdateUserInfo(@NotNull IRCDataSelfSessionInfo info, boolean isFirstLogin);
-
+    /**
+     * 接收到来自其它会话的皮肤数据时调用
+     *
+     * @param info 会话信息
+     */
+    void onUpdateSessionSkin(@NotNull IRCDataOtherSessionInfo info);
     /**
      * 收到公共聊天时调用
      *
@@ -73,7 +78,6 @@ public interface IRCClientListenableProvide {
      * @param message 消息内容
      */
     void onMessageSystem(@NotNull String message);
-
     /**
      * 与 IRC 服务器连接中断时调用
      *

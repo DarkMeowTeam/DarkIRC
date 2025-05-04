@@ -25,7 +25,9 @@ import net.darkmeow.irc.network.handles.online.HandlePacketAuthentication
 import net.darkmeow.irc.network.handles.online.HandlePacketInputStatus
 import net.darkmeow.irc.network.handles.online.HandlePacketKeepAlive
 import net.darkmeow.irc.network.handles.online.HandlePacketMessage
+import net.darkmeow.irc.network.handles.online.HandlePacketSessionSkin
 import net.darkmeow.irc.network.handles.online.HandlePacketSessionState
+import net.darkmeow.irc.network.packet.S2CPacket
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
@@ -89,6 +91,7 @@ class NetworkManager(
                             ch.pipeline().addLast("handler_online_message", HandlePacketMessage(subNetworkManager))
                             ch.pipeline().addLast("handler_online_input_status", HandlePacketInputStatus(subNetworkManager))
                             ch.pipeline().addLast("handler_online_session_state", HandlePacketSessionState(subNetworkManager))
+                            ch.pipeline().addLast("handler_online_session_skin", HandlePacketSessionSkin(subNetworkManager))
                             ch.pipeline().addLast("handler_online_authentication", HandlePacketAuthentication(subNetworkManager))
                         }
                     })
