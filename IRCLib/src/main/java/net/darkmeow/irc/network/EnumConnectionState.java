@@ -50,6 +50,7 @@ public enum EnumConnectionState {
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketQuerySessions.class);
                 // 会话状态
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketLogout.class);
+                this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketUpdatePassword.class);
                 // 自定义包
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketCustomPayload.class);
 
