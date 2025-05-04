@@ -4,6 +4,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import net.darkmeow.irc.data.DataClientBrand
+import net.darkmeow.irc.data.DataSkin
 import net.darkmeow.irc.data.DataUserState
 import net.darkmeow.irc.data.enmus.EnumUserPremium
 import net.darkmeow.irc.data.input.DataSessionInputStatusBase
@@ -62,6 +63,10 @@ class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetwor
      * 会话状态信息 (来自客户端上报)
      */
     var sessionState: DataUserState = DataUserState.EMPTY
+    /**
+     * 会话角色绑定皮肤信息 (来自客户端上报)
+     */
+    var sessionSkin: DataSkin? = null
     /**
      * 会话是否开启隐身
      */

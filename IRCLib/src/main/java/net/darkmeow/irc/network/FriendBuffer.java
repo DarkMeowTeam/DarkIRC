@@ -5,10 +5,7 @@ import io.netty.buffer.ByteBufAllocator;
 import io.netty.handler.codec.DecoderException;
 import io.netty.handler.codec.EncoderException;
 import io.netty.util.ByteProcessor;
-import net.darkmeow.irc.data.DataClientBrand;
-import net.darkmeow.irc.data.DataPlayInGameProfile;
-import net.darkmeow.irc.data.DataUser;
-import net.darkmeow.irc.data.DataUserState;
+import net.darkmeow.irc.data.*;
 import net.darkmeow.irc.data.enmus.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -349,6 +346,18 @@ public class FriendBuffer extends ByteBuf
         this.writeString(data.getKey());
         this.writeString(data.getVersionText());
         this.writeInt(data.getVersionId());
+
+        return this;
+    }
+
+    public @NotNull DataSkin readSkin() {
+        return new DataSkin(this.readByteArray(), this.readByteArray(), this.readBoolean());
+    }
+
+    public @NotNull FriendBuffer writeSkin(DataSkin data) {
+        this.writeByteArray(data.getSkin());
+        this.writeByteArray(data.getCape());
+        this.writeBoolean(data.isSlim());
 
         return this;
     }

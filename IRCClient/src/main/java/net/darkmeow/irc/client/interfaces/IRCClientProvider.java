@@ -1,6 +1,7 @@
 package net.darkmeow.irc.client.interfaces;
 
 import net.darkmeow.irc.client.interfaces.manager.IRCSessionManager;
+import net.darkmeow.irc.data.DataSkin;
 import net.darkmeow.irc.data.DataUserState;
 import org.jetbrains.annotations.NotNull;
 
@@ -100,6 +101,18 @@ public interface IRCClientProvider {
      * @param options 数据
      */
     void uploadState(@NotNull DataUserState options);
+    /**
+     * 查询指定会话皮肤数据
+     *
+     * @param sessionId 会话唯一标识
+     */
+    void querySkin(@NotNull UUID sessionId);
+    /**
+     * 上传皮肤
+     *
+     * @param skin 皮肤数据
+     */
+    void uploadSkin(@NotNull DataSkin skin);
     /**
      * 修改登录密码
      *

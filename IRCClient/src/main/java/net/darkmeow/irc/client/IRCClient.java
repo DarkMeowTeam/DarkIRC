@@ -7,6 +7,7 @@ import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
 import net.darkmeow.irc.client.manager.SessionManager;
 import net.darkmeow.irc.client.network.IRCClientNetworkManager;
 import net.darkmeow.irc.client.network.IRCClientOptions;
+import net.darkmeow.irc.data.DataSkin;
 import net.darkmeow.irc.data.DataUserState;
 import net.darkmeow.irc.network.EnumConnectionState;
 import net.darkmeow.irc.network.packet.login.c2s.C2SPacketLogin;
@@ -14,6 +15,7 @@ import net.darkmeow.irc.network.packet.online.c2s.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.UUID;
 
 public class IRCClient implements IRCClientProvider {
 
@@ -131,6 +133,20 @@ public class IRCClient implements IRCClientProvider {
     public void uploadState(@NotNull DataUserState state) {
         if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketUploadState(state));
+        }
+    }
+
+    @Override
+    public void querySkin(@NotNull UUID sessionId) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketQuerySkin(sessionId));
+        }
+    }
+
+    @Override
+    public void uploadSkin(@NotNull DataSkin skin) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketUploadSkin(skin));
         }
     }
 

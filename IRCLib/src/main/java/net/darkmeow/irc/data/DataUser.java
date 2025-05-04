@@ -21,6 +21,7 @@ public class DataUser {
         this.name = name;
         this.premium = premium;
         this.state = state;
+        new DataSkin(new byte[] {}, new byte[] {}, false);
     }
 
 }

@@ -31,7 +31,6 @@ import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.Proxy;
-import java.util.concurrent.CompletableFuture;
 
 public class IRCClientNetworkManager extends IRCNetworkManager {
 
@@ -72,7 +71,8 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                         ch.pipeline().addLast("handler_online_update_my_profile", new HandleProcessClientOnlineUpdateMyProfile(networkManager));
                         ch.pipeline().addLast("handler_online_message", new HandleProcessClientOnlineMessage(networkManager));
                         ch.pipeline().addLast("handler_online_input_status", new HandleProcessClientOnlineInputStatus(networkManager));
-                        ch.pipeline().addLast("handler_online_other_user_data", new HandleProcessClientOnlineOtherSession(networkManager));
+                        ch.pipeline().addLast("handler_online_session_status", new HandleProcessClientOnlineSessionStatus(networkManager));
+                        ch.pipeline().addLast("handler_online_session_skin", new HandleProcessClientOnlineSessionSkin(networkManager));
                         ch.pipeline().addLast("handler_online_remote_disconnect", new HandleProcessClientOnlineRemoteDisconnect(networkManager));
                     }
                 }
