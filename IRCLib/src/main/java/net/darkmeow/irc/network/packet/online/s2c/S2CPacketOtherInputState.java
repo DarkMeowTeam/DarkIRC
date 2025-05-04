@@ -34,7 +34,6 @@ public class S2CPacketOtherInputState implements S2CPacket {
         final int publicInputSize = buffer.readInt();
         this.publicInputs = new LinkedHashSet<>(publicInputSize);
         for (int i = 0; i < publicInputSize; i++) {
-
             this.publicInputs.add(buffer.readUniqueId());
         }
 

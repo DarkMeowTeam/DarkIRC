@@ -6,17 +6,18 @@ import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
 import net.darkmeow.irc.network.EnumConnectionState
 import net.darkmeow.irc.network.IRCNetworkManagerServer
-import net.darkmeow.irc.network.NetworkManager
 import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketDenyHandShake
+import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEncryptionRequest
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketHandShakeSuccess
+import net.darkmeow.irc.utils.CryptUtils
 import java.util.*
 
-class HandlePacketHandShake(private val manager: NetworkManager, private val connection: IRCNetworkManagerServer): SimpleChannelInboundHandler<C2SPacketHandShake>() {
+class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): SimpleChannelInboundHandler<C2SPacketHandShake>() {
 
     override fun channelRead0(ctx: ChannelHandlerContext, packet: C2SPacketHandShake) {
         runCatching {
-            manager.base.dataManager
+            connection.bossNetworkManager.base.dataManager
                 .getClientMinLoginVersion(packet.brand.name, packet.brand.key)
                 ?.also { if (it > packet.brand.versionId) throw Exception("您的客户端版本已过时") }
                 ?: throw Exception("您的客户端已停用")
@@ -32,9 +33,14 @@ class HandlePacketHandShake(private val manager: NetworkManager, private val con
                 connection.hardWareUniqueId = packet.hardWareUniqueId
                 connection.updateLastKeepAlive()
 
-                connection.sendPacket(S2CPacketHandShakeSuccess(id), GenericFutureListener<Future<Void>> { future ->
-                    connection.connectionState = EnumConnectionState.LOGIN
-                })
+                if (connection.bossNetworkManager.base.configManager.configs.ircServer.encryption) {
+                    connection.keyPair = CryptUtils.generateKeyPair()
+                    connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public))
+                } else {
+                    connection.sendPacket(S2CPacketHandShakeSuccess(id), GenericFutureListener<Future<Void>> { future ->
+                        connection.connectionState = EnumConnectionState.LOGIN
+                    })
+                }
             }
             .onFailure { e ->
                 connection.sendPacket(S2CPacketDenyHandShake(e.message ?: "未知错误"))

@@ -16,6 +16,7 @@ import net.darkmeow.irc.network.handle.frame.NettyVarInt21FrameDecoder
 import net.darkmeow.irc.network.handle.frame.NettyVarInt21FrameEncoder
 import net.darkmeow.irc.network.handle.packet.NettyPacketDecoder
 import net.darkmeow.irc.network.handle.packet.NettyPacketEncoder
+import net.darkmeow.irc.network.handles.handshake.HandlePacketEncryptionResponse
 import net.darkmeow.irc.network.handles.netty.NettyAddressLogger
 import net.darkmeow.irc.network.handles.handshake.HandlePacketHandShake
 import net.darkmeow.irc.network.handles.login.HandlePacketLogin
@@ -79,7 +80,8 @@ class NetworkManager(
                             ch.pipeline().addLast("encoder", NettyPacketEncoder(EnumPacketDirection.CLIENT_BOUND))
 
                             ch.pipeline().addLast("base", subNetworkManager)
-                            ch.pipeline().addLast("handler_hand_shake", HandlePacketHandShake(this@NetworkManager, subNetworkManager))
+                            ch.pipeline().addLast("handler_hand_shake", HandlePacketHandShake(subNetworkManager))
+                            ch.pipeline().addLast("handler_encryption_response", HandlePacketEncryptionResponse(subNetworkManager))
                             ch.pipeline().addLast("handler_login", HandlePacketLogin(this@NetworkManager, subNetworkManager))
                             ch.pipeline().addLast("handler_online_keepalive", HandlePacketKeepAlive(subNetworkManager))
                             ch.pipeline().addLast("handler_online_message", HandlePacketMessage(subNetworkManager))

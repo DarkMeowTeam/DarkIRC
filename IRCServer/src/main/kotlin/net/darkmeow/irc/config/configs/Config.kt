@@ -26,9 +26,9 @@ class Config {
          */
         var proxyProtocol: Boolean = false
         /**
-         * 服务器连接密钥
+         * 是否启用协议加密
          */
-        var key: String = "publicIRCTest123"
+        var encryption: Boolean = false
     }
 
     class UserLimit {
