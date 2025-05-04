@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
+import java.util.UUID;
 
 public class IRCClientListenableSimple implements IRCClientListenableProvide {
 
@@ -37,7 +38,7 @@ public class IRCClientListenableSimple implements IRCClientListenableProvide {
     }
 
     @Override
-    public void onUpdateOtherInputs(@NotNull Set publicInputs, @NotNull Set privateInputs) {
+    public void onUpdateOtherInputs(@NotNull Set<UUID> publicInputs, @NotNull Set<UUID> privateInputs) {
 
     }
 

@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
+import java.util.UUID;
 
 public interface IRCClientListenableProvide {
     /**
@@ -52,7 +53,7 @@ public interface IRCClientListenableProvide {
      * @param publicInputs 正在向公开聊天输入消息的客户端
      * @param privateInputs 正在向私有聊天输入消息的客户端 (仅向当前客户端)
      */
-    void onUpdateOtherInputs(@NotNull Set publicInputs, @NotNull Set privateInputs);
+    void onUpdateOtherInputs(@NotNull Set<UUID> publicInputs, @NotNull Set<UUID> privateInputs);
     /**
      * 发送私有聊天成功时调用
      *
