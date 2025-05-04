@@ -61,7 +61,7 @@ public class IRCClient implements IRCClientProvider {
 
     @Override
     public void disconnect(boolean destroySessionToken) {
-        connection.sendPacket(new C2SPacketLogout(destroySessionToken));
+        if (connection.getConnectionState() == EnumConnectionState.ONLINE) connection.sendPacket(new C2SPacketLogout(destroySessionToken));
         closeChannel(EnumDisconnectType.DISCONNECT_BY_USER, "", destroySessionToken);
     }
 
