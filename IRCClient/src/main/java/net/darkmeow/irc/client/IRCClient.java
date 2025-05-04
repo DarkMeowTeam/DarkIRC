@@ -51,28 +51,30 @@ public class IRCClient implements IRCClientProvider {
     public boolean connect() {
         connection = IRCClientNetworkManager.createNetworkManagerAndConnect(this, options.host, options.port, options.proxy);
 
-        return connection.isConnected();
+        return isConnected();
     }
 
     public void closeChannel(EnumDisconnectType type, String reason, boolean logout) {
-        connection.close();
+        if (connection != null) connection.close();
         listenable.onDisconnect(type, reason, logout);
     }
 
     @Override
     public void disconnect(boolean destroySessionToken) {
-        if (connection.getConnectionState() == EnumConnectionState.ONLINE) connection.sendPacket(new C2SPacketLogout(destroySessionToken));
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketLogout(destroySessionToken));
+        }
         closeChannel(EnumDisconnectType.DISCONNECT_BY_USER, "", destroySessionToken);
     }
 
     @Override
     public boolean isConnected() {
-        return connection.isConnected();
+        return connection != null && connection.isConnected();
     }
 
     @Override
     public boolean isLogin() {
-        return connection.isConnected() && sessionManager.self != null;
+        return isConnected() && sessionManager.self != null;
     }
 
     @Override
@@ -89,28 +91,28 @@ public class IRCClient implements IRCClientProvider {
 
     @Override
     public void sendMessageToPublic(@NotNull String message) {
-        if (isConnected()) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketMessage(message));
         }
     }
 
     @Override
     public void sendMessageToPrivate(@NotNull String receiver, @NotNull String message) {
-        if (isConnected()) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketMessage(message, receiver));
         }
     }
 
     @Override
     public void sendCommand(@NotNull String root, @NotNull ArrayList<String> args) {
-        if (isConnected()) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketMessage(root, args));
         }
     }
 
     @Override
     public void uploadState(@NotNull DataUserState state) {
-        if (isConnected()) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketUploadState(state));
         }
     }
