@@ -10,6 +10,7 @@ import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketDenyHandShake
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEncryptionRequest
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketHandShakeSuccess
+import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketSignatureRequest
 import net.darkmeow.irc.utils.CryptUtils
 import java.util.*
 
@@ -33,10 +34,16 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
                 connection.hardWareUniqueId = packet.hardWareUniqueId
                 connection.updateLastKeepAlive()
 
-                if (connection.bossNetworkManager.base.configManager.configs.ircServer.encryption) {
+                if (connection.bossNetworkManager.base.configManager.configs.ircServer.signature) {
+                    // 优先要求签名验证
+                    connection.signatureCode = "random"
+                    connection.sendPacket(S2CPacketSignatureRequest(connection.signatureCode))
+                } else if (connection.bossNetworkManager.base.configManager.configs.ircServer.encryption) {
+                    // 其次要求加密会话
                     connection.keyPair = CryptUtils.generateKeyPair()
                     connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public))
                 } else {
+                    // 最后反馈握手成功
                     connection.sendPacket(S2CPacketHandShakeSuccess(id), GenericFutureListener<Future<Void>> { future ->
                         connection.connectionState = EnumConnectionState.LOGIN
                     })

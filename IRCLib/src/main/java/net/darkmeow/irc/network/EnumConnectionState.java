@@ -3,9 +3,11 @@ package net.darkmeow.irc.network;
 import net.darkmeow.irc.network.packet.Packet;
 import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketEncryptionResponse;
 import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake;
+import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketSignatureResponse;
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketDenyHandShake;
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEncryptionRequest;
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketHandShakeSuccess;
+import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketSignatureRequest;
 import net.darkmeow.irc.network.packet.login.c2s.C2SPacketLogin;
 import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginFailed;
 import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginSuccess;
@@ -20,12 +22,19 @@ public enum EnumConnectionState {
     HANDSHAKING(0)
         {
             {
+                // 基本握手包
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketHandShake.class);
+                // 加密和来源验证
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketEncryptionResponse.class);
+                this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketSignatureResponse.class);
 
-                this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketEncryptionRequest.class);
+                // 基本握手回应
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketHandShakeSuccess.class);
+                // 加密和来源验证
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketDenyHandShake.class);
+                this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketEncryptionRequest.class);
+                // 拒绝登录
+                this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketSignatureRequest.class);
             }
         },
     LOGIN(1)

@@ -17,6 +17,7 @@ import net.darkmeow.irc.IRCLib;
 import net.darkmeow.irc.client.IRCClient;
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.network.handle.handshake.HandleProcessClientHandShake;
+import net.darkmeow.irc.client.network.handle.handshake.HandleProcessClientSignatureRequest;
 import net.darkmeow.irc.client.network.handle.login.HandleProcessClientLogin;
 import net.darkmeow.irc.client.network.handle.online.*;
 import net.darkmeow.irc.network.EnumPacketDirection;
@@ -65,6 +66,7 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                         ch.pipeline().addLast("BaseHandler", networkManager);
 
                         ch.pipeline().addLast("handler_hand_shake", new HandleProcessClientHandShake(networkManager));
+                        ch.pipeline().addLast("handler_signature_request", new HandleProcessClientSignatureRequest(networkManager));
                         ch.pipeline().addLast("handler_login", new HandleProcessClientLogin(networkManager));
                         ch.pipeline().addLast("handler_online_keepalive", new HandleProcessClientOnlineKeepAlive(networkManager));
                         ch.pipeline().addLast("handler_online_update_my_profile", new HandleProcessClientOnlineUpdateMyProfile(networkManager));
