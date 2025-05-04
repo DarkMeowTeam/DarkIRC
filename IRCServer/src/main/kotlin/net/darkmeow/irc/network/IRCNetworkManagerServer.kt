@@ -6,6 +6,8 @@ import io.netty.util.concurrent.GenericFutureListener
 import net.darkmeow.irc.data.DataClientBrand
 import net.darkmeow.irc.data.DataUserState
 import net.darkmeow.irc.data.enmus.EnumUserPremium
+import net.darkmeow.irc.data.input.DataSessionInputStatusBase
+import net.darkmeow.irc.data.sync.DataSyncInputStatus
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketSystemMessage
 import java.util.UUID
@@ -62,6 +64,9 @@ class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetwor
         set(value) {
             channel?.attr(AttributeKeys.LATEST_KEEPALIVE)?.set(value)
         }
+
+    var inputStatus: DataSessionInputStatusBase? = null
+    val syncInputStatus = DataSyncInputStatus()
 
     /**
      * 是否已登录

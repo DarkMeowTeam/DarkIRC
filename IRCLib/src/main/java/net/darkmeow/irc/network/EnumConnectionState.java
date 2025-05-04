@@ -44,6 +44,7 @@ public enum EnumConnectionState {
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketKeepAlive.class);
                 // 基础消息
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketMessage.class);
+                this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketInputStatus.class);
                 // 游戏内状态
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketUploadState.class);
                 this.registerPacket(EnumPacketDirection.SERVER_BOUND, C2SPacketQuerySessions.class);
@@ -58,6 +59,7 @@ public enum EnumConnectionState {
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketSessionMessage.class);
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketSystemMessage.class);
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketPrivateMessageResult.class);
+                this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketOtherInputState.class);
                 // 游戏内状态
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketUpdateMyProfile.class);
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketUpdateSessionState.class);

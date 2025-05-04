@@ -7,6 +7,8 @@ import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Set;
+
 public class IRCClientListenableSimple implements IRCClientListenableProvide {
 
     @Override
@@ -31,6 +33,11 @@ public class IRCClientListenableSimple implements IRCClientListenableProvide {
 
     @Override
     public void onMessagePrivate(@NotNull IRCDataOtherSessionInfo sender, @NotNull String message) {
+
+    }
+
+    @Override
+    public void onUpdateOtherInputs(@NotNull Set publicInputs, @NotNull Set privateInputs) {
 
     }
 

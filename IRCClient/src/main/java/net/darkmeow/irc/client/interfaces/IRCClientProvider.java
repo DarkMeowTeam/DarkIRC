@@ -74,6 +74,25 @@ public interface IRCClientProvider {
      */
     void sendCommand(@NotNull String root, @NotNull ArrayList<String> args);
     /**
+     * 清空消息发送状态
+     */
+    void updateInputStatus();
+    /**
+     * 更新消息发送状态
+     * 即将发送到公共聊天
+     *
+     * @param message 待发送内容 可传入空
+     */
+    void updateInputStatus(@NotNull String message);
+    /**
+     * 更新消息发送状态
+     * 即将发送到私有聊天
+     *
+     * @param message 待发送内容 可传入空
+     * @param receiver 接收者
+     */
+    void updateInputStatus(@NotNull String receiver, @NotNull String message);
+    /**
      * 上报当前数据
      * 上报的数据将会立刻转发给其它在线的会话
      * 执行上报前请确保你已经登录 没有登录就上报的数据将会被忽略

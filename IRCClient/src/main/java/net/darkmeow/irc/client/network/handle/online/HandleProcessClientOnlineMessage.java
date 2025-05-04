@@ -28,6 +28,8 @@ public final class HandleProcessClientOnlineMessage extends ChannelInboundHandle
             handleSystemMessage((S2CPacketSystemMessage) packet);
         } else if (packet instanceof S2CPacketPrivateMessageResult) {
             handlePrivateMessageResult((S2CPacketPrivateMessageResult) packet);
+        } else {
+            super.channelRead(ctx, packet);
         }
     }
 

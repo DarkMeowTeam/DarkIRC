@@ -10,6 +10,7 @@ import net.darkmeow.irc.client.network.IRCClientOptions;
 import net.darkmeow.irc.data.DataUserState;
 import net.darkmeow.irc.network.EnumConnectionState;
 import net.darkmeow.irc.network.packet.login.c2s.C2SPacketLogin;
+import net.darkmeow.irc.network.packet.online.c2s.C2SPacketInputStatus;
 import net.darkmeow.irc.network.packet.online.c2s.C2SPacketLogout;
 import net.darkmeow.irc.network.packet.online.c2s.C2SPacketMessage;
 import net.darkmeow.irc.network.packet.online.c2s.C2SPacketUploadState;
@@ -105,6 +106,27 @@ public class IRCClient implements IRCClientProvider {
     public void sendCommand(@NotNull String root, @NotNull ArrayList<String> args) {
         if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketMessage(root, args));
+        }
+    }
+
+    @Override
+    public void updateInputStatus() {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketInputStatus());
+        }
+    }
+
+    @Override
+    public void updateInputStatus(@NotNull String message) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketInputStatus(message));
+        }
+    }
+
+    @Override
+    public void updateInputStatus(@NotNull String receiver, @NotNull String message) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketInputStatus(receiver, message));
         }
     }
 
