@@ -7,9 +7,9 @@
 
 
 ## 功能
-- 协议加密
+- 连接安全加密 与 客户端签名验证
 - 客户端登录检查 (通过配置以禁止低版本客户端登录)
-- 用户名密码登录
+- 用户名密码/token登录
 - 公开聊天和用户名之间私有聊天
 - 游戏内 ID 共享 (以允许制作同客户端用户不互相攻击)
 - 游戏内 披风与皮肤 共享
@@ -37,15 +37,21 @@
 ````config.yml
 # 数据库
 database: jdbc:sqlite:data.db
-# 连接密钥 需要确保客户端和此处一样 不同的密钥无法完成握手
-key: publicIRCTest123
-# 监听端口
-port: 8080
-# 是否启用 Proxy Protocol (部分内网穿透支持, 可以通过 Proxy Protocol 获取客户端真实 IP)
-proxyProtocol: false
-# 用户闲置
-userLimit: 
-   # 是否允许多设备同时登录
-   # 关闭不会影响同设备多连接
-   allowMultiDeviceLogin: false
+ircServer: 
+   host: 0.0.0.0
+   port: 45020
+   # 是否开启代理协议 (常用于通过 frp/cdn)
+   proxyProtocol: false
+   # 是否开启连接加密 会在握手完成后开始
+   encryption: true
+   # 是否开启签名验证 开启后需要在客户端配置系统的私钥
+   signature: false
+userLimit:
+   # 是否允许单一用户同时在多个不同的设备上登陆
+   allowMultiDeviceLogin: true
+webServer:
+   # API访问IP白名单
+   ipWhiteList: [""]
+   key: ""
+   port: 45021
 ````
