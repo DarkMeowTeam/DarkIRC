@@ -10,15 +10,20 @@ import net.darkmeow.irc.data.input.DataSessionInputStatusBase
 import net.darkmeow.irc.data.sync.DataSyncInputStatus
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketSystemMessage
+import java.security.KeyPair
 import java.util.UUID
 
 
 class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetworkManager() {
-
     /**
      * 会话唯一标识
      */
     lateinit var sessionId: UUID
+    /**
+     * 如果服务端启用加密
+     * 这里是存储密钥对的地方 (每个客户端都不同)
+     */
+    lateinit var keyPair: KeyPair
     /**
      * 客户端 IP 地址
      */

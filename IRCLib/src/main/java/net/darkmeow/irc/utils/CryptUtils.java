@@ -12,8 +12,7 @@ import java.security.spec.X509EncodedKeySpec;
 
 public class CryptUtils {
 
-    public static SecretKey createNewSharedKey()
-    {
+    public static SecretKey createNewSharedKey() {
         try
         {
             KeyGenerator keygenerator = KeyGenerator.getInstance("AES");
@@ -24,6 +23,12 @@ public class CryptUtils {
         {
             throw new Error(nosuchalgorithmexception);
         }
+    }
+
+    public static KeyPair generateKeyPair() throws NoSuchAlgorithmException {
+        KeyPairGenerator keypairgenerator = KeyPairGenerator.getInstance("RSA");
+        keypairgenerator.initialize(1024);
+        return keypairgenerator.generateKeyPair();
     }
 
     public static byte[] encryptData(Key key, byte[] data)
