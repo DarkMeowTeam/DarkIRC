@@ -25,6 +25,9 @@ public class IRCNetworkManager extends ChannelInboundHandlerAdapter {
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         channel = ctx.channel();
+        synchronized (this) {
+            this.notifyAll();
+        }
         setConnectionState(EnumConnectionState.HANDSHAKING);
     }
 

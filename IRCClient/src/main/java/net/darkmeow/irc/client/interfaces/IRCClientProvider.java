@@ -11,10 +11,8 @@ public interface IRCClientProvider {
     /**
      * 尝试连接到 IRC 服务器
      * 会阻塞当前线程
-     *
-     * @return 是否成功
      */
-    boolean connect();
+    void connect() throws Throwable;
     /**
      * 与 IRC 服务器断开连接
      *
