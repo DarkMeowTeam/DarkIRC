@@ -1,13 +1,17 @@
 package net.darkmeow.irc.client.listener;
 
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
+import net.darkmeow.irc.client.interfaces.IRCClientProvider;
 import net.darkmeow.irc.client.interfaces.data.IRCDataOtherSessionInfo;
 import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public interface IRCClientListenableProvide {
-
+    /**
+     * 连接服务器成功 可以开始登录
+     */
+    void onReadyLogin(IRCClientProvider client);
     /**
      * 接收到新的登录凭据(token)时调用
      * 在这里编写保存凭据部分代码并下次登录使用用户名+凭据登录而不是用户名+密码
@@ -40,7 +44,19 @@ public interface IRCClientListenableProvide {
      * @param message 消息内容
      */
     void onMessagePrivate(@NotNull IRCDataOtherSessionInfo sender, @NotNull String message);
-
+    /**
+     * 发送私有聊天成功时调用
+     *
+     * @param receiver 接收者数据
+     * @param message 消息内容
+     */
+    void onPrivateMessageSendSuccess(@NotNull String receiver, @NotNull String message);
+    /**
+     * 发送私有聊天失败时调用 (对方不在线)
+     *
+     * @param receiver 接收者
+     */
+    void onPrivateMessageSendFailed(@NotNull String receiver);
     /**
      * 收到系统消息调用
      *

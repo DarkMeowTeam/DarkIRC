@@ -1,12 +1,18 @@
 package net.darkmeow.irc.client.listener;
 
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
+import net.darkmeow.irc.client.interfaces.IRCClientProvider;
 import net.darkmeow.irc.client.interfaces.data.IRCDataOtherSessionInfo;
 import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class IRCClientListenableSimple implements IRCClientListenableProvide {
+
+    @Override
+    public void onReadyLogin(IRCClientProvider client) {
+
+    }
 
     @Override
     public void onUpdateSession(@NotNull String token) {
@@ -25,6 +31,16 @@ public class IRCClientListenableSimple implements IRCClientListenableProvide {
 
     @Override
     public void onMessagePrivate(@NotNull IRCDataOtherSessionInfo sender, @NotNull String message) {
+
+    }
+
+    @Override
+    public void onPrivateMessageSendSuccess(@NotNull String receiver, @NotNull String message) {
+
+    }
+
+    @Override
+    public void onPrivateMessageSendFailed(@NotNull String receiver) {
 
     }
 

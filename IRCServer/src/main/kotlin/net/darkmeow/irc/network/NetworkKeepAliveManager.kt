@@ -1,11 +1,6 @@
  package net.darkmeow.irc.network
 
-import net.darkmeow.irc.IRCLib
-import net.darkmeow.irc.network.packet.s2c.S2CPacketKeepAlive
-import net.darkmeow.irc.utils.ChannelAttrUtils.getLatestKeepAlive
-import net.darkmeow.irc.utils.ChannelAttrUtils.getProtocolVersion
-import net.darkmeow.irc.utils.ChannelUtils.sendPacket
-import net.darkmeow.irc.utils.ChannelUtils.sendSystemMessage
+import net.darkmeow.irc.network.packet.online.s2c.S2CPacketKeepAlive
 import java.util.*
 import kotlin.concurrent.timerTask
 
@@ -41,22 +36,13 @@ import kotlin.concurrent.timerTask
      }
 
      fun runKeepAlive() {
-         manager.clients.values
-             .onEach { channel ->
-                 runCatching {
-                     channel
-                         .takeIf { it.getLatestKeepAlive() + KEEPALIVE_TIMEOUT < System.currentTimeMillis() }
-                         ?.close()
-                 }
+         manager.clients.values.onEach { other ->
+             other.sendPacket(S2CPacketKeepAlive(id))
+
+             if (other.lastKeepAlive + KEEPALIVE_TIMEOUT < System.currentTimeMillis()) {
+                 other.disconnect(reason = "心跳包回应超时", logout = false)
              }
-             .filter { it.hasAttr(AttributeKeys.DEVICE) }
-             .onEach { channel ->
-                 runCatching {
-                     channel.sendPacket(S2CPacketKeepAlive(id))
-                 }
-             }
-             .also {
-                 id++
-             }
+         }
+         id++
      }
 }

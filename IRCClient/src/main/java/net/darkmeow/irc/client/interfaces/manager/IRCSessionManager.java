@@ -9,6 +9,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface IRCSessionManager {
+
+    /**
+     * 获取客户端会话 ID
+     *
+     * @return 为空时代表未连接 重新连接会变动
+     */
+    @Nullable UUID getSessionId();
     /**
      * 获取自身会话信息
      *

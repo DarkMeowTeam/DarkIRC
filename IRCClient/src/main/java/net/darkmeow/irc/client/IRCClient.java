@@ -1,25 +1,21 @@
 package net.darkmeow.irc.client;
 
-import net.darkmeow.irc.IRCLib;
-import net.darkmeow.irc.client.data.IRCResultSendMessageToPrivate;
-import net.darkmeow.irc.client.enums.EnumResultLogin;
+import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.interfaces.IRCClientProvider;
 import net.darkmeow.irc.client.interfaces.manager.IRCSessionManager;
 import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
-import net.darkmeow.irc.client.manager.ResultManager;
 import net.darkmeow.irc.client.manager.SessionManager;
-import net.darkmeow.irc.client.network.IRCClientConnection;
+import net.darkmeow.irc.client.network.IRCClientNetworkManager;
 import net.darkmeow.irc.client.network.IRCClientOptions;
-import net.darkmeow.irc.data.ClientBrandData;
-import net.darkmeow.irc.data.DataSessionOptions;
-import net.darkmeow.irc.network.packet.c2s.*;
+import net.darkmeow.irc.data.DataUserState;
+import net.darkmeow.irc.network.EnumConnectionState;
+import net.darkmeow.irc.network.packet.login.c2s.C2SPacketLogin;
+import net.darkmeow.irc.network.packet.online.c2s.C2SPacketLogout;
+import net.darkmeow.irc.network.packet.online.c2s.C2SPacketMessage;
+import net.darkmeow.irc.network.packet.online.c2s.C2SPacketUploadState;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 
 public class IRCClient implements IRCClientProvider {
 
@@ -46,42 +42,27 @@ public class IRCClient implements IRCClientProvider {
         this.options = options;
     }
 
-    public IRCClientConnection connection = new IRCClientConnection(this);
+    public IRCClientNetworkManager connection;
 
     @NotNull
     public final SessionManager sessionManager = new SessionManager();
 
-    @NotNull
-    public final ResultManager resultManager = new ResultManager();
-
     @Override
     public boolean connect() {
-        resultManager.reset();
-        disconnect();
+        connection = IRCClientNetworkManager.createNetworkManagerAndConnect(this, options.host, options.port, options.proxy);
 
-        if (connection.connect(options.host, options.port, options.key, options.proxy)) {
-            for (int attempt = 1; attempt <= 3; attempt++) {
-                // 神秘问题 小概率收不到 S2CPacketHandShake 但是其他包没问题
-                connection.sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, options.deviceId), false);
+        return connection.isConnected();
+    }
 
-                try {
-                    if (resultManager.handShakeLatch.await(1, TimeUnit.SECONDS)) {
-                        return true;
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-            disconnect();
-        }
-
-        return false;
+    public void closeChannel(EnumDisconnectType type, String reason, boolean logout) {
+        connection.close();
+        listenable.onDisconnect(type, reason, logout);
     }
 
     @Override
-    public void disconnect() {
-        connection.disconnect();
+    public void disconnect(boolean destroySessionToken) {
+        connection.sendPacket(new C2SPacketLogout(destroySessionToken));
+        closeChannel(EnumDisconnectType.DISCONNECT_BY_USER, "", destroySessionToken);
     }
 
     @Override
@@ -95,62 +76,9 @@ public class IRCClient implements IRCClientProvider {
     }
 
     @Override
-    public EnumResultLogin login(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand, boolean invisible) {
-        if (isConnected()) {
-            try {
-                if (connection.sendPacket(new C2SPacketLogin(username, password, brand, invisible ? C2SPacketLogin.Mode.INVISIBLE : C2SPacketLogin.Mode.NORMAL), false)) {
-                    resultManager.loginResult = EnumResultLogin.TIME_OUT;
-                    resultManager.loginLatch = new CountDownLatch(1);
-
-                    if (resultManager.loginLatch.await(3, TimeUnit.SECONDS)) {
-                        return resultManager.loginResult;
-                    } else {
-                        return EnumResultLogin.TIME_OUT;
-                    }
-                } else {
-                    return EnumResultLogin.NOT_CONNECT;
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return EnumResultLogin.NOT_CONNECT;
-            }
-        } else {
-            return EnumResultLogin.NOT_CONNECT;
-        }
-    }
-
-    @Override
-    public EnumResultLogin loginNotOnline(@NotNull String username, @NotNull String password, @NotNull ClientBrandData brand) {
-        if (isConnected()) {
-            try {
-                if (connection.sendPacket(new C2SPacketLogin(username, password, brand, C2SPacketLogin.Mode.ONLY_VERIFY_PASSWORD), false)) {
-                    resultManager.loginResult = EnumResultLogin.TIME_OUT;
-                    resultManager.loginLatch = new CountDownLatch(1);
-
-                    if (resultManager.loginLatch.await(3, TimeUnit.SECONDS)) {
-                        return resultManager.loginResult;
-                    } else {
-                        return EnumResultLogin.TIME_OUT;
-                    }
-                } else {
-                    return EnumResultLogin.NOT_CONNECT;
-                }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                return EnumResultLogin.NOT_CONNECT;
-            }
-        } else {
-            return EnumResultLogin.NOT_CONNECT;
-        }
-    }
-
-    @Override
-    public void logout() {
-        if (isConnected()) {
-            connection.sendPacket(
-                new C2SPacketDisconnect(true),
-                true
-            );
+    public void login(@NotNull String username, @NotNull String password, boolean invisible) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.LOGIN) {
+            connection.sendPacket(new C2SPacketLogin(username, password, invisible));
         }
     }
 
@@ -162,52 +90,28 @@ public class IRCClient implements IRCClientProvider {
     @Override
     public void sendMessageToPublic(@NotNull String message) {
         if (isConnected()) {
-            connection.sendPacket(
-                new C2SPacketChatPublic(message),
-                true
-            );
+            connection.sendPacket(new C2SPacketMessage(message));
         }
     }
 
     @Override
-    public void sendMessageToPrivate(@NotNull String receiver, @NotNull String message, @Nullable Consumer<IRCResultSendMessageToPrivate> callback) {
+    public void sendMessageToPrivate(@NotNull String receiver, @NotNull String message) {
         if (isConnected()) {
-            resultManager.privateResultCallback = callback;
-
-            connection.sendPacket(
-                new C2SPacketChatPrivate(receiver, message),
-                true
-            );
+            connection.sendPacket(new C2SPacketMessage(message, receiver));
         }
     }
 
     @Override
     public void sendCommand(@NotNull String root, @NotNull ArrayList<String> args) {
         if (isConnected()) {
-            connection.sendPacket(
-                new C2SPacketCommand(root, args),
-                true
-            );
+            connection.sendPacket(new C2SPacketMessage(root, args));
         }
     }
 
     @Override
-    public void uploadSessionOptions(@NotNull DataSessionOptions options) {
+    public void uploadState(@NotNull DataUserState state) {
         if (isConnected()) {
-            connection.sendPacket(
-                new C2SPacketUpdateSessionOptions(options),
-                true
-            );
-        }
-    }
-
-    @Override
-    public void updatePassword(@NotNull String password) {
-        if (isConnected()) {
-            connection.sendPacket(
-                new C2SPacketChangePassword(password),
-                true
-            );
+            connection.sendPacket(new C2SPacketUploadState(state));
         }
     }
 

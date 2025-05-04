@@ -1,7 +1,7 @@
 package net.darkmeow.irc.command
 
-import io.netty.channel.Channel
+import net.darkmeow.irc.network.IRCNetworkManagerServer
 
 abstract class Command(vararg val root: String) {
-    abstract fun handle(manager: CommandManager, channel: Channel, args: MutableList<String>)
+    abstract fun handle(manager: CommandManager, connection: IRCNetworkManagerServer, args: MutableList<String>)
 }
