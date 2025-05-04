@@ -43,9 +43,9 @@ public class C2SPacketMessage implements C2SPacket {
         this.message = message;
     }
 
-    public C2SPacketMessage(@NotNull String toUser, @NotNull String message) {
+    public C2SPacketMessage(@NotNull String receiver, @NotNull String message) {
         this.type = Type.PRIVATE;
-        this.arg = new ArrayList<>(Collections.singleton(toUser));
+        this.arg = new ArrayList<>(Collections.singleton(receiver));
         this.message = message;
     }
 
