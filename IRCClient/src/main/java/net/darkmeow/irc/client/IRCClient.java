@@ -10,10 +10,7 @@ import net.darkmeow.irc.client.network.IRCClientOptions;
 import net.darkmeow.irc.data.DataUserState;
 import net.darkmeow.irc.network.EnumConnectionState;
 import net.darkmeow.irc.network.packet.login.c2s.C2SPacketLogin;
-import net.darkmeow.irc.network.packet.online.c2s.C2SPacketInputStatus;
-import net.darkmeow.irc.network.packet.online.c2s.C2SPacketLogout;
-import net.darkmeow.irc.network.packet.online.c2s.C2SPacketMessage;
-import net.darkmeow.irc.network.packet.online.c2s.C2SPacketUploadState;
+import net.darkmeow.irc.network.packet.online.c2s.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -134,6 +131,13 @@ public class IRCClient implements IRCClientProvider {
     public void uploadState(@NotNull DataUserState state) {
         if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketUploadState(state));
+        }
+    }
+
+    @Override
+    public void updatePassword(@NotNull String newPassword) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketUpdatePassword(newPassword));
         }
     }
 

@@ -48,6 +48,7 @@ class HandlePacketSessionState(private val connection: IRCNetworkManagerServer):
                     .filter { other -> !other.currentIsInvisible || other.user == connection.user }
                     .onEach { other -> other.sendPacket(boardCastPacket) }
             }
+            else -> ctx.fireChannelRead(packet)
         }
     }
 

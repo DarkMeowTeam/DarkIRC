@@ -19,7 +19,7 @@ import net.darkmeow.irc.network.handle.packet.NettyPacketEncoder
 import net.darkmeow.irc.network.handles.netty.NettyAddressLogger
 import net.darkmeow.irc.network.handles.handshake.HandlePacketHandShake
 import net.darkmeow.irc.network.handles.login.HandlePacketLogin
-import net.darkmeow.irc.network.handles.online.HandlePacketDisconnect
+import net.darkmeow.irc.network.handles.online.HandlePacketAuthentication
 import net.darkmeow.irc.network.handles.online.HandlePacketInputStatus
 import net.darkmeow.irc.network.handles.online.HandlePacketKeepAlive
 import net.darkmeow.irc.network.handles.online.HandlePacketMessage
@@ -85,7 +85,7 @@ class NetworkManager(
                             ch.pipeline().addLast("handler_online_message", HandlePacketMessage(subNetworkManager))
                             ch.pipeline().addLast("handler_online_input_status", HandlePacketInputStatus(subNetworkManager))
                             ch.pipeline().addLast("handler_online_session_state", HandlePacketSessionState(subNetworkManager))
-                            ch.pipeline().addLast("handler_online_disconnect", HandlePacketDisconnect(subNetworkManager))
+                            ch.pipeline().addLast("handler_online_authentication", HandlePacketAuthentication(subNetworkManager))
                         }
                     })
                     .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)

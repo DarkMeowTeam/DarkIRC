@@ -100,4 +100,10 @@ public interface IRCClientProvider {
      * @param options 数据
      */
     void uploadState(@NotNull DataUserState options);
+    /**
+     * 修改登录密码
+     *
+     * @param newPassword 新登录密码
+     */
+    void updatePassword(@NotNull String newPassword);
 }
