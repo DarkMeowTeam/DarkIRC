@@ -3,8 +3,10 @@ package net.darkmeow.irc.client.network;
 import net.darkmeow.irc.data.DataClientBrand;
 import net.darkmeow.irc.utils.DeviceUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.Proxy;
+import java.security.PrivateKey;
 
 public class IRCClientOptions {
 
@@ -18,6 +20,9 @@ public class IRCClientOptions {
 
     @NotNull
     public String deviceId;
+
+    @Nullable
+    public PrivateKey key;
 
     @NotNull
     public DataClientBrand brand;

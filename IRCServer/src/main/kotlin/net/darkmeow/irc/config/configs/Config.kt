@@ -26,6 +26,10 @@ class Config {
          */
         var proxyProtocol: Boolean = false
         /**
+         * 是否要求客户端进行签名认证
+         */
+        var signature: Boolean = false
+        /**
          * 是否启用协议加密
          */
         var encryption: Boolean = false
