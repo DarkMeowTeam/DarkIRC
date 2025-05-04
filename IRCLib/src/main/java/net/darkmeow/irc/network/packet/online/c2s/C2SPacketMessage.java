@@ -58,8 +58,9 @@ public class C2SPacketMessage implements C2SPacket {
     public C2SPacketMessage(@NotNull FriendBuffer buffer) {
         this.type = buffer.readEnumValue(Type.class);
 
-        this.arg = new ArrayList<>();
-        for (int i = 0; i < buffer.readInt(); i++) {
+        final int size = buffer.readInt();
+        this.arg = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) {
             this.arg.add(buffer.readString(32767));
         }
 
