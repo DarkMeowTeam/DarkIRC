@@ -48,10 +48,8 @@ public class IRCClient implements IRCClientProvider {
     public final SessionManager sessionManager = new SessionManager();
 
     @Override
-    public boolean connect() {
+    public void connect() throws Throwable {
         connection = IRCClientNetworkManager.createNetworkManagerAndConnect(this, options.host, options.port, options.proxy);
-
-        return isConnected();
     }
 
     public void closeChannel(EnumDisconnectType type, String reason, boolean logout) {

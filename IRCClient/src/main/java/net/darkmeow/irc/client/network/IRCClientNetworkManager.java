@@ -2,6 +2,7 @@ package net.darkmeow.irc.client.network;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
@@ -29,15 +30,16 @@ import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.Proxy;
+import java.util.concurrent.CompletableFuture;
 
 public class IRCClientNetworkManager extends IRCNetworkManager {
 
     public static NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
 
-    public static IRCClientNetworkManager createNetworkManagerAndConnect(@NotNull IRCClient base, @NotNull String host, int port, @NotNull Proxy proxy) {
+    public static IRCClientNetworkManager createNetworkManagerAndConnect(@NotNull IRCClient base, @NotNull String host, int port, @NotNull Proxy proxy) throws Throwable {
         final IRCClientNetworkManager networkManager = new IRCClientNetworkManager(base);
 
-        new Bootstrap()
+        ChannelFuture future = new Bootstrap()
             .group(eventLoopGroup)
             .handler(
                 new ChannelInitializer<SocketChannel>() {
@@ -78,6 +80,16 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
             .connect(host, port)
             .syncUninterruptibly();
 
+        if (future.isSuccess()) {
+            synchronized (networkManager) {
+                while (networkManager.channel == null) {
+                    networkManager.wait();
+                }
+            }
+        } else {
+            throw future.cause();
+        }
+
         return networkManager;
     }
 
@@ -101,7 +113,6 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
         if (e instanceof TimeoutException) {
             this.base.closeChannel(EnumDisconnectType.OTHER, "连接超时.", false);
         } else {
-            e.printStackTrace();
             this.base.closeChannel(EnumDisconnectType.OTHER, "内部错误: " + e.getClass().getSimpleName() + ": " + e.getMessage(), false);
         }
     }
