@@ -11,6 +11,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public class C2SPacketHandShake implements C2SPacket {
 
+    /**
+     * 协议版本号
+     */
     @Getter
     private final int protocolVersion;
 
@@ -41,12 +44,19 @@ public class C2SPacketHandShake implements C2SPacket {
     @NotNull
     private final DataClientBrand brand;
 
-    public C2SPacketHandShake(int protocolVersion, @NotNull String host, int port, @NotNull String hardWareUniqueId, @NotNull DataClientBrand brand) {
+    /**
+     * 客户端系统时间
+     */
+    @Getter
+    private final long timestamp;
+
+    public C2SPacketHandShake(int protocolVersion, @NotNull String host, int port, @NotNull String hardWareUniqueId, @NotNull DataClientBrand brand, long timestamp) {
         this.protocolVersion = protocolVersion;
         this.host = host;
         this.port = port;
         this.hardWareUniqueId = hardWareUniqueId;
         this.brand = brand;
+        this.timestamp = timestamp;
     }
 
     public C2SPacketHandShake(@NotNull FriendBuffer buffer) {
@@ -55,6 +65,7 @@ public class C2SPacketHandShake implements C2SPacket {
         this.port = buffer.readInt();
         this.hardWareUniqueId = buffer.readString(32767);
         this.brand = buffer.readClientBrand();
+        this.timestamp = buffer.readLong();
     }
 
     @Override
@@ -64,5 +75,6 @@ public class C2SPacketHandShake implements C2SPacket {
         buffer.writeInt(this.port);
         buffer.writeString(this.hardWareUniqueId);
         buffer.writeClientBrand(this.brand);
+        buffer.writeLong(this.timestamp);
     }
 }
