@@ -5,7 +5,9 @@ import net.darkmeow.irc.network.FriendBuffer;
 import net.darkmeow.irc.network.packet.C2SPacket;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class C2SPacketMessage implements C2SPacket {
 
