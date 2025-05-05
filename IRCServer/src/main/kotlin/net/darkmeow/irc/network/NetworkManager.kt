@@ -27,7 +27,6 @@ import net.darkmeow.irc.network.handles.online.HandlePacketKeepAlive
 import net.darkmeow.irc.network.handles.online.HandlePacketMessage
 import net.darkmeow.irc.network.handles.online.HandlePacketSessionSkin
 import net.darkmeow.irc.network.handles.online.HandlePacketSessionState
-import net.darkmeow.irc.network.packet.S2CPacket
 import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.Logger
 import java.util.*
@@ -130,7 +129,7 @@ class NetworkManager(
      */
     fun stop() = runCatching {
         clients.values.onEach { other ->
-            other.disconnect(reason = "服务器被管理员关闭 请稍后重新连接", logout = false)
+            other.kick(reason = "服务器被管理员关闭 请稍后重新连接", logout = false)
         }
 
         serverChannel?.close()?.sync() // 关闭 Channel

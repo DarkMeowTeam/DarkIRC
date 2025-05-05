@@ -37,7 +37,7 @@ class CommandUsers: Command("Users") {
                     // 登出该用户的在线客户端
                     manager.base.networkManager.clients.values
                         .filter { other -> other.user == args[1] }
-                        .onEach { other -> other.disconnect(reason = "账号被管理员删除", logout = true) }
+                        .onEach { other -> other.kick(reason = "账号被管理员删除", logout = true) }
 
                     manager.base.dataManager.deleteSessionByUser(args[1])
                     manager.base.dataManager.deleteUser(args[1])
@@ -91,7 +91,7 @@ class CommandUsers: Command("Users") {
                    // 更新该用户客户端数据
                     manager.base.networkManager.clients.values
                         .filter { other -> other.user == args[1] || other.sessionId.toString() == args[1] }
-                        .onEach { other -> other.disconnect(reason = args[2], logout = false) }
+                        .onEach { other -> other.kick(reason = args[2], logout = false) }
                         .also { sessions ->
                             if (sessions.isEmpty()) {
                                 connection.sendSystemMessage("用户 ${args[1]} 不在线")

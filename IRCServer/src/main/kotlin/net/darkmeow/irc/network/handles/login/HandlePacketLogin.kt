@@ -9,7 +9,6 @@ import net.darkmeow.irc.network.EnumConnectionState
 import net.darkmeow.irc.network.IRCNetworkManagerServer
 import net.darkmeow.irc.network.NetworkManager
 import net.darkmeow.irc.network.packet.login.c2s.C2SPacketLogin
-import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginFailed
 import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginSuccess
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketUpdateMyProfile
 
@@ -101,7 +100,7 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                         other.hardWareUniqueId != connection.hardWareUniqueId
                     }
                     ?.onEach { (_, other) ->
-                        other.disconnect(
+                        other.kick(
                             reason = "账号在另一设备登录",
                             logout = false
                         )
@@ -124,7 +123,7 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                 )
             }
             .onFailure { e ->
-                connection.sendPacket(S2CPacketLoginFailed(e.message ?: "未知错误"))
+                connection.kick(e.message ?: "未知错误")
             }
     }
 }

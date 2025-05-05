@@ -9,6 +9,8 @@ import net.darkmeow.irc.data.DataUserState
 import net.darkmeow.irc.data.enmus.EnumUserPremium
 import net.darkmeow.irc.data.input.DataSessionInputStatusBase
 import net.darkmeow.irc.data.sync.DataSyncInputStatus
+import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketDenyHandShake
+import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginFailed
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketSystemMessage
 import java.security.KeyPair
@@ -97,10 +99,21 @@ class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetwor
         sendPacket(S2CPacketSystemMessage(message, UUID.randomUUID()))
     }
 
-    fun disconnect(reason: String = "", logout: Boolean = false) {
-        sendPacket(S2CPacketDisconnect(logout, reason), GenericFutureListener<Future<Void>> { future ->
-            close()
-        })
+    /**
+     * 将客户端踢下线
+     *
+     * @param reason 原因
+     * @param logout 是否登出 (仅在 ONLINE 阶段生效)
+     */
+    fun kick(reason: String = "", logout: Boolean = false) {
+        val future = GenericFutureListener<Future<Void>> { future -> close() }
+
+        when (connectionState) {
+            EnumConnectionState.HANDSHAKING -> sendPacket(S2CPacketDenyHandShake(reason), future)
+            EnumConnectionState.LOGIN -> sendPacket(S2CPacketLoginFailed(reason), future)
+            EnumConnectionState.ONLINE -> sendPacket(S2CPacketDisconnect(logout, reason), future)
+            else -> { }
+        }
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, e: Throwable) {
