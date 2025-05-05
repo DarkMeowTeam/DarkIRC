@@ -10,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public final class HandleProcessClientOnlineUpdateMyProfile extends SimpleChannelInboundHandler<S2CPacketUpdateMyProfile> {
+public final class HandleOnlineUpdateMyProfile extends SimpleChannelInboundHandler<S2CPacketUpdateMyProfile> {
 
     @NotNull
     public final IRCClientNetworkManager connection;
@@ -18,7 +18,7 @@ public final class HandleProcessClientOnlineUpdateMyProfile extends SimpleChanne
     @Getter
     private int updateCount = 0;
 
-    public HandleProcessClientOnlineUpdateMyProfile(@NotNull IRCClientNetworkManager connection) {
+    public HandleOnlineUpdateMyProfile(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 

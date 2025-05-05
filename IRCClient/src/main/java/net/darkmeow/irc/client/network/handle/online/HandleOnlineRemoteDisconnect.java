@@ -7,12 +7,12 @@ import net.darkmeow.irc.client.network.IRCClientNetworkManager;
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketDisconnect;
 import org.jetbrains.annotations.NotNull;
 
-public final class HandleProcessClientOnlineRemoteDisconnect extends SimpleChannelInboundHandler<S2CPacketDisconnect> {
+public final class HandleOnlineRemoteDisconnect extends SimpleChannelInboundHandler<S2CPacketDisconnect> {
 
     @NotNull
     public final IRCClientNetworkManager connection;
 
-    public HandleProcessClientOnlineRemoteDisconnect(@NotNull IRCClientNetworkManager connection) {
+    public HandleOnlineRemoteDisconnect(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 

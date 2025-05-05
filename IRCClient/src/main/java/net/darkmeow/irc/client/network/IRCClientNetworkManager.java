@@ -20,7 +20,7 @@ import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeBase;
 import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeEncryption;
 import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeServerRedirect;
 import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeSignatureVerify;
-import net.darkmeow.irc.client.network.handle.login.HandleProcessClientLogin;
+import net.darkmeow.irc.client.network.handle.login.HandleLoginBase;
 import net.darkmeow.irc.client.network.handle.online.*;
 import net.darkmeow.irc.network.EnumPacketDirection;
 import net.darkmeow.irc.network.IRCNetworkBaseConfig;
@@ -49,9 +49,9 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                     protected void initChannel(SocketChannel ch) {
                         // 代理
                         if (proxy.type() == Proxy.Type.SOCKS) {
-                            ch.pipeline().addLast("Proxy", new Socks5ProxyHandler(proxy.address()));
+                            ch.pipeline().addLast("proxy", new Socks5ProxyHandler(proxy.address()));
                         } else if (proxy.type() == Proxy.Type.HTTP) {
-                            ch.pipeline().addLast("Proxy", new HttpProxyHandler(proxy.address()));
+                            ch.pipeline().addLast("proxy", new HttpProxyHandler(proxy.address()));
                         }
 
                         // 超时断开
@@ -64,22 +64,22 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                         ch.pipeline().addLast("encoder", new NettyPacketEncoder(EnumPacketDirection.SERVER_BOUND));
 
                         // 处理
-                        ch.pipeline().addLast("BaseHandler", networkManager);
+                        ch.pipeline().addLast("base", networkManager);
 
                         ch.pipeline().addLast("handler_handshake_base", new HandleHandShakeBase(networkManager));
                         ch.pipeline().addLast("handler_handshake_encryption", new HandleHandShakeEncryption(networkManager));
                         ch.pipeline().addLast("handler_handshake_signature_verify", new HandleHandShakeSignatureVerify(networkManager));
                         ch.pipeline().addLast("handler_handshake_server_redirect", new HandleHandShakeServerRedirect(networkManager));
 
-                        ch.pipeline().addLast("handler_login", new HandleProcessClientLogin(networkManager));
+                        ch.pipeline().addLast("handler_login_base", new HandleLoginBase(networkManager));
 
-                        ch.pipeline().addLast("handler_online_keepalive", new HandleProcessClientOnlineKeepAlive(networkManager));
-                        ch.pipeline().addLast("handler_online_update_my_profile", new HandleProcessClientOnlineUpdateMyProfile(networkManager));
-                        ch.pipeline().addLast("handler_online_message", new HandleProcessClientOnlineMessage(networkManager));
-                        ch.pipeline().addLast("handler_online_input_status", new HandleProcessClientOnlineInputStatus(networkManager));
-                        ch.pipeline().addLast("handler_online_session_status", new HandleProcessClientOnlineSessionStatus(networkManager));
-                        ch.pipeline().addLast("handler_online_session_skin", new HandleProcessClientOnlineSessionSkin(networkManager));
-                        ch.pipeline().addLast("handler_online_remote_disconnect", new HandleProcessClientOnlineRemoteDisconnect(networkManager));
+                        ch.pipeline().addLast("handler_online_keepalive", new HandleOnlineKeepAlive(networkManager));
+                        ch.pipeline().addLast("handler_online_update_my_profile", new HandleOnlineUpdateMyProfile(networkManager));
+                        ch.pipeline().addLast("handler_online_message", new HandleOnlineMessage(networkManager));
+                        ch.pipeline().addLast("handler_online_input_status", new HandleOnlineInputStatus(networkManager));
+                        ch.pipeline().addLast("handler_online_session_status", new HandleOnlineSessionStatus(networkManager));
+                        ch.pipeline().addLast("handler_online_session_skin", new HandleOnlineSessionSkin(networkManager));
+                        ch.pipeline().addLast("handler_online_remote_disconnect", new HandleOnlineRemoteDisconnect(networkManager));
                     }
                 }
             )

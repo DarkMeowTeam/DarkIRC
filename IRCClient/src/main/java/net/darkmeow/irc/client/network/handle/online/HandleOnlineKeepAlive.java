@@ -7,12 +7,12 @@ import net.darkmeow.irc.network.packet.online.c2s.C2SPacketKeepAlive;
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketKeepAlive;
 import org.jetbrains.annotations.NotNull;
 
-public final class HandleProcessClientOnlineKeepAlive extends SimpleChannelInboundHandler<S2CPacketKeepAlive> {
+public final class HandleOnlineKeepAlive extends SimpleChannelInboundHandler<S2CPacketKeepAlive> {
 
     @NotNull
     public final IRCClientNetworkManager connection;
 
-    public HandleProcessClientOnlineKeepAlive(@NotNull IRCClientNetworkManager connection) {
+    public HandleOnlineKeepAlive(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 

@@ -9,12 +9,12 @@ import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginFailed;
 import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginSuccess;
 import org.jetbrains.annotations.NotNull;
 
-public final class HandleProcessClientLogin extends ChannelInboundHandlerAdapter {
+public final class HandleLoginBase extends ChannelInboundHandlerAdapter {
 
     @NotNull
     public final IRCClientNetworkManager connection;
 
-    public HandleProcessClientLogin(@NotNull IRCClientNetworkManager connection) {
+    public HandleLoginBase(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 

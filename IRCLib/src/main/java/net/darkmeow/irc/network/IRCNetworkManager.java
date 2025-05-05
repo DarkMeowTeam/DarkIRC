@@ -19,9 +19,6 @@ public class IRCNetworkManager extends ChannelInboundHandlerAdapter {
     @Nullable
     protected Channel channel;
 
-    @Getter
-    private boolean isEncrypted = false;
-
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
         channel = ctx.channel();
@@ -52,8 +49,7 @@ public class IRCNetworkManager extends ChannelInboundHandlerAdapter {
      *
      * @param newState 新的
      */
-    public void setConnectionState(EnumConnectionState newState)
-    {
+    public void setConnectionState(EnumConnectionState newState) {
         if (this.channel != null) {
             this.channel.attr(IRCNetworkAttributes.PROTOCOL_TYPE).set(newState);
             this.channel.config().setAutoRead(true);
@@ -66,8 +62,7 @@ public class IRCNetworkManager extends ChannelInboundHandlerAdapter {
      * @return 当前连接状态
      */
     @Nullable
-    public EnumConnectionState getConnectionState()
-    {
+    public EnumConnectionState getConnectionState() {
         return this.channel != null ? this.channel.attr(IRCNetworkAttributes.PROTOCOL_TYPE).get() : null;
     }
 
@@ -92,8 +87,18 @@ public class IRCNetworkManager extends ChannelInboundHandlerAdapter {
         }
     }
 
-    public void enableEncryption(SecretKey key)
-    {
+    /**
+     * 连接是否已启用加密
+     */
+    @Getter
+    private boolean isEncrypted = false;
+
+    /**
+     * 开启连接加密功能
+     *
+     * @param key 密钥
+     */
+    public void enableEncryption(SecretKey key) {
         if (this.channel != null) {
             this.channel.pipeline().addBefore("splitter", "decrypt", new NettyEncryptingDecoder(CryptUtils.createNetCipherInstance(2, key)));
             this.channel.pipeline().addBefore("prepender", "encrypt", new NettyEncryptingEncoder(CryptUtils.createNetCipherInstance(1, key)));

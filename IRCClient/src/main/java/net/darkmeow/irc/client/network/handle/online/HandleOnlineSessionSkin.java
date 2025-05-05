@@ -7,12 +7,12 @@ import net.darkmeow.irc.client.network.IRCClientNetworkManager;
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketUpdateSkin;
 import org.jetbrains.annotations.NotNull;
 
-public final class HandleProcessClientOnlineSessionSkin extends SimpleChannelInboundHandler<S2CPacketUpdateSkin> {
+public final class HandleOnlineSessionSkin extends SimpleChannelInboundHandler<S2CPacketUpdateSkin> {
 
     @NotNull
     public final IRCClientNetworkManager connection;
 
-    public HandleProcessClientOnlineSessionSkin(@NotNull IRCClientNetworkManager connection) {
+    public HandleOnlineSessionSkin(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 
