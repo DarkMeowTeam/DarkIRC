@@ -10,6 +10,7 @@ import net.darkmeow.irc.client.network.IRCClientOptions;
 import net.darkmeow.irc.data.DataSkin;
 import net.darkmeow.irc.data.DataUserState;
 import net.darkmeow.irc.network.EnumConnectionState;
+import net.darkmeow.irc.network.FriendBuffer;
 import net.darkmeow.irc.network.packet.login.c2s.C2SPacketLogin;
 import net.darkmeow.irc.network.packet.online.c2s.*;
 import org.jetbrains.annotations.NotNull;
@@ -154,6 +155,13 @@ public class IRCClient implements IRCClientProvider {
     public void updatePassword(@NotNull String newPassword) {
         if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketUpdatePassword(newPassword));
+        }
+    }
+
+    @Override
+    public void sendCustomPayload(@NotNull String channel, @NotNull FriendBuffer data) {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketCustomPayload(channel, data));
         }
     }
 

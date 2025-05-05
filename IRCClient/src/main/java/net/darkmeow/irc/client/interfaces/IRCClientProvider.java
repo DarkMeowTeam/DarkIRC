@@ -3,6 +3,7 @@ package net.darkmeow.irc.client.interfaces;
 import net.darkmeow.irc.client.interfaces.manager.IRCSessionManager;
 import net.darkmeow.irc.data.DataSkin;
 import net.darkmeow.irc.data.DataUserState;
+import net.darkmeow.irc.network.FriendBuffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -119,4 +120,11 @@ public interface IRCClientProvider {
      * @param newPassword 新登录密码
      */
     void updatePassword(@NotNull String newPassword);
+    /**
+     * 发送自定义通道消息
+     *
+     * @param channel 名称
+     * @param data 数据
+     */
+    void sendCustomPayload(@NotNull String channel, @NotNull FriendBuffer data);
 }

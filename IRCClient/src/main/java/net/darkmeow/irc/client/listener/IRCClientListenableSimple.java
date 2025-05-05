@@ -4,6 +4,7 @@ import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.interfaces.IRCClientProvider;
 import net.darkmeow.irc.client.interfaces.data.IRCDataOtherSessionInfo;
 import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
+import net.darkmeow.irc.network.FriendBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,6 +60,11 @@ public class IRCClientListenableSimple implements IRCClientListenableProvide {
 
     @Override
     public void onMessageSystem(@NotNull String message) {
+
+    }
+
+    @Override
+    public void onCustomPayload(@NotNull String payload, @NotNull FriendBuffer data) {
 
     }
 
