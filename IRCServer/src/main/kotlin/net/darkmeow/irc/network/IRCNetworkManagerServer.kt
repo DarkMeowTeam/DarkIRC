@@ -12,7 +12,7 @@ import net.darkmeow.irc.data.sync.DataSyncInputStatus
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketSystemMessage
 import java.security.KeyPair
-import java.util.UUID
+import java.util.*
 
 
 class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetworkManager() {
@@ -101,6 +101,10 @@ class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetwor
         sendPacket(S2CPacketDisconnect(logout, reason), GenericFutureListener<Future<Void>> { future ->
             close()
         })
+    }
+
+    override fun exceptionCaught(ctx: ChannelHandlerContext, e: Throwable) {
+        close()
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
