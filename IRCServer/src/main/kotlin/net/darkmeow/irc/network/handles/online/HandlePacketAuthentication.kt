@@ -16,7 +16,7 @@ class HandlePacketAuthentication(private val connection: IRCNetworkManagerServer
                     ?.takeIf { packet.isDestroySessionKey }
                     ?.also { token -> connection.bossNetworkManager.base.dataManager.deleteSession(token) }
 
-                connection.disconnect(reason = "您已退出登录", logout = packet.isDestroySessionKey)
+                connection.kick(reason = "您已退出登录", logout = packet.isDestroySessionKey)
             }
             is C2SPacketUpdatePassword -> {
                 connection.bossNetworkManager.base.dataManager.deleteSessionByUser(connection.user)
@@ -24,7 +24,7 @@ class HandlePacketAuthentication(private val connection: IRCNetworkManagerServer
 
                 connection.bossNetworkManager.clients.values
                     .filter { client -> client.user == connection.user }
-                    .forEach { client -> client.disconnect(reason = "账号密码已修改, 请重新登录", logout = true) }
+                    .forEach { client -> client.kick(reason = "账号密码已修改, 请重新登录", logout = true) }
                 }
             else -> ctx.fireChannelRead(packet)
         }

@@ -40,7 +40,7 @@ import kotlin.concurrent.timerTask
              other.sendPacket(S2CPacketKeepAlive(id))
 
              if (other.lastKeepAlive + KEEPALIVE_TIMEOUT < System.currentTimeMillis()) {
-                 other.disconnect(reason = "心跳包回应超时", logout = false)
+                 other.kick(reason = "心跳包回应超时", logout = false)
              }
          }
          id++

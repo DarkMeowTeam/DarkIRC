@@ -50,7 +50,7 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
                 }
             }
             .onFailure { e ->
-                connection.sendPacket(S2CPacketDenyHandShake(e.message ?: "未知错误"))
+                connection.kick(reason = e.message ?: "未知错误")
             }
     }
 }
