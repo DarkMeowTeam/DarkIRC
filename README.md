@@ -28,7 +28,7 @@
 
 ## 部署服务端
 
-1. 在服务端上安装 JDK 22 并上传 `IRCServer-xxx.jar`
+1. 在服务端上安装 JDK 17 (如果已安装该版本或更高版本 JDK 则不需要) 并上传 `IRCServer-xxx.jar`
 
 2. 运行 `java -jar IRCServer-xxx.jar` 
 
