@@ -1,5 +1,7 @@
 package net.darkmeow.irc.client.network;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import net.darkmeow.irc.data.DataClientBrand;
 import net.darkmeow.irc.utils.DeviceUtils;
 import org.jetbrains.annotations.NotNull;
@@ -8,55 +10,48 @@ import org.jetbrains.annotations.Nullable;
 import java.net.Proxy;
 import java.security.PrivateKey;
 
+@Builder
+@AllArgsConstructor
 public class IRCClientOptions {
 
+    /**
+     * 连接域名 必填
+     */
     @NotNull
     public String host;
 
+    /**
+     * 连接端口 必填
+     */
     public int port;
 
+    /**
+     * 连接所使用的代理 选填
+     */
     @NotNull
-    public Proxy proxy;
+    @Builder.Default
+    public Proxy proxy = Proxy.NO_PROXY;
 
+    /**
+     * 上报的硬件唯一ID信息
+     */
     @NotNull
-    public String deviceId;
+    @Builder.Default
+    public String deviceId = DeviceUtils.getDeviceId();
 
+    /**
+     * 如果服务端启用签名验证
+     * 这里需要传入私钥
+     */
     @Nullable
-    public PrivateKey key;
+    @Builder.Default
+    public PrivateKey key = null;
 
+    /**
+     * 客户端·标识
+     * 必填
+     */
     @NotNull
     public DataClientBrand brand;
-
-    public IRCClientOptions(@NotNull String host, int port, @NotNull DataClientBrand brand) {
-        this.host = host;
-        this.port = port;
-        this.brand = brand;
-        this.proxy = Proxy.NO_PROXY;
-        this.deviceId = DeviceUtils.getDeviceId();
-    }
-
-    public IRCClientOptions(@NotNull String host, int port, @NotNull DataClientBrand brand, @NotNull Proxy proxy) {
-        this.host = host;
-        this.port = port;
-        this.brand = brand;
-        this.proxy = proxy;
-        this.deviceId = DeviceUtils.getDeviceId();
-    }
-
-    public IRCClientOptions(@NotNull String host, int port, @NotNull DataClientBrand brand, @NotNull String deviceId) {
-        this.host = host;
-        this.port = port;
-        this.brand = brand;
-        this.proxy = Proxy.NO_PROXY;
-        this.deviceId = deviceId;
-    }
-
-    public IRCClientOptions(@NotNull String host, int port, @NotNull DataClientBrand brand, @NotNull Proxy proxy, @NotNull String deviceId) {
-        this.host = host;
-        this.port = port;
-        this.brand = brand;
-        this.proxy = proxy;
-        this.deviceId = deviceId;
-    }
 
 }
