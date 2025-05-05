@@ -21,7 +21,7 @@ public final class HandleHandShakeServerRedirect extends SimpleChannelInboundHan
         this.connection.base.options.host = packet.getHost();
         this.connection.base.options.port = packet.getPort();
 
-        this.connection.base.closeChannel(EnumDisconnectType.KICK_BY_SERVER, "服务器地址更新, 请重新连接", false);
+        this.connection.base.closeChannel(EnumDisconnectType.FAILED_TO_LOGIN, "服务器地址更新, 请重新连接", false);
     }
 
 }
