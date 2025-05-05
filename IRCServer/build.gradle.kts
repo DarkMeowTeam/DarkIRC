@@ -21,8 +21,17 @@ dependencies {
     implementation("org.xerial:sqlite-jdbc:3.47.1.0")
 }
 
-
 tasks {
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
+    }
+
+    kotlin {
+        jvmToolchain(17)
+    }
+
     jar {
         manifest {
             attributes(
