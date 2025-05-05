@@ -1,48 +1,33 @@
 package net.darkmeow.irc.client.network.handle.handshake;
 
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInboundHandlerAdapter;
+import io.netty.channel.SimpleChannelInboundHandler;
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.network.IRCClientNetworkManager;
 import net.darkmeow.irc.network.EnumConnectionState;
-import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketEncryptionResponse;
+import net.darkmeow.irc.network.packet.S2CPacket;
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketDenyHandShake;
-import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEncryptionRequest;
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketHandShakeSuccess;
-import net.darkmeow.irc.utils.CryptUtils;
 import org.jetbrains.annotations.NotNull;
 
-import javax.crypto.SecretKey;
-
-public final class HandleProcessClientHandShake extends ChannelInboundHandlerAdapter {
+public final class HandleHandShakeBase extends SimpleChannelInboundHandler<S2CPacket> {
 
     @NotNull
     public final IRCClientNetworkManager connection;
 
-    public HandleProcessClientHandShake(@NotNull IRCClientNetworkManager connection) {
+    public HandleHandShakeBase(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 
     @Override
-    public void channelRead(ChannelHandlerContext ctx, Object packet) throws Exception {
-        if (packet instanceof S2CPacketEncryptionRequest) {
-            handleEncryptionRequest((S2CPacketEncryptionRequest) packet);
-        } else if (packet instanceof S2CPacketHandShakeSuccess) {
+    public void channelRead0(ChannelHandlerContext ctx, S2CPacket packet) throws Exception {
+        if (packet instanceof S2CPacketHandShakeSuccess) {
             handleHandShakeSuccess((S2CPacketHandShakeSuccess) packet);
         } else if (packet instanceof S2CPacketDenyHandShake) {
             handleDenyHandShake((S2CPacketDenyHandShake) packet);
         } else {
-            super.channelRead(ctx, packet);
+            ctx.fireChannelRead(packet);
         }
-    }
-
-    public void handleEncryptionRequest(S2CPacketEncryptionRequest packet) {
-        final SecretKey secretkey = CryptUtils.createNewSharedKey();
-
-        this.connection.sendPacket(
-            new C2SPacketEncryptionResponse(packet.getPublicKey(), secretkey),
-            future -> connection.enableEncryption(secretkey)
-        );
     }
 
     public void handleHandShakeSuccess(S2CPacketHandShakeSuccess packet) {
