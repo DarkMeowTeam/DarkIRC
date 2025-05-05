@@ -3,13 +3,13 @@ package net.darkmeow.irc.network.packet.online.s2c;
 import lombok.Getter;
 import net.darkmeow.irc.data.DataUser;
 import net.darkmeow.irc.network.FriendBuffer;
-import net.darkmeow.irc.network.packet.C2SPacket;
+import net.darkmeow.irc.network.packet.S2CPacket;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 
-public class S2CPacketUpdateSessionState implements C2SPacket {
+public class S2CPacketUpdateSessionState implements S2CPacket {
 
     @Getter
     @NotNull

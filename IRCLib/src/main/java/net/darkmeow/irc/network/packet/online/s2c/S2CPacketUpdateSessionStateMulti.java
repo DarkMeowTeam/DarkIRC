@@ -3,14 +3,14 @@ package net.darkmeow.irc.network.packet.online.s2c;
 import lombok.Getter;
 import net.darkmeow.irc.data.DataUser;
 import net.darkmeow.irc.network.FriendBuffer;
-import net.darkmeow.irc.network.packet.C2SPacket;
+import net.darkmeow.irc.network.packet.S2CPacket;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class S2CPacketUpdateSessionStateMulti implements C2SPacket {
+public class S2CPacketUpdateSessionStateMulti implements S2CPacket {
 
     /**
      * 是否启用仅同服务器玩家可见
