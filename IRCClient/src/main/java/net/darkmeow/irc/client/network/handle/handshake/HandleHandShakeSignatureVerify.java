@@ -8,12 +8,12 @@ import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketSignatureResponse;
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketSignatureRequest;
 import org.jetbrains.annotations.NotNull;
 
-public final class HandleProcessClientSignatureRequest extends SimpleChannelInboundHandler<S2CPacketSignatureRequest> {
+public final class HandleHandShakeSignatureVerify extends SimpleChannelInboundHandler<S2CPacketSignatureRequest> {
 
     @NotNull
     public final IRCClientNetworkManager connection;
 
-    public HandleProcessClientSignatureRequest(@NotNull IRCClientNetworkManager connection) {
+    public HandleHandShakeSignatureVerify(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 

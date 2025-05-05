@@ -16,8 +16,10 @@ import io.netty.handler.timeout.TimeoutException;
 import net.darkmeow.irc.IRCLib;
 import net.darkmeow.irc.client.IRCClient;
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
-import net.darkmeow.irc.client.network.handle.handshake.HandleProcessClientHandShake;
-import net.darkmeow.irc.client.network.handle.handshake.HandleProcessClientSignatureRequest;
+import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeBase;
+import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeEncryption;
+import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeServerRedirect;
+import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeSignatureVerify;
 import net.darkmeow.irc.client.network.handle.login.HandleProcessClientLogin;
 import net.darkmeow.irc.client.network.handle.online.*;
 import net.darkmeow.irc.network.EnumPacketDirection;
@@ -64,9 +66,13 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                         // 处理
                         ch.pipeline().addLast("BaseHandler", networkManager);
 
-                        ch.pipeline().addLast("handler_hand_shake", new HandleProcessClientHandShake(networkManager));
-                        ch.pipeline().addLast("handler_signature_request", new HandleProcessClientSignatureRequest(networkManager));
+                        ch.pipeline().addLast("handler_handshake_base", new HandleHandShakeBase(networkManager));
+                        ch.pipeline().addLast("handler_handshake_encryption", new HandleHandShakeEncryption(networkManager));
+                        ch.pipeline().addLast("handler_handshake_signature_verify", new HandleHandShakeSignatureVerify(networkManager));
+                        ch.pipeline().addLast("handler_handshake_server_redirect", new HandleHandShakeServerRedirect(networkManager));
+
                         ch.pipeline().addLast("handler_login", new HandleProcessClientLogin(networkManager));
+
                         ch.pipeline().addLast("handler_online_keepalive", new HandleProcessClientOnlineKeepAlive(networkManager));
                         ch.pipeline().addLast("handler_online_update_my_profile", new HandleProcessClientOnlineUpdateMyProfile(networkManager));
                         ch.pipeline().addLast("handler_online_message", new HandleProcessClientOnlineMessage(networkManager));
