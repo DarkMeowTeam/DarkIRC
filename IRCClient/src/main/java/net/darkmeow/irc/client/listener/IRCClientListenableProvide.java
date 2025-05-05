@@ -4,6 +4,7 @@ import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.interfaces.IRCClientProvider;
 import net.darkmeow.irc.client.interfaces.data.IRCDataOtherSessionInfo;
 import net.darkmeow.irc.client.interfaces.data.IRCDataSelfSessionInfo;
+import net.darkmeow.irc.network.FriendBuffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -78,6 +79,13 @@ public interface IRCClientListenableProvide {
      * @param message 消息内容
      */
     void onMessageSystem(@NotNull String message);
+    /**
+     * 收到自定义通道包
+     *
+     * @param channel 名称
+     * @param data 数据
+     */
+    void onCustomPayload(@NotNull String channel, @NotNull FriendBuffer data);
     /**
      * 与 IRC 服务器连接中断时调用
      *

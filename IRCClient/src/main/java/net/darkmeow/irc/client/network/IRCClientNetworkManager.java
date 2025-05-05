@@ -80,6 +80,7 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                         ch.pipeline().addLast("handler_online_session_status", new HandleOnlineSessionStatus(networkManager));
                         ch.pipeline().addLast("handler_online_session_skin", new HandleOnlineSessionSkin(networkManager));
                         ch.pipeline().addLast("handler_online_remote_disconnect", new HandleOnlineRemoteDisconnect(networkManager));
+                        ch.pipeline().addLast("handler_online_custom_payload", new HandleOnlineCustomPayload(networkManager));
                     }
                 }
             )

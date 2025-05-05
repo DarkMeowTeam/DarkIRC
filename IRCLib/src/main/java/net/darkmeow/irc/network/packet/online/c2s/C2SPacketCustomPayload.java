@@ -11,6 +11,7 @@ public class C2SPacketCustomPayload implements C2SPacket {
     @NotNull
     private final String channel;
 
+    @Getter
     @NotNull
     private final FriendBuffer data;
 
