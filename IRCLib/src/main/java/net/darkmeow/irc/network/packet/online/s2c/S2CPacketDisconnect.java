@@ -12,7 +12,7 @@ public class S2CPacketDisconnect implements S2CPacket {
      * (登录状态失效, 请你重新登录)
      */
     @Getter
-    private final boolean markSessionKeyAsInvalid;
+    private final boolean markSessionTokenInvalid;
     /**
      * 断开原因
      */
@@ -20,19 +20,19 @@ public class S2CPacketDisconnect implements S2CPacket {
     @NotNull
     private final String message;
 
-    public S2CPacketDisconnect(boolean markSessionKeyAsInvalid, @NotNull String message) {
-        this.markSessionKeyAsInvalid = markSessionKeyAsInvalid;
+    public S2CPacketDisconnect(boolean markSessionTokenInvalid, @NotNull String message) {
+        this.markSessionTokenInvalid = markSessionTokenInvalid;
         this.message = message;
     }
 
     public S2CPacketDisconnect(@NotNull FriendBuffer buffer) {
-        this.markSessionKeyAsInvalid = buffer.readBoolean();
+        this.markSessionTokenInvalid = buffer.readBoolean();
         this.message = buffer.readString(32767);
     }
 
     @Override
     public void write(@NotNull FriendBuffer buffer) {
-        buffer.writeBoolean(this.markSessionKeyAsInvalid);
+        buffer.writeBoolean(this.markSessionTokenInvalid);
         buffer.writeString(this.message);
     }
 }

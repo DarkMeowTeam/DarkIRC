@@ -14,6 +14,8 @@ import net.darkmeow.irc.network.packet.online.s2c.S2CPacketUpdateMyProfile
 
 class HandlePacketLogin(private val manager: NetworkManager, private val connection: IRCNetworkManagerServer): SimpleChannelInboundHandler<C2SPacketLogin>() {
 
+    class AuthenticationException(val msg: String, val markSessionTokenInvalid: Boolean) : Exception()
+
     override fun channelRead0(ctx: ChannelHandlerContext, packet: C2SPacketLogin) {
         val isTokenLogin = packet.password.length == 128
 
@@ -33,14 +35,14 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                             manager.base.dataManager.deleteSession(packet.password)
                         }
 
-                        throw Exception("登录信息失效, 请重新登录")
+                        throw AuthenticationException("登录信息失效, 请重新登录", true)
                     }
                 // password
                 false -> manager.base.dataManager
                     .checkUserPassword(packet.username, packet.password)
                     .takeUnless { it }
                     ?.also {
-                        throw Exception("用户名或密码错误")
+                        throw AuthenticationException("用户名或密码错误", true)
                     }
             }
 
@@ -51,7 +53,7 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                 // 客户端管理员/客户端用户
                 ?.takeIf { it.getClientUsers(connection.brand.name)?.contains(packet.username) != true }
                 ?.takeIf { it.getClientAdministrators(connection.brand.name)?.contains(packet.username) != true }
-                ?.also { throw Exception("无登录此客户端权限") }
+                ?.also { throw AuthenticationException("无登录此客户端权限", false) }
         }
             .onSuccess {
                 var uploadToken: String? = packet.password
@@ -123,7 +125,10 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                 )
             }
             .onFailure { e ->
-                connection.kick(e.message ?: "未知错误")
+                when (e) {
+                    is AuthenticationException -> connection.kick(e.msg, e.markSessionTokenInvalid)
+                    else -> connection.kick("服务端异常 (${e.cause?.javaClass?.simpleName}: ${e.cause?.message})")
+                }
             }
     }
 }

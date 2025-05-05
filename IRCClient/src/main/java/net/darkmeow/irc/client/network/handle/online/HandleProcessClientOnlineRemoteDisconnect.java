@@ -18,7 +18,7 @@ public final class HandleProcessClientOnlineRemoteDisconnect extends SimpleChann
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, S2CPacketDisconnect packet) {
-        this.connection.base.closeChannel(EnumDisconnectType.KICK_BY_SERVER, packet.getMessage(), packet.isMarkSessionKeyAsInvalid());
+        this.connection.base.closeChannel(EnumDisconnectType.KICK_BY_SERVER, packet.getMessage(), packet.isMarkSessionTokenInvalid());
     }
 
 }

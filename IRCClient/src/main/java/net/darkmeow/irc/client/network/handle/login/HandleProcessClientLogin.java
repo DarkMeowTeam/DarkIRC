@@ -35,6 +35,6 @@ public final class HandleProcessClientLogin extends ChannelInboundHandlerAdapter
     }
 
     public void handleLoginFailed(S2CPacketLoginFailed packet) {
-        this.connection.base.closeChannel(EnumDisconnectType.KICK_BY_SERVER, "登录失败: " + packet.getReason(), false);
+        this.connection.base.closeChannel(EnumDisconnectType.KICK_BY_SERVER, packet.getReason(), packet.isMarkSessionTokenInvalid());
     }
 }

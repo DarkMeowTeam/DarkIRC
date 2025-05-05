@@ -110,7 +110,7 @@ class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetwor
 
         when (connectionState) {
             EnumConnectionState.HANDSHAKING -> sendPacket(S2CPacketDenyHandShake(reason), future)
-            EnumConnectionState.LOGIN -> sendPacket(S2CPacketLoginFailed(reason), future)
+            EnumConnectionState.LOGIN -> sendPacket(S2CPacketLoginFailed(reason, logout), future)
             EnumConnectionState.ONLINE -> sendPacket(S2CPacketDisconnect(logout, reason), future)
             else -> { }
         }
