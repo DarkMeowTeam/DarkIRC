@@ -37,6 +37,6 @@ public final class HandleHandShakeBase extends SimpleChannelInboundHandler<S2CPa
     }
 
     public void handleDenyHandShake(S2CPacketDenyHandShake packet) {
-        this.connection.base.closeChannel(EnumDisconnectType.KICK_BY_SERVER, packet.getReason(), false);
+        this.connection.base.closeChannel(EnumDisconnectType.FAILED_TO_LOGIN, packet.getReason(), false);
     }
 }
