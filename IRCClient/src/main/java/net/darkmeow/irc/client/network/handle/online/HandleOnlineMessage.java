@@ -11,12 +11,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public final class HandleProcessClientOnlineMessage extends ChannelInboundHandlerAdapter {
+public final class HandleOnlineMessage extends ChannelInboundHandlerAdapter {
 
     @NotNull
     public final IRCClientNetworkManager connection;
 
-    public HandleProcessClientOnlineMessage(@NotNull IRCClientNetworkManager connection) {
+    public HandleOnlineMessage(@NotNull IRCClientNetworkManager connection) {
         this.connection = connection;
     }
 
