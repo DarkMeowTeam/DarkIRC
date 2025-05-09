@@ -2,11 +2,12 @@ package net.darkmeow.irc.utils
 
 import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.network.IRCNetworkManagerServer
+import net.darkmeow.irc.utils.userdata.UserdataIgnoreUtils.getUserIgnores
 
 object MessageUtils {
 
     fun IRCNetworkManagerServer.sendServiceMessage(base: IRCServer, service: String, message: String) {
-        if (base.dataManager.getUserdataIgnores(user).contains(service)) return
+        if (base.dataManager.getUserIgnores(user).contains(service)) return
 
         sendSystemMessage(message)
     }

@@ -1,4 +1,7 @@
 val gsonVersion: String by project
+val sqliteJdbcVersion: String by project
+val exposedVersion: String by project
+val log4jVersion: String by project
 
 plugins {
     java
@@ -16,9 +19,14 @@ dependencies {
     implementation(kotlin("stdlib"))
 
     implementation("com.google.code.gson:gson:${gsonVersion}")
-    implementation("org.apache.logging.log4j:log4j-core:2.20.0")
+    implementation("org.apache.logging.log4j:log4j-core:${log4jVersion}")
     implementation("com.esotericsoftware.yamlbeans:yamlbeans:1.17")
-    implementation("org.xerial:sqlite-jdbc:3.47.1.0")
+
+    implementation("org.xerial:sqlite-jdbc:${sqliteJdbcVersion}")
+
+    implementation("org.jetbrains.exposed:exposed-core:${exposedVersion}")
+    implementation("org.jetbrains.exposed:exposed-dao:${exposedVersion}")
+    implementation("org.jetbrains.exposed:exposed-jdbc:${exposedVersion}")
 }
 
 tasks {

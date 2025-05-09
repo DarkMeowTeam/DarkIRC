@@ -2,6 +2,9 @@ package net.darkmeow.irc.network.handles.online
 
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
+import net.darkmeow.irc.database.extensions.DataManagerSessionExtensions.deleteSession
+import net.darkmeow.irc.database.extensions.DataManagerSessionExtensions.deleteSessionByUser
+import net.darkmeow.irc.database.extensions.DataManagerUserExtensions.updateUserMetadata
 import net.darkmeow.irc.network.IRCNetworkManagerServer
 import net.darkmeow.irc.network.packet.C2SPacket
 import net.darkmeow.irc.network.packet.online.c2s.C2SPacketLogout
@@ -19,8 +22,10 @@ class HandlePacketAuthentication(private val connection: IRCNetworkManagerServer
                 connection.kick(reason = "您已退出登录", logout = packet.isDestroySessionKey)
             }
             is C2SPacketUpdatePassword -> {
-                connection.bossNetworkManager.base.dataManager.deleteSessionByUser(connection.user)
-                connection.bossNetworkManager.base.dataManager.setUserPassword(connection.user, packet.password)
+                connection.bossNetworkManager.base.dataManager.apply {
+                    deleteSessionByUser(name = connection.user)
+                    updateUserMetadata(name = connection.user, password = packet.password)
+                }
 
                 connection.bossNetworkManager.clients.values
                     .filter { client -> client.user == connection.user }

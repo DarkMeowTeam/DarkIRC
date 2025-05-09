@@ -6,7 +6,14 @@ class Config {
     /**
      * 存储用户数据的数据库
      */
-    var database: String = "jdbc:sqlite:data.db"
+    var database = DataBase()
+
+    class DataBase {
+        var url: String = "jdbc:sqlite:data.db"
+        var driver: String = "org.sqlite.JDBC"
+        var user: String = ""
+        var password: String = ""
+    }
 
     var userLimit: UserLimit = UserLimit()
 
