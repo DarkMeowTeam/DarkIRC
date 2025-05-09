@@ -6,7 +6,8 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.ChannelOption
 import io.netty.channel.EventLoopGroup
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.MultiThreadIoEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.codec.haproxy.HAProxyMessageDecoder
@@ -57,8 +58,8 @@ class NetworkManager(
             runCatching {
                 val bootstrap = ServerBootstrap()
 
-                bossGroup = NioEventLoopGroup() // 用于接收客户端连接
-                workerGroup = NioEventLoopGroup() // 用于处理连接的 I/O 操作
+                bossGroup = MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()) // 用于接收客户端连接
+                workerGroup = MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()) // 用于处理连接的 I/O 操作
 
                 bootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel::class.java)
