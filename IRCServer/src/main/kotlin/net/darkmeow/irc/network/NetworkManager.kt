@@ -85,7 +85,7 @@ class NetworkManager(
                             ch.pipeline().addLast("handler_hand_shake", HandlePacketHandShake(subNetworkManager))
                             ch.pipeline().addLast("handler_signature_response", HandlePacketSignatureResponse(subNetworkManager))
                             ch.pipeline().addLast("handler_encryption_response", HandlePacketEncryptionResponse(subNetworkManager))
-                            ch.pipeline().addLast("handler_login", HandlePacketLogin(this@NetworkManager, subNetworkManager))
+                            ch.pipeline().addLast("handler_login", HandlePacketLogin(subNetworkManager))
                             ch.pipeline().addLast("handler_online_keepalive", HandlePacketKeepAlive(subNetworkManager))
                             ch.pipeline().addLast("handler_online_message", HandlePacketMessage(subNetworkManager))
                             ch.pipeline().addLast("handler_online_input_status", HandlePacketInputStatus(subNetworkManager))

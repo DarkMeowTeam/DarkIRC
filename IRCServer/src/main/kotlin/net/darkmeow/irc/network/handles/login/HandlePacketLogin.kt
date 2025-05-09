@@ -16,12 +16,11 @@ import net.darkmeow.irc.database.extensions.DataManagerUserExtensions.getUserMet
 import net.darkmeow.irc.database.extensions.DataManagerUserExtensions.userExist
 import net.darkmeow.irc.network.EnumConnectionState
 import net.darkmeow.irc.network.IRCNetworkManagerServer
-import net.darkmeow.irc.network.NetworkManager
 import net.darkmeow.irc.network.packet.login.c2s.C2SPacketLogin
 import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginSuccess
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketUpdateMyProfile
 
-class HandlePacketLogin(private val manager: NetworkManager, private val connection: IRCNetworkManagerServer): SimpleChannelInboundHandler<C2SPacketLogin>() {
+class HandlePacketLogin(private val connection: IRCNetworkManagerServer): SimpleChannelInboundHandler<C2SPacketLogin>() {
 
     class AuthenticationException(val msg: String, val markSessionTokenInvalid: Boolean) : Exception()
 
@@ -29,7 +28,7 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
         val isTokenLogin = packet.password.length == 128
 
         runCatching {
-            manager.base.dataManager.apply {
+            connection.bossNetworkManager.base.dataManager.apply {
                 run passwordVerify@ {
                     if (isTokenLogin) {
                         // token 不存在
@@ -67,12 +66,12 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
             }
         }
             .onSuccess {
-                val userMeta = manager.base.dataManager.getUserMetadata(packet.username)
+                val userMeta =  connection.bossNetworkManager.base.dataManager.getUserMetadata(packet.username)
                 var uploadToken = ""
 
                 if (isTokenLogin) {
                     uploadToken = packet.password
-                    manager.base.dataManager.updateSession(
+                    connection.bossNetworkManager.base.dataManager.updateSession(
                         token = packet.password,
                         metadata = DataSession.SessionMetadata(
                             user = packet.username,
@@ -82,7 +81,7 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                         )
                     )
                 } else if (!packet.isDisableGenerateToken) {
-                    uploadToken = manager.base.dataManager.createSession(
+                    uploadToken =  connection.bossNetworkManager.base.dataManager.createSession(
                         metadata = DataSession.SessionMetadata(
                             user = packet.username,
                             lastLoginTimestamp = System.currentTimeMillis(),
@@ -100,8 +99,8 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                 })
 
                 // 登出其他客户端
-                manager.clients
-                    .takeIf { !manager.base.configManager.configs.userLimit.allowMultiDeviceLogin }
+                connection.bossNetworkManager.clients
+                    .takeIf { !connection.bossNetworkManager.base.configManager.configs.userLimit.allowMultiDeviceLogin }
                     ?.filter { (_, other) ->
                         other.user == packet.username
                     }
@@ -119,9 +118,9 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                 connection.user = userMeta.name
                 connection.userPremium = userMeta.metadata.premium
 
-                manager.clients[connection.sessionId] = connection
+                connection.bossNetworkManager.clients[connection.sessionId] = connection
 
-                manager.logger.info(
+                connection.bossNetworkManager.logger.info(
                     StringBuilder()
                         .append("[+] ${userMeta.name}")
                         .append("  ")
