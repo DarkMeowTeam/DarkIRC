@@ -2,11 +2,8 @@ package net.darkmeow.irc.client.network;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.PooledByteBufAllocator;
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.*;
+import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.proxy.HttpProxyHandler;
@@ -33,7 +30,7 @@ import java.net.Proxy;
 
 public class IRCClientNetworkManager extends IRCNetworkManager {
 
-    public static NioEventLoopGroup eventLoopGroup = new NioEventLoopGroup();
+    public static MultiThreadIoEventLoopGroup eventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
 
     public static IRCClientNetworkManager createNetworkManagerAndConnect(@NotNull IRCClient base, @NotNull String host, int port, @NotNull Proxy proxy) throws Throwable {
         final IRCClientNetworkManager networkManager = new IRCClientNetworkManager(base);
