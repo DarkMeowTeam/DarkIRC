@@ -40,6 +40,24 @@ class Config {
          * 是否启用协议加密
          */
         var encryption: Boolean = false
+        /**
+         * 传输数据压缩功能
+         */
+        var compression = Compression()
+
+        class Compression {
+            /**
+             * 传输数据压缩功能开启状态
+             * true: 启用
+             * false: 禁用
+             */
+            var state: Boolean = false
+            /**
+             * 传输数据压缩功能启用压缩最低包大小
+             * 避免非常小的包被压缩导致反效果
+             */
+            var threshold: Int = 256
+        }
     }
 
     class UserLimit {

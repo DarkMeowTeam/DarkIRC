@@ -4,6 +4,8 @@ import io.netty.channel.*;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.GenericFutureListener;
 import lombok.Getter;
+import net.darkmeow.irc.network.handle.compression.NettyCompressionDecoder;
+import net.darkmeow.irc.network.handle.compression.NettyCompressionEncoder;
 import net.darkmeow.irc.network.handle.encryption.NettyEncryptingDecoder;
 import net.darkmeow.irc.network.handle.encryption.NettyEncryptingEncoder;
 import net.darkmeow.irc.network.packet.Packet;
@@ -104,6 +106,18 @@ public class IRCNetworkManager extends ChannelInboundHandlerAdapter {
             this.channel.pipeline().addBefore("prepender", "encrypt", new NettyEncryptingEncoder(CryptUtils.createNetCipherInstance(1, key)));
 
             this.isEncrypted = true;
+        }
+    }
+
+    /**
+     * 开启数据压缩功能
+     *
+     * @param threshold 压缩大小
+     */
+    public void enableCompression(int threshold) {
+        if (this.channel != null && threshold >= 0) {
+            this.channel.pipeline().addBefore("decoder", "decompress", new NettyCompressionDecoder(threshold));
+            this.channel.pipeline().addBefore("encoder", "compress", new NettyCompressionEncoder(threshold));
         }
     }
 }

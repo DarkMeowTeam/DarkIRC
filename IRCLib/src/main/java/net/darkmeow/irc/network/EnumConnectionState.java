@@ -34,6 +34,8 @@ public enum EnumConnectionState {
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketSignatureRequest.class);
                 // 重定向
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketRedirectServer.class);
+                // 连接数据压缩
+                this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketEnableCompression.class);
             }
         },
     LOGIN(1)
