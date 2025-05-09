@@ -8,6 +8,7 @@ import net.darkmeow.irc.network.IRCNetworkManagerServer
 import net.darkmeow.irc.network.packet.online.c2s.C2SPacketMessage
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketPrivateMessageResult
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketSessionMessage
+import net.darkmeow.irc.utils.userdata.UserdataIgnoreUtils.getUserIgnores
 import java.util.*
 
 class HandlePacketMessage(private val connection: IRCNetworkManagerServer): SimpleChannelInboundHandler<C2SPacketMessage>() {
@@ -35,7 +36,7 @@ class HandlePacketMessage(private val connection: IRCNetworkManagerServer): Simp
 
                 connection.bossNetworkManager.clients.values
                     // 屏蔽发送者的用户不会受到
-                    .filter { !connection.bossNetworkManager.base.dataManager.getUserdataIgnores(it.user).contains(connection.user) }
+                    .filter { !connection.bossNetworkManager.base.dataManager.getUserIgnores(it.user).contains(connection.user) }
                     .onEach {
                         // 同时也会发送给发送者客户端上 这不是bug 而是刻意这么设计的
                         it.sendPacket(boardCastPacket)

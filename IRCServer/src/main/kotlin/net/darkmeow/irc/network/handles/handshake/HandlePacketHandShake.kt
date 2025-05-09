@@ -4,6 +4,8 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
+import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.clientExist
+import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.getClientMetadata
 import net.darkmeow.irc.network.EnumConnectionState
 import net.darkmeow.irc.network.IRCNetworkManagerServer
 import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake
@@ -18,11 +20,15 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
 
     override fun channelRead0(ctx: ChannelHandlerContext, packet: C2SPacketHandShake) {
         runCatching {
-            connection.bossNetworkManager.base.dataManager
-                .getClientMinLoginVersion(packet.brand.name, packet.brand.key)
-                ?.also { if (it > packet.brand.versionId) throw Exception("您的客户端版本已过时") }
-                ?: throw Exception("您的客户端已停用")
+            connection.bossNetworkManager.base.dataManager.apply {
+                if (!clientExist(packet.brand.name)) throw Exception("您的客户端已停用")
 
+                val meta = getClientMetadata(packet.brand.name)
+
+                if (packet.brand.key != meta.key) throw Exception("您的客户端版本已过时")
+                if (packet.brand.versionId < meta.metadata.allowLoginMinVersion) throw Exception("您的客户端版本已过时")
+            }
+            
             if (packet.hardWareUniqueId.isEmpty()) throw Exception("服务器正在维护中")
         }
             .onSuccess {

@@ -4,7 +4,16 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.SimpleChannelInboundHandler
 import io.netty.util.concurrent.Future
 import io.netty.util.concurrent.GenericFutureListener
+import net.darkmeow.irc.data.base.DataSession
 import net.darkmeow.irc.data.enmus.EnumUserPremium
+import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.getClientMetadata
+import net.darkmeow.irc.database.extensions.DataManagerSessionExtensions.createSession
+import net.darkmeow.irc.database.extensions.DataManagerSessionExtensions.deleteSession
+import net.darkmeow.irc.database.extensions.DataManagerSessionExtensions.getSessionMetadata
+import net.darkmeow.irc.database.extensions.DataManagerSessionExtensions.sessionExist
+import net.darkmeow.irc.database.extensions.DataManagerSessionExtensions.updateSession
+import net.darkmeow.irc.database.extensions.DataManagerUserExtensions.getUserMetadata
+import net.darkmeow.irc.database.extensions.DataManagerUserExtensions.userExist
 import net.darkmeow.irc.network.EnumConnectionState
 import net.darkmeow.irc.network.IRCNetworkManagerServer
 import net.darkmeow.irc.network.NetworkManager
@@ -20,76 +29,74 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
         val isTokenLogin = packet.password.length == 128
 
         runCatching {
-            when (isTokenLogin) {
-                // session token
-                true -> manager.base.dataManager
-                    .let {
-                        arrayOf(
-                            it.getSessionLinkUser(packet.password) != packet.username,
-                            !it.userExist(packet.username)
-                        ).any { flag -> flag }
-                    }
-                    .takeIf { it }
-                    ?.also {
-                        if (manager.base.dataManager.sessionExist(packet.password)) {
-                            manager.base.dataManager.deleteSession(packet.password)
+            manager.base.dataManager.apply {
+                run passwordVerify@ {
+                    if (isTokenLogin) {
+                        // token 不存在
+                        if (!sessionExist(packet.password)) throw AuthenticationException("登录信息失效, 请重新登录", true)
+                        val meta = getSessionMetadata(packet.password)
+                        // token 对应的 用户 错误
+                        if (meta.metadata.user != packet.username) throw AuthenticationException("登录信息失效, 请重新登录", true)
+                        // token 对应的 用户 不存在(已被删除)
+                        if (!userExist(meta.metadata.user)) {
+                            deleteSession(meta.metadata.user)
+                            throw AuthenticationException("登录信息失效, 请重新登录", true)
                         }
+                    } else {
+                        // 用户名不存在
+                        if (!userExist(packet.username)) throw AuthenticationException("用户名或密码错误", true)
+                        val meta = getUserMetadata(packet.username)
+                        // 密码错误
+                        if (meta.metadata.password != packet.password) throw AuthenticationException("用户名或密码错误", true)
+                        // 用户已被封禁
+                        if (meta.metadata.premium == EnumUserPremium.BANNED) throw AuthenticationException("用户已被封禁, 无法登录", true)
+                    }
+                }
+                run clientVerify@ {
+                    val userMeta = getUserMetadata(packet.username)
+                    val clientMeta = getClientMetadata(connection.brand.name)
 
-                        throw AuthenticationException("登录信息失效, 请重新登录", true)
-                    }
-                // password
-                false -> manager.base.dataManager
-                    .checkUserPassword(packet.username, packet.password)
-                    .takeUnless { it }
-                    ?.also {
-                        throw AuthenticationException("用户名或密码错误", true)
-                    }
+                    // 管理员用户无需客户端权限检查
+                    if (userMeta.metadata.premium.ordinal >= EnumUserPremium.ADMIN.ordinal) return@clientVerify
+                    // 客户端管理员/客户端用户
+                    if (clientMeta.metadata.clientUsers.contains(userMeta.name)) return@clientVerify
+                    if (clientMeta.metadata.clientAdministrators.contains(userMeta.name)) return@clientVerify
+
+                    throw AuthenticationException("无登录此客户端权限", false)
+                }
             }
-
-            // 客户端权限检查
-            manager.base.dataManager
-                // 忽略 IRC 管理员
-                .takeIf { it.getUserPremium(packet.username).ordinal < EnumUserPremium.ADMIN.ordinal }
-                // 客户端管理员/客户端用户
-                ?.takeIf { it.getClientUsers(connection.brand.name)?.contains(packet.username) != true }
-                ?.takeIf { it.getClientAdministrators(connection.brand.name)?.contains(packet.username) != true }
-                ?.also { throw AuthenticationException("无登录此客户端权限", false) }
         }
             .onSuccess {
-                var uploadToken: String? = packet.password
+                val userMeta = manager.base.dataManager.getUserMetadata(packet.username)
+                var uploadToken = ""
 
                 if (isTokenLogin) {
-                    manager.base.dataManager.updateSessionInfo(
-                        packet.password,
-                        System.currentTimeMillis(),
-                        connection.hardWareUniqueId,
-                        connection.address
+                    uploadToken = packet.password
+                    manager.base.dataManager.updateSession(
+                        token = packet.password,
+                        metadata = DataSession.SessionMetadata(
+                            user = packet.username,
+                            lastLoginTimestamp = System.currentTimeMillis(),
+                            lastLoginHardWareUniqueId = connection.hardWareUniqueId,
+                            lastLoginIp = connection.address
+                        )
                     )
-
-
                 } else if (!packet.isDisableGenerateToken) {
-                    @Suppress("SpellCheckingInspection")
-                    uploadToken = (1..128)
-                        .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }
-                        .joinToString("")
-
-                    manager.base.dataManager.createSession(
-                        uploadToken,
-                        packet.username,
-                        System.currentTimeMillis(),
-                        connection.hardWareUniqueId,
-                        connection.address
-                    )
-                } else {
-                    uploadToken = null
+                    uploadToken = manager.base.dataManager.createSession(
+                        metadata = DataSession.SessionMetadata(
+                            user = packet.username,
+                            lastLoginTimestamp = System.currentTimeMillis(),
+                            lastLoginHardWareUniqueId = connection.hardWareUniqueId,
+                            lastLoginIp = connection.address
+                        )
+                    ).token
                 }
 
-                val premium = manager.base.dataManager.getUserPremium(user = packet.username)
+                connection.sendPacket(S2CPacketLoginSuccess(packet.username, uploadToken), GenericFutureListener<Future<Void>> { future ->
+                    connection.currentToken = uploadToken.takeIf { it.isNotEmpty() }
 
-                connection.currentToken = uploadToken
-                connection.sendPacket(S2CPacketLoginSuccess(packet.username, uploadToken ?: ""), GenericFutureListener<Future<Void>> { future ->
                     connection.connectionState = EnumConnectionState.ONLINE
-                    connection.sendPacket(S2CPacketUpdateMyProfile(packet.username, premium, packet.isInvisible))
+                    connection.sendPacket(S2CPacketUpdateMyProfile(packet.username, userMeta.metadata.premium, packet.isInvisible))
                 })
 
                 // 登出其他客户端
@@ -109,14 +116,14 @@ class HandlePacketLogin(private val manager: NetworkManager, private val connect
                     }
 
                 // 登录成功
-                connection.user = packet.username
-                connection.userPremium = premium
+                connection.user = userMeta.name
+                connection.userPremium = userMeta.metadata.premium
 
                 manager.clients[connection.sessionId] = connection
 
                 manager.logger.info(
                     StringBuilder()
-                        .append("[+] ${packet.username}")
+                        .append("[+] ${userMeta.name}")
                         .append("  ")
                         .append("(${connection.address} ${connection.hardWareUniqueId})")
                         .append(if(packet.isDisableGenerateToken) " (单次登录)" else "")
