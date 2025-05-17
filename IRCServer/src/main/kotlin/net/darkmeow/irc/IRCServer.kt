@@ -2,7 +2,6 @@ package net.darkmeow.irc
 
 import net.darkmeow.irc.command.CommandManager
 import net.darkmeow.irc.config.ConfigManager
-import net.darkmeow.irc.data.DataManager
 import net.darkmeow.irc.database.DataBaseManager
 import net.darkmeow.irc.network.NetworkManager
 import net.darkmeow.irc.web.WebServerManager
