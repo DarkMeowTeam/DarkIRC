@@ -9,11 +9,9 @@ import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.getClien
 import net.darkmeow.irc.network.EnumConnectionState
 import net.darkmeow.irc.network.IRCNetworkManagerServer
 import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake
-import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketDenyHandShake
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEnableCompression
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEncryptionRequest
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketHandShakeSuccess
-import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketSignatureRequest
 import net.darkmeow.irc.utils.CryptUtils
 import java.util.*
 
@@ -48,16 +46,18 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
                     })
                 }
 
-                if (config.signature) {
-                    // 优先要求签名验证
-                    connection.signatureCode = "random"
-                    connection.sendPacket(S2CPacketSignatureRequest(connection.signatureCode))
-                } else if (config.encryption) {
-                    // 其次要求加密会话
+                if (config.encryption) {
+                    // 加密会话 & 签名验证 流程
                     connection.keyPair = CryptUtils.generateKeyPair()
-                    connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public))
+                    if (config.signature) {
+                        connection.signatureCode = "random"
+                        connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public, connection.signatureCode))
+                    } else {
+                        connection.signatureCode = ""
+                        connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public))
+                    }
                 } else {
-                    // 最后反馈握手成功
+                    // 直接握手成功
                     connection.sendPacket(S2CPacketHandShakeSuccess(id), GenericFutureListener<Future<Void>> { future ->
                         connection.connectionState = EnumConnectionState.LOGIN
                     })

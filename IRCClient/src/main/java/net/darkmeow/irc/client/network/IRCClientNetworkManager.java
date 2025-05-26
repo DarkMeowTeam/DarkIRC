@@ -13,7 +13,10 @@ import io.netty.handler.timeout.TimeoutException;
 import net.darkmeow.irc.IRCLib;
 import net.darkmeow.irc.client.IRCClient;
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
-import net.darkmeow.irc.client.network.handle.handshake.*;
+import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeBase;
+import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeCompression;
+import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeEncryption;
+import net.darkmeow.irc.client.network.handle.handshake.HandleHandShakeServerRedirect;
 import net.darkmeow.irc.client.network.handle.login.HandleLoginBase;
 import net.darkmeow.irc.client.network.handle.online.*;
 import net.darkmeow.irc.network.EnumPacketDirection;
@@ -63,7 +66,6 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                         ch.pipeline().addLast("handler_handshake_base", new HandleHandShakeBase(networkManager));
                         ch.pipeline().addLast("handler_handshake_compression", new HandleHandShakeCompression(networkManager));
                         ch.pipeline().addLast("handler_handshake_encryption", new HandleHandShakeEncryption(networkManager));
-                        ch.pipeline().addLast("handler_handshake_signature_verify", new HandleHandShakeSignatureVerify(networkManager));
                         ch.pipeline().addLast("handler_handshake_server_redirect", new HandleHandShakeServerRedirect(networkManager));
 
                         ch.pipeline().addLast("handler_login_base", new HandleLoginBase(networkManager));
