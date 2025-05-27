@@ -6,6 +6,7 @@ val log4jVersion: String by project
 plugins {
     java
     kotlin("jvm")
+
     application
 }
 
@@ -38,16 +39,5 @@ tasks {
 
     kotlin {
         jvmToolchain(17)
-    }
-
-    jar {
-        manifest {
-            attributes(
-                "Main-Class" to "net.darkmeow.irc.IRCServerLoaderKt"
-            )
-        }
-
-        from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     }
 }
