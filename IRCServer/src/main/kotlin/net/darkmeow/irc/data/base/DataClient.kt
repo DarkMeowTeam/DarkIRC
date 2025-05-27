@@ -17,4 +17,11 @@ data class DataClient(
         val clientAdministrators: MutableSet<String> = mutableSetOf(),
         val clientUsers: MutableSet<String> = mutableSetOf()
     )
+
+    companion object {
+        @Suppress("SpellCheckingInspection")
+        fun generateKey() = (1..32)
+            .map { "abcdefghijklmnopqrstuvwxyz0123456789".random() }
+            .joinToString("")
+    }
 }

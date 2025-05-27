@@ -18,13 +18,11 @@ import net.darkmeow.irc.utils.user.UserPremiumUtils.isClientAdmin
 
 class CommandClients: Command("Clients") {
 
-
-
     override fun handle(manager: CommandManager, connection: IRCNetworkManagerServer, args: MutableList<String>) {
         when (if (args.isEmpty()) "" else args[0]) {
             "create" -> {
                 if (args.size != 4) {
-                    connection.sendCommandUsage("clients", "create <客户端Id> <客户端Hash> <最低允许登录版本>")
+                    connection.sendCommandUsage("clients", "create <客户端名> <最低允许登录版本>")
                     return
                 }
                 if (connection.userPremium != EnumUserPremium.OWNER) {
@@ -32,8 +30,9 @@ class CommandClients: Command("Clients") {
                     return
                 }
                 manager.base.dataManager.apply {
-                    createClient(args[1], args[2], DataClient.ClientMetadata(args[3].toIntOrNull() ?: 0))
-                    connection.sendSystemMessage("成功创建客户端 ${args[1]}")
+                    createClient(args[1], DataClient.ClientMetadata(args[3].toIntOrNull() ?: 0)).also { client ->
+                        connection.sendSystemMessage("成功创建客户端 ${client.name}, 连接密钥: ${client.key} (只显示一次, 请妥善保存)")
+                    }
                 }
             }
             "delete" -> {

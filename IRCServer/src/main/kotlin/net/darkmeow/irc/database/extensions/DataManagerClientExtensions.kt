@@ -18,10 +18,11 @@ object DataManagerClientExtensions {
      * 创建新的客户端
      *
      * @param name 客户端名称
-     * @param key 客户端密钥
      * @param metadata 客户端数据
      */
-    fun DataBaseManager.createClient(name: String, key: String, metadata: DataClient.ClientMetadata) {
+    fun DataBaseManager.createClient(name: String, metadata: DataClient.ClientMetadata): DataClient {
+        val key = DataClient.generateKey()
+
         transaction(database) {
             DataBaseClient.insert {
                 it[this.id] = name
@@ -31,6 +32,12 @@ object DataManagerClientExtensions {
                 it[this.usersAllowLogin] = metadata.clientUsers.joinToString(separator = ",")
             }
         }
+
+        return DataClient(
+            name = name,
+            key = key,
+            metadata = metadata,
+        )
     }
 
     /**
