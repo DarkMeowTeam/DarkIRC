@@ -2,6 +2,8 @@ val baseGroup: String by project
 val baseVersion: String by project
 
 val nettyVersion: String by project
+val annotationsVersion: String by project
+val lombokVersion: String by project
 
 plugins {
     idea
@@ -33,10 +35,10 @@ allprojects {
     dependencies {
         implementation("io.netty:netty-all:${nettyVersion}")
 
-        compileOnly("org.jetbrains:annotations:24.0.0")
+        compileOnly("org.jetbrains:annotations:${annotationsVersion}")
 
-        compileOnly("org.projectlombok:lombok:1.18.32")
-        annotationProcessor("org.projectlombok:lombok:1.18.32")
+        compileOnly("org.projectlombok:lombok:${lombokVersion}")
+        annotationProcessor("org.projectlombok:lombok:${lombokVersion}")
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.7.0")
         testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.0")
