@@ -67,7 +67,26 @@ publishing {
             }
         }
     }
+
+    val mavenAuth = System.getenv("MAVEN_USERNAME")?.let { username ->
+        System.getenv("MAVEN_PASSWORD")?.let { password ->
+            username to password
+        }
+    }
+
     repositories {
         mavenLocal()
+
+        mavenAuth?.also { auth ->
+            maven {
+                url = uri("https://nekocurit.asia/repository/release/")
+
+                credentials {
+                    username = auth.first
+                    password = auth.second
+                }
+            }
+        }
+
     }
 }
