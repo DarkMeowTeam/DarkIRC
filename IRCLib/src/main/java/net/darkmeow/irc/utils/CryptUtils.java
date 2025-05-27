@@ -11,24 +11,16 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.*;
 import java.security.spec.EncodedKeySpec;
-import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
 public class CryptUtils {
 
-    public static SecretKey createNewSharedKey() {
-        try
-        {
-            KeyGenerator keygenerator = KeyGenerator.getInstance("AES");
-            keygenerator.init(128);
-            return keygenerator.generateKey();
-        }
-        catch (NoSuchAlgorithmException nosuchalgorithmexception)
-        {
-            throw new Error(nosuchalgorithmexception);
-        }
+    public static SecretKey createNewSharedKey() throws NoSuchAlgorithmException {
+        KeyGenerator keygenerator = KeyGenerator.getInstance("AES");
+        keygenerator.init(128);
+        return keygenerator.generateKey();
     }
 
     /**
@@ -113,82 +105,50 @@ public class CryptUtils {
     }
 
 
-    public static byte[] encryptData(Key key, byte[] data)
-    {
+    public static byte[] encryptData(Key key, byte[] data) {
         return cipherOperation(1, key, data);
     }
 
-    public static byte[] decryptData(Key key, byte[] data)
-    {
+    public static byte[] decryptData(Key key, byte[] data) {
         return cipherOperation(2, key, data);
     }
 
-    private static byte[] cipherOperation(int opMode, Key key, byte[] data)
-    {
-        try
-        {
-            return createTheCipherInstance(opMode, key.getAlgorithm(), key).doFinal(data);
-        }
-        catch (IllegalBlockSizeException illegalblocksizeexception)
-        {
-            illegalblocksizeexception.printStackTrace();
-        }
-        catch (BadPaddingException badpaddingexception)
-        {
-            badpaddingexception.printStackTrace();
-        }
-
-        return null;
-    }
-    private static Cipher createTheCipherInstance(int opMode, String transformation, Key key)
-    {
-        try
-        {
-            Cipher cipher = Cipher.getInstance(transformation);
+    private static byte[] cipherOperation(int opMode, Key key, byte[] data) {
+        try {
+            Cipher cipher = Cipher.getInstance(key.getAlgorithm());
             cipher.init(opMode, key);
-            return cipher;
+            return cipher.doFinal(data);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
-        catch (InvalidKeyException invalidkeyexception)
-        {
-            invalidkeyexception.printStackTrace();
-        }
-        catch (NoSuchAlgorithmException nosuchalgorithmexception)
-        {
-            nosuchalgorithmexception.printStackTrace();
-        }
-        catch (NoSuchPaddingException nosuchpaddingexception)
-        {
-            nosuchpaddingexception.printStackTrace();
-        }
-
-        return null;
     }
-
 
     @NotNull
-    public static PublicKey decodePublicKey(byte[] encodedKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
-        EncodedKeySpec encodedkeyspec = new X509EncodedKeySpec(encodedKey);
-        KeyFactory keyfactory = KeyFactory.getInstance("RSA");
-        return keyfactory.generatePublic(encodedkeyspec);
+    public static PublicKey decodePublicKey(byte[] encodedKey) {
+        try {
+            EncodedKeySpec encodedkeyspec = new X509EncodedKeySpec(encodedKey);
+            KeyFactory keyfactory = KeyFactory.getInstance("RSA");
+            return keyfactory.generatePublic(encodedkeyspec);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static @NotNull SecretKey decryptSharedKey(PrivateKey key, byte[] secretKeyEncrypted)
-    {
-        return new SecretKeySpec(decryptData(key, secretKeyEncrypted), "AES");
+    public static @NotNull SecretKey decryptSharedKey(PrivateKey key, byte[] secretKeyEncrypted) {
+        try {
+            return new SecretKeySpec(decryptData(key, secretKeyEncrypted), "AES");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
-
-    public static Cipher createNetCipherInstance(int opMode, Key key)
-    {
-        try
-        {
+    public static Cipher createNetCipherInstance(int opMode, Key key) {
+        try {
             Cipher cipher = Cipher.getInstance("AES/CFB8/NoPadding");
             cipher.init(opMode, key, new IvParameterSpec(key.getEncoded()));
             return cipher;
-        }
-        catch (GeneralSecurityException generalsecurityexception)
-        {
-            throw new RuntimeException(generalsecurityexception);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
