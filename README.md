@@ -23,8 +23,8 @@
 
 1. 克隆这个存储库 `git clone https://github.com/DarkMeowTeam/DarkIRC/`.
 2. `CD`进入这个目录.
-3. 使用你的 IDE 打开
-4. 构建服务端 `gradle IRCServer:build` 构建客户端 `gradle IRCClient:build`
+3. 运行 `gradle IRCServer:installDist` 以构建服务端
+4. 执行 `cd .\IRCServer\build\install\IRCServer\bin\` 和 `IRCServer` 以启动服务端
 
 ## 部署服务端
 
@@ -43,9 +43,13 @@ ircServer:
    # 是否开启代理协议 (常用于通过 frp/cdn)
    proxyProtocol: false
    # 是否开启连接加密 会在握手完成后开始
-   encryption: true
-   # 是否开启签名验证 开启后需要在客户端配置系统的私钥
+   encryption: false
+   # 是否开启签名验证 开启后需要在客户端配置系统的私钥 仅在 encryption 开启时工作
    signature: false
+   # 数据压缩配置
+   compression: 
+      state: false
+      threshold: 256
 userLimit:
    # 是否允许单一用户同时在多个不同的设备上登陆
    allowMultiDeviceLogin: true
