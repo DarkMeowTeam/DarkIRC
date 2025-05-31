@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import javax.crypto.SecretKey;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.util.Base64;
 
 public class C2SPacketEncryptionResponse implements C2SPacket {
 
@@ -35,12 +36,12 @@ public class C2SPacketEncryptionResponse implements C2SPacket {
      *
      * @param publicKey 加密公钥
      * @param secretKey 加密私钥
-     * @param signatureKey 签名密钥
+     * @param signaturePrivateKey 签名密钥
      * @param signatureCode 签名文本
      */
-    public C2SPacketEncryptionResponse(PublicKey publicKey, SecretKey secretKey, PrivateKey signatureKey, String signatureCode) throws Exception {
+    public C2SPacketEncryptionResponse(PublicKey publicKey, SecretKey secretKey, PrivateKey signaturePrivateKey, String signatureCode) throws Exception {
         this.secretKeyEncrypted = CryptUtils.encryptData(publicKey, secretKey.getEncoded());
-        this.signatureByte = CryptUtils.signCode(signatureCode, signatureKey);
+        this.signatureByte = CryptUtils.signCode(Base64.getEncoder().encodeToString(publicKey.getEncoded()) + signatureCode, signaturePrivateKey);
     }
 
     public C2SPacketEncryptionResponse(@NotNull FriendBuffer buffer) {
@@ -62,8 +63,12 @@ public class C2SPacketEncryptionResponse implements C2SPacket {
         return this.signatureByte.length != 0;
     }
 
-    public boolean verifySignature(@NotNull PublicKey key, @NotNull String code) throws Exception {
-        return CryptUtils.verifyCode(code, signatureByte, key);
+    public boolean verifySignature(@NotNull PublicKey connectionPublickey, @NotNull PublicKey signaturePublicKey, @NotNull String code) {
+        try {
+            return CryptUtils.verifyCode(Base64.getEncoder().encodeToString(connectionPublickey.getEncoded()) + code, signatureByte, signaturePublicKey);
+        } catch (Exception ignored) {
+            return false;
+        }
     }
 
 }

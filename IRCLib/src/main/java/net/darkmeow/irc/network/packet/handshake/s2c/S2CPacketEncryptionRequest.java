@@ -7,9 +7,7 @@ import net.darkmeow.irc.utils.CryptUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
-import java.security.spec.InvalidKeySpecException;
 
 /**
  * 握手包成功
@@ -36,7 +34,7 @@ public class S2CPacketEncryptionRequest implements S2CPacket {
         this.signatureCode = signatureCode;
     }
 
-    public S2CPacketEncryptionRequest(@NotNull FriendBuffer buffer) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    public S2CPacketEncryptionRequest(@NotNull FriendBuffer buffer) {
         this.publicKey = CryptUtils.decodePublicKey(buffer.readByteArray());
         this.signatureCode = buffer.readBoolean() ? buffer.readString(32767) : null;
     }
