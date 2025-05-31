@@ -33,8 +33,6 @@ allprojects {
     }
 
     dependencies {
-        implementation("io.netty:netty-all:${nettyVersion}")
-
         compileOnly("org.jetbrains:annotations:${annotationsVersion}")
 
         compileOnly("org.projectlombok:lombok:${lombokVersion}")
@@ -52,5 +50,22 @@ allprojects {
         withType<JavaCompile> {
             options.encoding = "UTF-8"
         }
+    }
+}
+
+arrayOf(":IRCLib", ":IRCClient").forEach { projName ->
+    project(projName) {
+        dependencies {
+            implementation("io.netty:netty-transport:${nettyVersion}")
+            implementation("io.netty:netty-codec:${nettyVersion}")
+            implementation("io.netty:netty-handler-proxy:${nettyVersion}")
+            implementation("io.netty:netty-handler:${nettyVersion}")
+        }
+    }
+}
+
+project(":IRCServer") {
+    dependencies {
+        implementation("io.netty:netty-all:${nettyVersion}")
     }
 }
