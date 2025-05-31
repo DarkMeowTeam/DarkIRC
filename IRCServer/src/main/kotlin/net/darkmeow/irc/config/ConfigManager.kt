@@ -2,7 +2,7 @@ package net.darkmeow.irc.config
 
 import net.darkmeow.irc.config.configs.Config
 import net.darkmeow.irc.utils.CryptUtils
-import net.darkmeow.irc.utils.ymal.YamlConfig
+import net.darkmeow.irc.utils.YamlUtils
 import org.apache.logging.log4j.LogManager
 import java.io.File
 import java.nio.charset.StandardCharsets
@@ -24,10 +24,10 @@ class ConfigManager {
     fun readConfig() {
         try {
             if (CONFIG_FILE.exists()) {
-                configs = YamlConfig.loadFromString(CONFIG_FILE.readText(StandardCharsets.UTF_8), Config::class.java)
+                configs = YamlUtils.loadFromString(CONFIG_FILE.readText(StandardCharsets.UTF_8), Config::class.java)
             } else {
                 configs = Config()
-                CONFIG_FILE.writeText(YamlConfig.saveToString(configs), StandardCharsets.UTF_8)
+                CONFIG_FILE.writeText(YamlUtils.saveToString(configs), StandardCharsets.UTF_8)
                 logger.info("生成默认配置")
             }
 
