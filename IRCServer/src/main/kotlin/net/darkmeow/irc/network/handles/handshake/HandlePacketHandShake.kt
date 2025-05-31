@@ -50,7 +50,10 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
                     // 加密会话 & 签名验证 流程
                     connection.keyPair = CryptUtils.generateKeyPair()
                     if (config.signature) {
-                        connection.signatureCode = "random"
+                        @Suppress("SpellCheckingInspection")
+                        connection.signatureCode = (1..32)
+                            .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }
+                            .joinToString("")
                         connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public, connection.signatureCode))
                     } else {
                         connection.signatureCode = ""
