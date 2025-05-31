@@ -1,6 +1,5 @@
 package net.darkmeow.irc.config.configs
 
-@Suppress("Unused")
 class Config {
 
     /**
@@ -27,7 +26,7 @@ class Config {
         /**
          * 服务器监听端口
          */
-        var port = 8080
+        var port = 45020
         /**
          * 是否启用 Proxy Protocol
          */
@@ -73,7 +72,7 @@ class Config {
         /**
          * Web API 端口
          */
-        var port = 8888
+        var port = 45021
         /**
          * Web API 密钥
          */
