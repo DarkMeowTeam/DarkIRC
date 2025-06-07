@@ -3,7 +3,7 @@ package net.darkmeow.irc.client.network;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import net.darkmeow.irc.data.DataClientBrand;
-import net.darkmeow.irc.utils.DeviceUtils;
+import net.darkmeow.irc.utils.FakeHardwareUniqueIdGetter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -37,7 +37,7 @@ public class IRCClientOptions {
      */
     @NotNull
     @Builder.Default
-    public String deviceId = DeviceUtils.getDeviceId();
+    public String deviceId = FakeHardwareUniqueIdGetter.get();
 
     /**
      * 如果服务端启用签名验证
