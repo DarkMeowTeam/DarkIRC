@@ -109,6 +109,11 @@ public interface IRCClientProvider {
      */
     void querySkin(@NotNull UUID sessionId);
     /**
+     * 更新在线客户端列表
+     * 当客户端列表与服务器不一致时可以尝试更新
+     */
+    void queryOnlineSessions();
+    /**
      * 上传皮肤
      *
      * @param skin 皮肤数据

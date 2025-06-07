@@ -145,6 +145,13 @@ public class IRCClient implements IRCClientProvider {
     }
 
     @Override
+    public void queryOnlineSessions() {
+        if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
+            connection.sendPacket(new C2SPacketQuerySessions(false));
+        }
+    }
+
+    @Override
     public void uploadSkin(@NotNull DataSkin skin) {
         if (isConnected() && connection.getConnectionState() == EnumConnectionState.ONLINE) {
             connection.sendPacket(new C2SPacketUploadSkin(skin));
