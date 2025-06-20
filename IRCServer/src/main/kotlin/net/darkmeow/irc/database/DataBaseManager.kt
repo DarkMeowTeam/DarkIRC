@@ -39,13 +39,12 @@ class DataBaseManager(
     }
 
     fun createDefault() {
-        println(getClients().size)
         if (this.getClients().isEmpty() && this.getUsers().isEmpty()) {
             this.createClient(name = "default", metadata = DataClient.ClientMetadata(allowLoginMinVersion = 0)).also {
                 base.logger.info("[数据库管理] 创建默认登录客户端信息(name: default, key: ${it.key})")
             }
-            this.createUser(name = "Administrator", password = "123456", premium = EnumUserPremium.OWNER).also {
-                base.logger.info("[数据库管理] 创建默认用户(name: Administrator, password: 123456)")
+            this.createUser(name = "admin", password = "123456", premium = EnumUserPremium.OWNER).also {
+                base.logger.info("[数据库管理] 创建默认用户(name: admin, password: 123456)")
             }
         }
     }

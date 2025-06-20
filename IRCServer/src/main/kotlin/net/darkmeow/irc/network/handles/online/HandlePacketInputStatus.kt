@@ -73,7 +73,6 @@ class HandlePacketInputStatus(private val connection: IRCNetworkManagerServer): 
             if (otherCall.syncInputStatus.shouldUpdate(publicInputs, privateInputs)) {
                 otherCall.sendPacket(S2CPacketOtherInputState(publicInputs, privateInputs))
                 otherCall.syncInputStatus.update(publicInputs, privateInputs)
-            } else {
             }
         }
     }
