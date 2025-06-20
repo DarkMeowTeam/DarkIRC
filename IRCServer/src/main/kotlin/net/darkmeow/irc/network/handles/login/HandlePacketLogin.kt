@@ -46,7 +46,7 @@ class HandlePacketLogin(private val connection: IRCNetworkManagerServer): Simple
                         if (!userExist(packet.username)) throw AuthenticationException("用户名或密码错误", true)
                         val meta = getUserMetadata(packet.username)
                         // 密码错误
-                        if (meta.metadata.password != packet.password) throw AuthenticationException("用户名或密码错误", true)
+                        if (!meta.metadata.checkPassword(packet.password)) throw AuthenticationException("用户名或密码错误", true)
                         // 用户已被封禁
                         if (meta.metadata.premium == EnumUserPremium.BANNED) throw AuthenticationException("用户已被封禁, 无法登录", true)
                     }
@@ -133,7 +133,7 @@ class HandlePacketLogin(private val connection: IRCNetworkManagerServer): Simple
             .onFailure { e ->
                 when (e) {
                     is AuthenticationException -> connection.kick(e.msg, e.markSessionTokenInvalid)
-                    else -> connection.kick("服务端异常 (${e.cause?.javaClass?.simpleName}: ${e.cause?.message})")
+                    else -> connection.kick("服务端异常 (${e})")
                 }
             }
     }

@@ -1,6 +1,7 @@
 val gsonVersion: String by project
 val sqliteJdbcVersion: String by project
 val exposedVersion: String by project
+val jbcryptVersion: String by project
 val log4jVersion: String by project
 
 plugins {
@@ -28,6 +29,8 @@ dependencies {
     implementation("org.jetbrains.exposed:exposed-core:${exposedVersion}")
     implementation("org.jetbrains.exposed:exposed-dao:${exposedVersion}")
     implementation("org.jetbrains.exposed:exposed-jdbc:${exposedVersion}")
+
+    implementation("org.mindrot:jbcrypt:${jbcryptVersion}")
 }
 
 tasks {

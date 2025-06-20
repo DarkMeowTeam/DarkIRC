@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import org.mindrot.jbcrypt.BCrypt
 
 object DataManagerUserExtensions {
     /**
@@ -26,7 +27,8 @@ object DataManagerUserExtensions {
         transaction(database) {
             DataBaseUser.insert {
                 it[this.name] = name
-                it[this.password] = password
+                it[this.password] = BCrypt.hashpw(password
+                    , BCrypt.gensalt())
                 it[this.premium] = premium.ordinal
             }
         }
@@ -80,7 +82,7 @@ object DataManagerUserExtensions {
                     name = it[DataBaseUser.name],
                     metadata = DataUser.UserMetadata(
                         premium = EnumUserPremium.entries[it[DataBaseUser.premium]],
-                        password = it[DataBaseUser.password]
+                        passwordHash = it[DataBaseUser.password]
                     )
                 )
             }
@@ -100,7 +102,7 @@ object DataManagerUserExtensions {
                     name = it[DataBaseUser.name],
                     metadata = DataUser.UserMetadata(
                         premium = EnumUserPremium.entries[it[DataBaseUser.premium]],
-                        password = it[DataBaseUser.password]
+                        passwordHash = it[DataBaseUser.password]
                     )
                 )
             }
@@ -129,7 +131,7 @@ object DataManagerUserExtensions {
                         it[this.premium] = update.ordinal
                     }
                     password?.also { update ->
-                        it[this.password] = update
+                        it[this.password] = BCrypt.hashpw(update, BCrypt.gensalt())
                     }
                 }
                 .also { count ->
