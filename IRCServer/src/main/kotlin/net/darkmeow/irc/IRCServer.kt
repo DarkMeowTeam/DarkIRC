@@ -27,7 +27,6 @@ class IRCServer {
         webServerManager.start()
 
         Runtime.getRuntime().addShutdownHook(Thread {
-            webServerManager.stop()
             networkManager.stop()
         })
     }

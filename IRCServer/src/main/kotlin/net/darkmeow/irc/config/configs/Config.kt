@@ -70,17 +70,17 @@ class Config {
 
     class WebServer {
         /**
+         * Web API 监听 IP
+         */
+        var host = "0.0.0.0"
+        /**
          * Web API 端口
          */
         var port = 45021
         /**
          * Web API 密钥
+         * 配置后请添加额外的header "Authorization: Basic ${Base64.getEncoder().encode("任意字符:key")}"
          */
         var key = ""
-        /**
-         * Web API IP 白名单
-         * 留空关闭
-         */
-        var ipWhiteList = mutableSetOf<String>()
     }
 }
