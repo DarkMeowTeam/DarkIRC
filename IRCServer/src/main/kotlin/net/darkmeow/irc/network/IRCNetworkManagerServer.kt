@@ -125,6 +125,7 @@ class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetwor
             bossNetworkManager.clients.remove(sessionId)
             bossNetworkManager.logger.info("[-] $user")
         }
+        super.channelInactive(ctx)
     }
 
 }
