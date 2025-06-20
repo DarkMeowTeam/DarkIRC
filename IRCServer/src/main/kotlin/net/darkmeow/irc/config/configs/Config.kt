@@ -79,8 +79,14 @@ class Config {
         var port = 45021
         /**
          * Web API 密钥
-         * 配置后请添加额外的header "Authorization: Basic ${Base64.getEncoder().encode("任意字符:key")}"
+         * 配置后请添加额外的header "Authorization: Basic key"
+         * 留空关闭
          */
         var key = ""
+        /**
+         * Web API IP 白名单
+         * 留空关闭
+         */
+        var ipWhiteList = mutableSetOf<String>()
     }
 }
