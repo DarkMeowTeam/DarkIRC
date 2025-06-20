@@ -1,8 +1,11 @@
+val slf4jVersion: String by project
+val apacheCommonsCompressVersion: String by project
+val tukaaniXZVersion: String by project
+val apacheLog4jVersion: String by project
 val gsonVersion: String by project
 val sqliteJdbcVersion: String by project
 val exposedVersion: String by project
 val jbcryptVersion: String by project
-val log4jVersion: String by project
 
 plugins {
     java
@@ -20,8 +23,14 @@ dependencies {
 
     implementation(kotlin("stdlib"))
 
+    implementation("org.slf4j:slf4j-api:${slf4jVersion}")
+    implementation("org.apache.logging.log4j:log4j-core:${apacheLog4jVersion}")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:${apacheLog4jVersion}")
+
+    implementation("org.apache.commons:commons-compress:${apacheCommonsCompressVersion}")
+    implementation("org.tukaani:xz:${tukaaniXZVersion}")
+
     implementation("com.google.code.gson:gson:${gsonVersion}")
-    implementation("org.apache.logging.log4j:log4j-core:${log4jVersion}")
     implementation("com.esotericsoftware.yamlbeans:yamlbeans:1.17")
 
     implementation("org.xerial:sqlite-jdbc:${sqliteJdbcVersion}")
@@ -42,5 +51,19 @@ tasks {
 
     kotlin {
         jvmToolchain(17)
+    }
+
+    startScripts {
+        doLast {
+            windowsScript.apply {
+                windowsScript
+                    .readText()
+                    .replace(
+                        Regex("set CLASSPATH=.*"),
+                        """set CLASSPATH=%APP_HOME%\\lib\\*"""
+                    )
+                    .also { writeText(it) }
+            }
+        }
     }
 }
