@@ -12,7 +12,7 @@ class IRCServer {
 
     val logger: Logger = LoggerFactory.getLogger("DarkIRC")
 
-    val configManager = ConfigManager()
+    val configManager = ConfigManager(this)
     val networkManager = NetworkManager(this)
     val dataManager = DataBaseManager(this)
     val commandManager = CommandManager(this)

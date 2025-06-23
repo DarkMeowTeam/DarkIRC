@@ -67,7 +67,7 @@ class NetworkManager(
                             val subNetworkManager = IRCNetworkManagerServer(this@NetworkManager)
 
                             // Network | Proxy Protocol
-                            if (base.configManager.configs.ircServer.proxyProtocol) {
+                            if (base.configManager.configs.server.proxyProtocol) {
                                 ch.pipeline().addLast("proxy_protocol", HAProxyMessageDecoder())
                             }
 
@@ -96,10 +96,10 @@ class NetworkManager(
                     .childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT)
                     .childOption(ChannelOption.SO_REUSEADDR, true)
 
-                val future = bootstrap.bind(base.configManager.configs.ircServer.host, base.configManager.configs.ircServer.port).sync()
+                val future = bootstrap.bind(base.configManager.configs.server.host, base.configManager.configs.server.port).sync()
                 serverChannel = future.channel()
 
-                logger.info("监听于 ${base.configManager.configs.ircServer.host}:${base.configManager.configs.ircServer.port}")
+                logger.info("监听于 ${base.configManager.configs.server.host}:${base.configManager.configs.server.port}")
 
                 latch.countDown()
 

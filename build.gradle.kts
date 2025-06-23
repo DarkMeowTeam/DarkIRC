@@ -27,8 +27,9 @@ allprojects {
 
     repositories {
         mavenLocal()
+        mavenCentral()
 
-        maven("https://maven.aliyun.com/repository/central/") // mavenCentral()
+        maven("https://maven.aliyun.com/repository/central/")
         maven("https://jitpack.io")
     }
 

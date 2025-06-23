@@ -31,7 +31,7 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
             if (packet.hardWareUniqueId.isEmpty()) throw Exception("服务器正在维护中")
         }
             .onSuccess {
-                val config = connection.bossNetworkManager.base.configManager.configs.ircServer
+                val config = connection.bossNetworkManager.base.configManager.configs.server
                 val id = UUID.randomUUID()
 
                 connection.protocolVersion = packet.protocolVersion

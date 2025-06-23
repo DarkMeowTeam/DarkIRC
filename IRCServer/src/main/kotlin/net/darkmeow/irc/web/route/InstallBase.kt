@@ -8,9 +8,6 @@ import io.ktor.server.auth.AuthenticationContext
 import io.ktor.server.auth.AuthenticationFailedCause
 import io.ktor.server.auth.AuthenticationProvider
 import io.ktor.server.auth.UserIdPrincipal
-import io.ktor.server.auth.authentication
-import io.ktor.server.auth.basic
-import io.ktor.server.auth.bearer
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.origin
@@ -42,12 +39,12 @@ fun Application.installBase(system: IRCServer) {
                 val ip = context.call.request.origin.remoteHost
 
                 runCatching {
-                    system.configManager.configs.webServer.key
+                    system.configManager.configs.api.key
                         .takeIf { it.isNotEmpty() }
                         ?.also { keyConfig ->
                             if (key != keyConfig) throw Exception()
                         }
-                    system.configManager.configs.webServer.ipWhiteList
+                    system.configManager.configs.api.ipWhiteList
                         .takeIf { it.isNotEmpty() }
                         ?.also { ipWhiteList ->
                             if (!ipWhiteList.contains(ip)) throw Exception()

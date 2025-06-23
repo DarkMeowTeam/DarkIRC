@@ -13,7 +13,7 @@ class HandlePacketEncryptionResponse(private val connection: IRCNetworkManagerSe
 
     override fun channelRead0(ctx: ChannelHandlerContext, packet: C2SPacketEncryptionResponse) {
         runCatching {
-            if (!connection.bossNetworkManager.base.configManager.configs.ircServer.encryption) throw Exception("服务端未启用加密")
+            if (!connection.bossNetworkManager.base.configManager.configs.server.encryption) throw Exception("服务端未启用加密")
 
             if (connection.signatureCode.isEmpty()) {
                 if (packet.hasSignatureResponse()) throw Exception("服务端未启用签名验证")

@@ -12,7 +12,7 @@ class WebServerManager(
     val system: IRCServer
 ) {
     fun start() {
-        embeddedServer(factory = Netty, host = system.configManager.configs.webServer.host, port = system.configManager.configs.webServer.port) {
+        embeddedServer(factory = Netty, host = system.configManager.configs.api.host, port = system.configManager.configs.api.port) {
             installBase(system)
 
             routing {
