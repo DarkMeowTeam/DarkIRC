@@ -7,14 +7,15 @@
 
 
 ## 功能
-- 连接安全加密 与 客户端签名验证
+- 连接安全加密 与 双向签名验证 (防止未授权客户端接入 与 防止连接破解者服务器绕过授权(如果把 IRC 登录和授权绑在一起的话))
 - 客户端登录检查 (通过配置以禁止低版本客户端登录)
 - 用户名密码/token登录
 - 公开聊天和用户名之间私有聊天
 - 游戏内 ID 共享 (以允许制作同客户端用户不互相攻击)
 - 游戏内 披风与皮肤 共享
-- 同用户名多设备登录兼容 (当然,你也可以手动禁止它)
-- 管理员:游戏内通过管理 IRC 用户
+- 同用户名多设备登录兼容 (允许一个人开多个客户端连接)
+- 管理:游戏内使用 指令 管理
+- 管理:通过 API 管理
 
 ## 构建
 
@@ -46,14 +47,14 @@ dependencies {
 
 也可以自行构建
 
-示例代码: 
+最小化示例代码: 
 
 ````java
 public void connect() throws Throwable {
     final IRCClientProvider client = new IRCClient(new TestListener(), IRCClientOptions.builder()
-            .host("localhost")
-            .port(45020)
-            .brand(new DataClientBrand("default", "客户端key", "版本号", 0))
+            .host(System.getenv("IRC_SERVER")) // 服务器地址
+            .port(Integer.parseInt(System.getenv("IRC_PORT"))) // 服务器端口
+            .brand(new DataClientBrand("default", "Test", 1)) // 客户端标识
             .build()
     );
     client.connect();
@@ -69,12 +70,13 @@ public class TestListener extends IRCClientListenableSimple {
 
     @Override
     public void onReadyLogin(IRCClientProvider client) {
-        client.login("用户名", "密码", false);
+        client.login(System.getenv("IRC_USERNAME"), System.getenv("IRC_PASSWORD"), false);
     }
 
     @Override
     public void onUpdateUserInfo(IRCDataSelfSessionInfo info, boolean isFirstLogin) {
-        if (isFirstLogin) { // 服务端可能会二次下发用户信息 (比如说你从普通用户变成管理员)
+        // 服务端可能会二次下发用户信息 (比如说你从普通用户变成管理员)
+        if (isFirstLogin) { 
             System.out.println("登录成功(用户名:" + info.getName() + ")");
         }
     }
@@ -91,26 +93,30 @@ public class TestListener extends IRCClientListenableSimple {
 
 ````config.yml
 # 数据库
-database: jdbc:sqlite:data.db
+database:
+  url: "jdbc:sqlite:data.db"
+  driver: "org.sqlite.JDBC"
+  user: ""
+  password: ""
 ircServer: 
-   host: 0.0.0.0
-   port: 45020
-   # 是否开启代理协议 (常用于通过 frp/cdn)
-   proxyProtocol: false
-   # 是否开启连接加密 会在握手完成后开始
-   encryption: false
-   # 是否开启签名验证 开启后需要在客户端配置系统的私钥 仅在 encryption 开启时工作
-   signature: false
-   # 数据压缩配置
-   compression: 
-      state: false
-      threshold: 256
+  host: "0.0.0.0"
+  port: 45020
+  # 是否开启代理协议 (常用于通过 frp/cdn)
+  proxyProtocol: false
+  # 是否开启连接加密 会在握手完成后开始
+  encryption: true
+  # 是否开启签名验证 开启后需要在客户端配置系统的私钥 仅在 encryption 开启时工作
+  signature: true
+  # 数据压缩配置
+  compression:
+    state: true
+    threshold: 256
 userLimit:
-   # 是否允许单一用户同时在多个不同的设备上登陆
-   allowMultiDeviceLogin: true
+  # 是否允许单一用户同时在多个不同的设备上登陆
+  allowMultiDeviceLogin: true
 webServer:
-   # API访问IP白名单
-   ipWhiteList: [""]
-   key: ""
-   port: 45021
+  # API访问IP白名单
+  ipWhiteList: [""]
+  key: ""
+  port: 45021
 ````
