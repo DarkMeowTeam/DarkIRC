@@ -18,6 +18,17 @@ public final class HandleHandShakeServerInfo extends SimpleChannelInboundHandler
     }
 
     @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        super.channelActive(ctx);
+
+        final IRCClientRemoteVerify remoteVerify = connection.base.options.remoteVerify;
+
+        if (remoteVerify != null) {
+            remoteVerify.verify = false;
+        }
+    }
+
+    @Override
     protected void channelRead0(ChannelHandlerContext ctx, S2CPacketServerInfo packet) throws Exception {
         final IRCClientRemoteVerify remoteVerify = connection.base.options.remoteVerify;
 
