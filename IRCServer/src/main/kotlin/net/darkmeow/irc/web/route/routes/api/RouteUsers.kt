@@ -62,11 +62,23 @@ fun Route.routeApiUsers(system: IRCServer) {
             val premium = call.parameters["premium"]?.toIntOrNull() ?: throw Exception("参数 premium 不存在或无效")
             if (premium !in 0..EnumUserPremium.entries.size) throw Exception("无效的等级范围")
 
-            system.dataManager.createUser(name = name, password = password, premium = EnumUserPremium.entries[premium])
-            call.respondSuccess(null)
+            call.respondSuccess(
+                data =ResponseUserQuery(
+                    system = system,
+                    data = system.dataManager.createUser(
+                        name = name,
+                        password = password,
+                        premium = EnumUserPremium.entries[premium]
+                    )
+                )
+            )
         }
         get("/list") {
-            call.respondSuccess(ResponseListUsers(system.dataManager.getUsers().map { ResponseUserQuery(system = system, data = it) }))
+            call.respondSuccess(
+                data = ResponseListUsers(
+                    users = system.dataManager.getUsers().map { ResponseUserQuery(system = system, data = it) }
+                )
+            )
         }
     }
 }

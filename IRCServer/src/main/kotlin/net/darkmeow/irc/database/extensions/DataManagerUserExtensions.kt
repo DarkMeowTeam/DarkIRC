@@ -24,7 +24,9 @@ object DataManagerUserExtensions {
      * @param password 初始密码
      * @param premium 用户等级
      */
-    fun DataBaseManager.createUser(name: String, password: String, premium: EnumUserPremium) {
+    fun DataBaseManager.createUser(name: String, password: String, premium: EnumUserPremium): DataUser {
+        val passwordHash = BCrypt.hashpw(password, BCrypt.gensalt())
+
         transaction(database) {
             if (DataBaseUser.selectAll().any { it[DataBaseUser.name] == name }) {
                 throw DataUserAlreadyExistException(name)
@@ -32,10 +34,18 @@ object DataManagerUserExtensions {
 
             DataBaseUser.insert {
                 it[this.name] = name
-                it[this.password] = BCrypt.hashpw(password, BCrypt.gensalt())
+                it[this.password] = passwordHash
                 it[this.premium] = premium.ordinal
             }
         }
+
+        return DataUser(
+            name = name,
+            metadata = DataUser.UserMetadata(
+                premium = premium,
+                passwordHash = passwordHash
+            )
+        )
     }
 
     /**
