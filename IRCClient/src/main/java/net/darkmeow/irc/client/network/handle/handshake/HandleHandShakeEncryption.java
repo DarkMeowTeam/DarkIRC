@@ -25,9 +25,9 @@ public final class HandleHandShakeEncryption extends SimpleChannelInboundHandler
         final SecretKey secretkey = CryptUtils.createNewSharedKey();
 
         if (packet.hasSignatureRequire()) {
-            if (connection.base.options.key != null) {
+            if (connection.base.options.clientKey != null) {
                 this.connection.sendPacket(
-                    new C2SPacketEncryptionResponse(packet.getPublicKey(), secretkey, connection.base.options.key.getKey(), packet.getSignatureData()),
+                    new C2SPacketEncryptionResponse(packet.getPublicKey(), secretkey, connection.base.options.clientKey.getKey(), packet.getSignatureData()),
                     future -> connection.enableEncryption(secretkey)
                 );
             } else {

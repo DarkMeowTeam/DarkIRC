@@ -10,6 +10,7 @@ import net.darkmeow.irc.data.enmus.EnumUserPremium
 import net.darkmeow.irc.data.input.DataSessionInputStatusBase
 import net.darkmeow.irc.data.sync.DataSyncInputStatus
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketDenyHandShake
+import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketServerInfo
 import net.darkmeow.irc.network.packet.login.s2c.S2CPacketLoginFailed
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketDisconnect
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketSystemMessage
@@ -97,6 +98,14 @@ class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetwor
 
     fun sendSystemMessage(message: String) {
         sendPacket(S2CPacketSystemMessage(message, UUID.randomUUID()))
+    }
+
+    /**
+     * 发送服务端信息
+     * 只能在握手阶段调用
+     */
+    fun sendServerInfo() {
+        sendPacket(S2CPacketServerInfo(System.currentTimeMillis(), bossNetworkManager.base.configManager.serverKey))
     }
 
     /**

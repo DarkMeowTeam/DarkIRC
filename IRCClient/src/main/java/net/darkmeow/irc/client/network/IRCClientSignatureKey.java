@@ -9,17 +9,17 @@ import java.security.PrivateKey;
 import java.util.Base64;
 
 @AllArgsConstructor
-public class IRCClientVerifyKey {
+public class IRCClientSignatureKey {
 
     @Getter
     @NotNull
     private final PrivateKey key;
 
-    public IRCClientVerifyKey(byte[] data) throws Exception {
+    public IRCClientSignatureKey(byte[] data) throws Exception {
         key = CryptUtils.loadPrivateKeyFromByte(data);
     }
 
-    public IRCClientVerifyKey(@NotNull String src) throws Exception {
+    public IRCClientSignatureKey(@NotNull String src) throws Exception {
         this(Base64.getDecoder().decode(src.replace("\n", "").replace(" ", "")));
     }
 

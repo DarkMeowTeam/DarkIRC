@@ -35,6 +35,7 @@ class HandlePacketEncryptionResponse(private val connection: IRCNetworkManagerSe
             }
             .onSuccess {
                 connection.enableEncryption(packet.getSecretKey(connection.keyPair.private))
+                connection.sendServerInfo()
                 connection.sendPacket(S2CPacketHandShakeSuccess(connection.sessionId), GenericFutureListener<Future<Void>> { future ->
                     connection.connectionState = EnumConnectionState.LOGIN
                 })

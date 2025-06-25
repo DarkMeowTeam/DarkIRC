@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.Proxy;
-import java.security.PrivateKey;
 
 @Builder
 @AllArgsConstructor
@@ -41,11 +40,19 @@ public class IRCClientOptions {
 
     /**
      * 如果服务端启用签名验证
-     * 这里需要传入私钥
+     * 这里需要提供用于验证自身身份的密钥
      */
     @Nullable
     @Builder.Default
-    public IRCClientVerifyKey key = null;
+    public IRCClientSignatureKey clientKey = null;
+
+    /**
+     * 验证远程服务端身份
+     * 留空则不验证
+     */
+    @Nullable
+    @Builder.Default
+    public IRCClientRemoteVerify remoteVerify = null;
 
     /**
      * 客户端·标识

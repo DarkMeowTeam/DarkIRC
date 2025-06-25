@@ -31,7 +31,8 @@ public enum EnumConnectionState {
                 // 登录状态变更
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketRedirectServer.class);
                 this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketDenyHandShake.class);
-                // 连接数据压缩
+                // 服务端信息
+                this.registerPacket(EnumPacketDirection.CLIENT_BOUND, S2CPacketServerInfo.class);
             }
         },
     LOGIN(1)

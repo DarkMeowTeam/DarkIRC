@@ -12,6 +12,7 @@ import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEnableCompression
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEncryptionRequest
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketHandShakeSuccess
+import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketServerInfo
 import net.darkmeow.irc.utils.CryptUtils
 import net.darkmeow.irc.utils.RandomUtils
 import java.util.*
@@ -56,6 +57,7 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
                     }
                 } else {
                     // 直接握手成功
+                    connection.sendServerInfo()
                     connection.sendPacket(S2CPacketHandShakeSuccess(id), GenericFutureListener<Future<Void>> { future ->
                         connection.connectionState = EnumConnectionState.LOGIN
                     })
