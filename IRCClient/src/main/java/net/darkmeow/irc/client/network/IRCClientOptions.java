@@ -45,7 +45,7 @@ public class IRCClientOptions {
      */
     @Nullable
     @Builder.Default
-    public PrivateKey key = null;
+    public IRCClientVerifyKey key = null;
 
     /**
      * 客户端·标识
