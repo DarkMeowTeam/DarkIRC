@@ -19,42 +19,35 @@ public class S2CPacketEncryptionRequest implements S2CPacket {
     @NotNull
     private final PublicKey publicKey;
 
-
     @Getter
-    @Nullable
-    private final String signatureCode;
+    private final byte[] signatureData;
 
     public S2CPacketEncryptionRequest(@NotNull PublicKey publicKey) {
         this.publicKey = publicKey;
-        this.signatureCode = null;
+        this.signatureData = new byte[0];
     }
 
-    public S2CPacketEncryptionRequest(@NotNull PublicKey publicKey, @NotNull String signatureCode) {
+    public S2CPacketEncryptionRequest(@NotNull PublicKey publicKey, byte[] signatureData) {
         this.publicKey = publicKey;
-        this.signatureCode = signatureCode;
+        this.signatureData = signatureData;
     }
 
     public S2CPacketEncryptionRequest(@NotNull FriendBuffer buffer) {
         this.publicKey = CryptUtils.decodePublicKey(buffer.readByteArray());
-        this.signatureCode = buffer.readBoolean() ? buffer.readString(32767) : null;
+        this.signatureData = buffer.readByteArray();
     }
 
     @Override
     public void write(@NotNull FriendBuffer buffer) {
         buffer.writeByteArray(this.publicKey.getEncoded());
-        if (this.signatureCode != null) {
-            buffer.writeBoolean(true);
-            buffer.writeString(this.signatureCode);
-        } else {
-            buffer.writeBoolean(false);
-        }
+        buffer.writeByteArray(this.signatureData);
     }
 
     /**
      * 是否需要验证签名
      */
     public boolean hasSignatureRequire() {
-        return this.signatureCode != null;
+        return this.signatureData.length > 0;
     }
 
 }

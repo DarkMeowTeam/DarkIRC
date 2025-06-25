@@ -34,17 +34,17 @@ public class CryptUtils {
         return generator.generateKeyPair();
     }
 
-    public static byte[] signCode(String code, PrivateKey privateKey) throws Exception {
+    public static byte[] signData(byte[] data, PrivateKey privateKey) throws Exception {
         Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initSign(privateKey);
-        signature.update(code.getBytes(StandardCharsets.UTF_8));
+        signature.update(data);
         return signature.sign();
     }
 
-    public static boolean verifyCode(String code, byte[] signatureBytes, PublicKey publicKey) throws Exception {
+    public static boolean verifyData(byte[] data, byte[] signatureBytes, PublicKey publicKey) throws Exception {
         Signature signature = Signature.getInstance("SHA256withRSA");
         signature.initVerify(publicKey);
-        signature.update(code.getBytes(StandardCharsets.UTF_8));
+        signature.update(data);
         return signature.verify(signatureBytes);
     }
 

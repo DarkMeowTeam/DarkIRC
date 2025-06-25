@@ -13,6 +13,7 @@ import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEnableCompression
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketEncryptionRequest
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketHandShakeSuccess
 import net.darkmeow.irc.utils.CryptUtils
+import net.darkmeow.irc.utils.RandomUtils
 import java.util.*
 
 class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): SimpleChannelInboundHandler<C2SPacketHandShake>() {
@@ -50,13 +51,10 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
                     // 加密会话 & 签名验证 流程
                     connection.keyPair = CryptUtils.generateKeyPair()
                     if (config.signature) {
-                        @Suppress("SpellCheckingInspection")
-                        connection.signatureCode = (1..32)
-                            .map { "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".random() }
-                            .joinToString("")
-                        connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public, connection.signatureCode))
+                        connection.signatureData = RandomUtils.randomByteArray(size = 16)
+                        connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public, connection.signatureData))
                     } else {
-                        connection.signatureCode = ""
+                        connection.signatureData = ByteArray(0)
                         connection.sendPacket(S2CPacketEncryptionRequest(connection.keyPair.public))
                     }
                 } else {

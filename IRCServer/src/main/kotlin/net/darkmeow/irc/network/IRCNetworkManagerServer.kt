@@ -31,7 +31,7 @@ class IRCNetworkManagerServer(val bossNetworkManager: NetworkManager): IRCNetwor
      * 如果服务端启用签名验证
      * 这里是需要客户端签名的一次性代码
      */
-    lateinit var signatureCode: String
+    lateinit var signatureData: ByteArray
     /**
      * 客户端 IP 地址
      */

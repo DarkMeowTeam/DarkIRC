@@ -4,6 +4,7 @@ import com.charleskorn.kaml.Yaml
 import net.darkmeow.irc.IRCServer
 import net.darkmeow.irc.config.configs.DataConfigRoot
 import net.darkmeow.irc.utils.CryptUtils
+import net.darkmeow.irc.utils.RandomUtils
 import java.io.File
 import java.nio.charset.StandardCharsets
 import java.nio.file.Paths
@@ -47,7 +48,8 @@ class ConfigManager(
                 if (SIGNATURE_PUBLIC_KEY.exists()) {
                     signatureKey = CryptUtils.loadPublicKeyFromPEM(SIGNATURE_PUBLIC_KEY)
                     val privateKey = CryptUtils.loadPrivateKeyFromPEM(SIGNATURE_PRIVATE_KEY)
-                    if (!CryptUtils.verifyCode("test", CryptUtils.signCode("test", privateKey), signatureKey)) {
+                    val signatureData = RandomUtils.randomByteArray(size = 16)
+                    if (!CryptUtils.verifyData(signatureData, CryptUtils.signData(signatureData, privateKey), signatureKey)) {
                         throw RuntimeException("签名密钥对验证失败 请删除后重新生成")
                     }
                 } else {
