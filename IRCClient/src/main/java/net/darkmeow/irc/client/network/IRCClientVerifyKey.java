@@ -20,7 +20,7 @@ public class IRCClientVerifyKey {
     }
 
     public IRCClientVerifyKey(@NotNull String src) throws Exception {
-        this(Base64.getDecoder().decode(src));
+        this(Base64.getDecoder().decode(src.replace("\n", "").replace(" ", "")));
     }
 
 
