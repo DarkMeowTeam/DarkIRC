@@ -20,7 +20,7 @@ fun Route.routeApiUsers(system: IRCServer) {
         get("/query") {
             val name = call.parameters["name"] ?: throw Exception("参数 name 不存在或无效")
 
-            call.respondSuccess(ResponseQuery(system = system, data = system.dataManager.getUserMetadata(name = name)))
+            call.respondSuccess(ResponseUserQuery(system = system, data = system.dataManager.getUserMetadata(name = name)))
         }
         get("/update/premium") {
             val name = call.parameters["name"] ?: throw Exception("参数 name 不存在或无效")
@@ -66,35 +66,35 @@ fun Route.routeApiUsers(system: IRCServer) {
             call.respondSuccess(null)
         }
         get("/list") {
-            call.respondSuccess(ResponseListUsers(system.dataManager.getUsers().map { ResponseQuery(system = system, data = it) }))
+            call.respondSuccess(ResponseListUsers(system.dataManager.getUsers().map { ResponseUserQuery(system = system, data = it) }))
         }
     }
 }
 
 @Serializable
-class ResponseQuery(val name: String, val premium: Int, val online: Set<ResponseQueryOnlineClient>) {
+class ResponseUserQuery(val name: String, val premium: Int, val online: Set<ResponseUserQueryOnlineClient>) {
     constructor(system: IRCServer, data: DataUser) : this(
         name = data.name,
         premium = data.metadata.premium.ordinal,
         online = system.networkManager.clients.values
             .filter { it.user == data.name }
-            .map { ResponseQueryOnlineClient(it) }
+            .map { ResponseUserQueryOnlineClient(it) }
             .toMutableSet()
     )
 }
 
 @Serializable
-class ResponseQueryOnlineClient(val session: String, val hardware: String, val ip: String, val brand: ResponseQueryOnlineClientBrand) {
+class ResponseUserQueryOnlineClient(val session: String, val hardware: String, val ip: String, val brand: ResponseUserQueryOnlineClientBrand) {
     constructor(client: IRCNetworkManagerServer) : this(
         session = client.sessionId.toString(),
         hardware = client.hardWareUniqueId,
         ip = client.address,
-        brand = ResponseQueryOnlineClientBrand(client.brand)
+        brand = ResponseUserQueryOnlineClientBrand(client.brand)
     )
 }
 
 @Serializable
-class ResponseQueryOnlineClientBrand(val name: String, val version: String) {
+class ResponseUserQueryOnlineClientBrand(val name: String, val version: String) {
     constructor(brand: DataClientBrand) : this(
         name = brand.name,
         version = brand.versionText
@@ -102,6 +102,6 @@ class ResponseQueryOnlineClientBrand(val name: String, val version: String) {
 }
 
 @Serializable
-class ResponseListUsers(val total: Int, val users: Set<ResponseQuery>) {
-    constructor(users: Collection<ResponseQuery>) : this(users.size, users.toMutableSet())
+class ResponseListUsers(val total: Int, val users: Set<ResponseUserQuery>) {
+    constructor(users: Collection<ResponseUserQuery>) : this(users.size, users.toMutableSet())
 }
