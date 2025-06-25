@@ -3,6 +3,7 @@ package net.darkmeow.irc.database.extensions
 import net.darkmeow.irc.data.base.DataClient
 import net.darkmeow.irc.database.DataBaseManager
 import net.darkmeow.irc.database.data.DataBaseClient
+import net.darkmeow.irc.database.exceptions.DataClientAlreadyExistException
 import net.darkmeow.irc.database.exceptions.DataClientNotFoundException
 import net.darkmeow.irc.utils.CryptUtils
 import net.darkmeow.irc.utils.kotlin.ObjectUtils
@@ -26,6 +27,9 @@ object DataManagerClientExtensions {
         val key = CryptUtils.generateKeyPair()
 
         transaction(database) {
+            if (DataBaseClient.selectAll().any { it[DataBaseClient.id] == name }) {
+                throw DataClientAlreadyExistException(name)
+            }
             DataBaseClient.insert {
                 it[this.id] = name
                 it[this.keyPublic] = key.public.encoded

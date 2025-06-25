@@ -5,6 +5,7 @@ import net.darkmeow.irc.data.enmus.EnumUserPremium
 import net.darkmeow.irc.database.DataBaseManager
 import net.darkmeow.irc.database.data.DataBaseUser
 import net.darkmeow.irc.database.exceptions.DataClientNotFoundException
+import net.darkmeow.irc.database.exceptions.DataUserAlreadyExistException
 import net.darkmeow.irc.database.exceptions.DataUserNotFoundException
 import net.darkmeow.irc.utils.kotlin.ObjectUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
@@ -25,10 +26,13 @@ object DataManagerUserExtensions {
      */
     fun DataBaseManager.createUser(name: String, password: String, premium: EnumUserPremium) {
         transaction(database) {
+            if (DataBaseUser.selectAll().any { it[DataBaseUser.name] == name }) {
+                throw DataUserAlreadyExistException(name)
+            }
+
             DataBaseUser.insert {
                 it[this.name] = name
-                it[this.password] = BCrypt.hashpw(password
-                    , BCrypt.gensalt())
+                it[this.password] = BCrypt.hashpw(password, BCrypt.gensalt())
                 it[this.premium] = premium.ordinal
             }
         }
