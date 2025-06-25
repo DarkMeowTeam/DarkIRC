@@ -11,6 +11,7 @@ import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.createCl
 import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.getClients
 import net.darkmeow.irc.database.extensions.DataManagerUserExtensions.createUser
 import net.darkmeow.irc.database.extensions.DataManagerUserExtensions.getUsers
+import net.darkmeow.irc.utils.CryptUtils
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.transactions.transaction
@@ -41,8 +42,23 @@ class DataBaseManager(
 
     fun createDefault() {
         if (this.getClients().isEmpty() && this.getUsers().isEmpty()) {
-            this.createClient(name = "default", metadata = DataClient.ClientMetadata(allowLoginMinVersion = 0)).also {
-                base.logger.info("[数据库管理] 创建默认登录客户端信息(name: default, key: ${Base64.getEncoder().encodeToString(it.key.private.encoded)})")
+            this.createClient(name = "default", metadata = DataClient.ClientMetadata(allowLoginMinVersion = 0)).also { client ->
+                base.logger.info(
+                    StringBuilder()
+                        .apply {
+                            appendLine("[数据库管理] 创建默认登录客户端信息")
+                            appendLine("  name: ${client.name}")
+                            appendLine("  key:")
+                            Base64
+                                .getMimeEncoder(64, byteArrayOf('\n'.code.toByte()))
+                                .encodeToString(client.key.private.encoded)
+                                .split("\n")
+                                .forEach { text ->
+                                    appendLine("    $text")
+                                }
+                        }
+                        .toString()
+                )
             }
             this.createUser(name = "admin", password = "123456", premium = EnumUserPremium.OWNER).also {
                 base.logger.info("[数据库管理] 创建默认用户(name: admin, password: 123456)")
