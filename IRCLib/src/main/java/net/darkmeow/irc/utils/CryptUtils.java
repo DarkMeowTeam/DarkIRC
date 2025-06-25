@@ -84,9 +84,7 @@ public class CryptUtils {
         String pem = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
         pem = pem.replaceAll("-----\\w+ PRIVATE KEY-----", "").replaceAll("\\s+", "");
         byte[] decoded = Base64.getDecoder().decode(pem);
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(decoded);
-        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-        return keyFactory.generatePrivate(keySpec);
+        return loadPrivateKeyFromByte(decoded);
     }
 
     /**
@@ -99,7 +97,29 @@ public class CryptUtils {
         String pem = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
         pem = pem.replaceAll("-----\\w+ PUBLIC KEY-----", "").replaceAll("\\s+", "");
         byte[] decoded = Base64.getDecoder().decode(pem);
-        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(decoded);
+        return loadPublicKeyFromByte(decoded);
+    }
+
+    /**
+     * 从内存字节集加载私钥
+     *
+     * @param data 数据
+     * @return 私钥本体
+     */
+    public static PrivateKey loadPrivateKeyFromByte(byte[] data) throws Exception {
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(data);
+        KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return keyFactory.generatePrivate(keySpec);
+    }
+
+    /**
+     * 从内存字节集加载公钥
+     *
+     * @param data 数据
+     * @return 公钥本体
+     */
+    public static PublicKey loadPublicKeyFromByte(byte[] data) throws Exception {
+        X509EncodedKeySpec keySpec = new X509EncodedKeySpec(data);
         KeyFactory keyFactory = KeyFactory.getInstance("RSA");
         return keyFactory.generatePublic(keySpec);
     }

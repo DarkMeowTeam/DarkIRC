@@ -1,5 +1,7 @@
 package net.darkmeow.irc.data.base
 
+import java.security.KeyPair
+
 /**
  * 客户端数据
  *
@@ -9,7 +11,7 @@ package net.darkmeow.irc.data.base
  */
 data class DataClient(
     val name: String,
-    val key: String,
+    val key: KeyPair,
     val metadata: ClientMetadata,
 ) {
     data class ClientMetadata(
@@ -17,11 +19,4 @@ data class DataClient(
         val clientAdministrators: MutableSet<String> = mutableSetOf(),
         val clientUsers: MutableSet<String> = mutableSetOf()
     )
-
-    companion object {
-        @Suppress("SpellCheckingInspection")
-        fun generateKey() = (1..32)
-            .map { "abcdefghijklmnopqrstuvwxyz0123456789".random() }
-            .joinToString("")
-    }
 }

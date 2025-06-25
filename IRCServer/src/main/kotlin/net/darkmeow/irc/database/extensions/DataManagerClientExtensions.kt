@@ -4,6 +4,7 @@ import net.darkmeow.irc.data.base.DataClient
 import net.darkmeow.irc.database.DataBaseManager
 import net.darkmeow.irc.database.data.DataBaseClient
 import net.darkmeow.irc.database.exceptions.DataClientNotFoundException
+import net.darkmeow.irc.utils.CryptUtils
 import net.darkmeow.irc.utils.kotlin.ObjectUtils
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.deleteWhere
@@ -11,6 +12,7 @@ import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
+import java.security.KeyPair
 
 object DataManagerClientExtensions {
 
@@ -21,12 +23,13 @@ object DataManagerClientExtensions {
      * @param metadata 客户端数据
      */
     fun DataBaseManager.createClient(name: String, metadata: DataClient.ClientMetadata): DataClient {
-        val key = DataClient.generateKey()
+        val key = CryptUtils.generateKeyPair()
 
         transaction(database) {
             DataBaseClient.insert {
                 it[this.id] = name
-                it[this.hash] = key
+                it[this.keyPublic] = key.public.encoded
+                it[this.keyPrivate] = key.private.encoded
                 it[this.allowLoginMinVersion] = metadata.allowLoginMinVersion
                 it[this.usersClientAdministrator] = metadata.clientAdministrators.joinToString(separator = ",")
                 it[this.usersAllowLogin] = metadata.clientUsers.joinToString(separator = ",")
@@ -87,7 +90,10 @@ object DataManagerClientExtensions {
             ?.let {
                 DataClient(
                     name = it[DataBaseClient.id],
-                    key = it[DataBaseClient.hash],
+                    key = KeyPair(
+                        CryptUtils.loadPublicKeyFromByte(it[DataBaseClient.keyPublic]),
+                        CryptUtils.loadPrivateKeyFromByte(it[DataBaseClient.keyPrivate])
+                    ),
                     metadata = DataClient.ClientMetadata(
                         allowLoginMinVersion = it[DataBaseClient.allowLoginMinVersion],
                         clientAdministrators = it[DataBaseClient.usersClientAdministrator].split(",").toMutableSet(),
@@ -109,7 +115,10 @@ object DataManagerClientExtensions {
             .map {
                 DataClient(
                     name = it[DataBaseClient.id],
-                    key = it[DataBaseClient.hash],
+                    key = KeyPair(
+                        CryptUtils.loadPublicKeyFromByte(it[DataBaseClient.keyPublic]),
+                        CryptUtils.loadPrivateKeyFromByte(it[DataBaseClient.keyPrivate])
+                    ),
                     metadata = DataClient.ClientMetadata(
                         allowLoginMinVersion = it[DataBaseClient.allowLoginMinVersion],
                         clientAdministrators = it[DataBaseClient.usersClientAdministrator].split(",").toMutableSet(),
@@ -133,14 +142,15 @@ object DataManagerClientExtensions {
      * @throws IllegalArgumentException 提供更新参数全部为空
      */
     @JvmOverloads
-    fun DataBaseManager.updateClientMetadata(name: String, key: String? = null, allowLoginMinVersion: Int? = null, clientAdministrators: Set<String>? = null, clientUsers: Set<String>? = null) {
+    fun DataBaseManager.updateClientMetadata(name: String, key: KeyPair? = null, allowLoginMinVersion: Int? = null, clientAdministrators: Set<String>? = null, clientUsers: Set<String>? = null) {
         if (ObjectUtils.allNull(key, allowLoginMinVersion, clientAdministrators, clientUsers)) throw IllegalArgumentException("未提供任何更新参数")
 
         transaction(database) {
             DataBaseClient
                 .update({ DataBaseClient.id eq name }) {
                     key?.also { update ->
-                        it[this.hash] = key
+                        it[this.keyPublic] = key.public.encoded
+                        it[this.keyPrivate] = key.private.encoded
                     }
                     allowLoginMinVersion?.also { update ->
                         it[this.allowLoginMinVersion] = update

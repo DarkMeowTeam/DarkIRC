@@ -15,6 +15,7 @@ import net.darkmeow.irc.network.IRCNetworkManagerServer
 import net.darkmeow.irc.utils.MessageUtils.sendCommandUsage
 import net.darkmeow.irc.utils.MessageUtils.sendMessageError
 import net.darkmeow.irc.utils.user.UserPremiumUtils.isClientAdmin
+import java.util.Base64
 
 class CommandClients: Command("Clients") {
 
@@ -31,7 +32,7 @@ class CommandClients: Command("Clients") {
                 }
                 manager.base.dataManager.apply {
                     createClient(args[1], DataClient.ClientMetadata(args[3].toIntOrNull() ?: 0)).also { client ->
-                        connection.sendSystemMessage("成功创建客户端 ${client.name}, 连接密钥: ${client.key} (只显示一次, 请妥善保存)")
+                        connection.sendSystemMessage("成功创建客户端 ${client.name}, 连接密钥: ${Base64.getEncoder().encodeToString(client.key.private.encoded)} (只显示一次, 请妥善保存)")
                     }
                 }
             }

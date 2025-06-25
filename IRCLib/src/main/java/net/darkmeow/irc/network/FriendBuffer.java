@@ -338,12 +338,11 @@ public class FriendBuffer extends ByteBuf
     }
 
     public @NotNull DataClientBrand readClientBrand() {
-        return new DataClientBrand(this.readString(100), this.readString(100), this.readString(100), this.readInt());
+        return new DataClientBrand(this.readString(100), this.readString(100), this.readInt());
     }
 
     public @NotNull FriendBuffer writeClientBrand(DataClientBrand data) {
         this.writeString(data.getName());
-        this.writeString(data.getKey());
         this.writeString(data.getVersionText());
         this.writeInt(data.getVersionId());
 

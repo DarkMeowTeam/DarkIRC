@@ -25,11 +25,8 @@ class HandlePacketHandShake(private val connection: IRCNetworkManagerServer): Si
 
                 val meta = getClientMetadata(packet.brand.name)
 
-                if (packet.brand.key != meta.key) throw Exception("您的客户端版本已过时")
                 if (packet.brand.versionId < meta.metadata.allowLoginMinVersion) throw Exception("您的客户端版本已过时")
             }
-            
-            if (packet.hardWareUniqueId.isEmpty()) throw Exception("服务器正在维护中")
         }
             .onSuccess {
                 val config = connection.bossNetworkManager.base.configManager.configs.server
