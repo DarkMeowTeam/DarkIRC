@@ -6,8 +6,6 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioIoHandler;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.proxy.HttpProxyHandler;
-import io.netty.handler.proxy.Socks5ProxyHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.TimeoutException;
 import net.darkmeow.irc.IRCLib;
@@ -16,6 +14,7 @@ import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.network.handle.handshake.*;
 import net.darkmeow.irc.client.network.handle.login.HandleLoginBase;
 import net.darkmeow.irc.client.network.handle.online.*;
+import net.darkmeow.irc.client.options.proxy.IRCOptionsProxy;
 import net.darkmeow.irc.network.EnumPacketDirection;
 import net.darkmeow.irc.network.IRCNetworkBaseConfig;
 import net.darkmeow.irc.network.IRCNetworkManager;
@@ -25,14 +24,13 @@ import net.darkmeow.irc.network.handle.packet.NettyPacketDecoder;
 import net.darkmeow.irc.network.handle.packet.NettyPacketEncoder;
 import net.darkmeow.irc.network.packet.handshake.c2s.C2SPacketHandShake;
 import org.jetbrains.annotations.NotNull;
-
-import java.net.Proxy;
+import org.jetbrains.annotations.Nullable;
 
 public class IRCClientNetworkManager extends IRCNetworkManager {
 
     public static MultiThreadIoEventLoopGroup eventLoopGroup = new MultiThreadIoEventLoopGroup(NioIoHandler.newFactory());
 
-    public static IRCClientNetworkManager createNetworkManagerAndConnect(@NotNull IRCClient base, @NotNull String host, int port, @NotNull Proxy proxy) throws Throwable {
+    public static IRCClientNetworkManager createNetworkManagerAndConnect(@NotNull IRCClient base, @NotNull String host, int port, @Nullable IRCOptionsProxy proxy) throws Throwable {
         final IRCClientNetworkManager networkManager = new IRCClientNetworkManager(base);
 
         ChannelFuture future = new Bootstrap()
@@ -42,10 +40,11 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
                     @Override
                     protected void initChannel(SocketChannel ch) {
                         // 代理
-                        if (proxy.type() == Proxy.Type.SOCKS) {
-                            ch.pipeline().addLast("proxy", new Socks5ProxyHandler(proxy.address()));
-                        } else if (proxy.type() == Proxy.Type.HTTP) {
-                            ch.pipeline().addLast("proxy", new HttpProxyHandler(proxy.address()));
+                        if (proxy != null) {
+                            final ChannelHandler handler = proxy.getNettyHandler();
+                            if (handler != null) {
+                                ch.pipeline().addLast("proxy", handler);
+                            }
                         }
 
                         // 超时断开

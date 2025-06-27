@@ -2,6 +2,7 @@ package net.darkmeow.irc.client.options;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import net.darkmeow.irc.client.options.proxy.IRCOptionsProxy;
 import net.darkmeow.irc.data.DataClientBrand;
 import net.darkmeow.irc.utils.FakeHardwareUniqueIdGetter;
 import org.jetbrains.annotations.NotNull;
@@ -27,9 +28,9 @@ public class IRCClientOptions {
     /**
      * 连接所使用的代理 选填
      */
-    @NotNull
+    @Nullable
     @Builder.Default
-    public Proxy proxy = Proxy.NO_PROXY;
+    public IRCOptionsProxy proxy = null;
 
     /**
      * 上报的硬件唯一ID信息
