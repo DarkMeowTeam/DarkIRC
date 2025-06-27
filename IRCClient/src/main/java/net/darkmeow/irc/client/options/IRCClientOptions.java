@@ -8,8 +8,6 @@ import net.darkmeow.irc.utils.FakeHardwareUniqueIdGetter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.Proxy;
-
 @Builder
 @AllArgsConstructor
 public class IRCClientOptions {
@@ -37,7 +35,7 @@ public class IRCClientOptions {
      */
     @NotNull
     @Builder.Default
-    public String deviceId = FakeHardwareUniqueIdGetter.get();
+    public String hardWareUniqueId = FakeHardwareUniqueIdGetter.get();
 
     /**
      * 如果服务端启用签名验证

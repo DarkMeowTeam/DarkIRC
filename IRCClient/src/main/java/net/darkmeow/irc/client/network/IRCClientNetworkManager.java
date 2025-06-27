@@ -108,7 +108,7 @@ public class IRCClientNetworkManager extends IRCNetworkManager {
     public void channelActive(ChannelHandlerContext ctx)
     {
         super.channelActive(ctx);
-        sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, base.options.host, base.options.port, base.options.deviceId, base.options.brand, System.currentTimeMillis()));
+        sendPacket(new C2SPacketHandShake(IRCLib.PROTOCOL_VERSION, base.options.host, base.options.port, base.options.hardWareUniqueId, base.options.brand, System.currentTimeMillis()));
     }
 
     @Override
