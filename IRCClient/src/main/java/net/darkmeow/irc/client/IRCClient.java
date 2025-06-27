@@ -6,7 +6,7 @@ import net.darkmeow.irc.client.interfaces.manager.IRCSessionManager;
 import net.darkmeow.irc.client.listener.IRCClientListenableProvide;
 import net.darkmeow.irc.client.manager.SessionManager;
 import net.darkmeow.irc.client.network.IRCClientNetworkManager;
-import net.darkmeow.irc.client.network.IRCClientOptions;
+import net.darkmeow.irc.client.options.IRCClientOptions;
 import net.darkmeow.irc.data.DataSkin;
 import net.darkmeow.irc.data.DataUserState;
 import net.darkmeow.irc.network.EnumConnectionState;

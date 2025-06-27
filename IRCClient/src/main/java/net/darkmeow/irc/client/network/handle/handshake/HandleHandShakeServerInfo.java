@@ -4,7 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import net.darkmeow.irc.client.enums.EnumDisconnectType;
 import net.darkmeow.irc.client.network.IRCClientNetworkManager;
-import net.darkmeow.irc.client.network.IRCClientRemoteVerify;
+import net.darkmeow.irc.client.options.IRCClientRemoteVerify;
 import net.darkmeow.irc.network.packet.handshake.s2c.S2CPacketServerInfo;
 import org.jetbrains.annotations.NotNull;
 

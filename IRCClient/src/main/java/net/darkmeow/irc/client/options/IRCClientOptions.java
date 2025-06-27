@@ -1,4 +1,4 @@
-package net.darkmeow.irc.client.network;
+package net.darkmeow.irc.client.options;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,6 +1,5 @@
-package net.darkmeow.irc.client.network;
+package net.darkmeow.irc.client.options;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import net.darkmeow.irc.utils.CryptUtils;
 import org.jetbrains.annotations.NotNull;
