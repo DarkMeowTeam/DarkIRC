@@ -51,18 +51,6 @@ class HandlePacketLogin(private val connection: IRCNetworkManagerServer): Simple
                         if (meta.metadata.premium == EnumUserPremium.BANNED) throw AuthenticationException("用户已被封禁, 无法登录", true)
                     }
                 }
-                run clientVerify@ {
-                    val userMeta = getUserMetadata(packet.username)
-                    val clientMeta = getClientMetadata(connection.brand.name)
-
-                    // 管理员用户无需客户端权限检查
-                    if (userMeta.metadata.premium.ordinal >= EnumUserPremium.ADMIN.ordinal) return@clientVerify
-                    // 客户端管理员/客户端用户
-                    if (clientMeta.metadata.clientUsers.contains(userMeta.name)) return@clientVerify
-                    if (clientMeta.metadata.clientAdministrators.contains(userMeta.name)) return@clientVerify
-
-                    throw AuthenticationException("无登录此客户端权限", false)
-                }
             }
         }
             .onSuccess {

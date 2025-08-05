@@ -7,15 +7,12 @@ import net.darkmeow.irc.data.enmus.EnumUserPremium
 import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.clientExist
 import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.createClient
 import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.deleteClient
-import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.getClientMetadata
 import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.getClients
 import net.darkmeow.irc.database.extensions.DataManagerClientExtensions.updateClientMetadata
-import net.darkmeow.irc.database.extensions.DataManagerUserExtensions.userExist
 import net.darkmeow.irc.network.IRCNetworkManagerServer
 import net.darkmeow.irc.utils.MessageUtils.sendCommandUsage
 import net.darkmeow.irc.utils.MessageUtils.sendMessageError
-import net.darkmeow.irc.utils.user.UserPremiumUtils.isClientAdmin
-import java.util.Base64
+import java.util.*
 
 class CommandClients: Command("Clients") {
 
@@ -60,7 +57,7 @@ class CommandClients: Command("Clients") {
                     connection.sendCommandUsage("clients", "version <客户端Id> <最低允许登录版本>")
                     return
                 }
-                if (!manager.base.dataManager.isClientAdmin(args[1], connection.user)) {
+                if (connection.userPremium != EnumUserPremium.OWNER) {
                     connection.sendMessageError("当前登录用户无权限执行该命令")
                     return
                 }
@@ -84,168 +81,9 @@ class CommandClients: Command("Clients") {
                     connection.sendSystemMessage("客户端列表(${users.size}): ${users.joinToString(", ")}")
                 }
             }
-            "users" -> handleUsers(manager, connection, args)
-            "admins" -> handleAdmins(manager, connection, args)
-            else -> connection.sendCommandUsage("clients", "<create/delete/version/list/users/admins> <...>")
+            else -> connection.sendCommandUsage("clients", "<create/delete/version/list> <...>")
         }
 
-    }
-
-    fun handleAdmins(manager: CommandManager, connection: IRCNetworkManagerServer, args: MutableList<String>) {
-        when (if (args.size <= 1) "" else args[1]) {
-            "add" -> {
-                if (args.size != 4) {
-                    connection.sendCommandUsage("clients admins", "add <客户端> <用户名>")
-                    return
-                }
-
-                manager.base.dataManager.apply {
-                    if (clientExist(args[2])) {
-                        if (!isClientAdmin(args[1], connection.user)) {
-                            connection.sendMessageError("当前登录用户无权限执行该命令")
-                            return
-                        }
-
-                        val admins = getClientMetadata(args[2]).metadata.clientAdministrators
-
-                        if (admins.contains(args[3])) {
-                            connection.sendSystemMessage("客户端 ${args[2]} 管理员用户 ${args[3]} 添加失败:用户已在列表")
-                        } else if (userExist(args[3])) {
-                            connection.sendSystemMessage("客户端 ${args[2]} 管理员用户 ${args[3]} 添加失败:用户不存在")
-                        } else {
-                            admins.add(args[3])
-                            manager.base.dataManager.updateClientMetadata(name = args[2], clientAdministrators = admins)
-                            connection.sendSystemMessage("客户端 ${args[2]} 管理员用户 ${args[3]} 添加成功")
-                        }
-                    } else {
-                        connection.sendSystemMessage("客户端 ${args[2]} 不存在")
-                    }
-                }
-            }
-            "remove" -> {
-                if (args.size != 4) {
-                    connection.sendCommandUsage("clients admins", "remove <客户端> <用户名>")
-                    return
-                }
-
-                manager.base.dataManager.apply {
-                    if (clientExist(args[2])) {
-                        if (!isClientAdmin(args[1], connection.user)) {
-                            connection.sendMessageError("当前登录用户无权限执行该命令")
-                            return
-                        }
-
-                        val admins = getClientMetadata(args[2]).metadata.clientAdministrators
-
-                        if (admins.contains(args[3])) {
-                            admins.remove(args[3])
-                            manager.base.dataManager.updateClientMetadata(name = args[2], clientAdministrators = admins)
-                            connection.sendSystemMessage("客户端 ${args[2]} 管理员用户 ${args[3]} 删除成功")
-                        } else {
-                            connection.sendSystemMessage("客户端 ${args[2]} 管理员用户 ${args[3]} 添删除失败:用户不在列表")
-                        }
-                    } else {
-                        connection.sendSystemMessage("客户端 ${args[2]} 不存在")
-                    }
-                }
-            }
-            "list" -> {
-                manager.base.dataManager.apply {
-                    if (clientExist(args[2])) {
-                        if (!isClientAdmin(args[1], connection.user)) {
-                            connection.sendMessageError("当前登录用户无权限执行该命令")
-                            return
-                        }
-
-                        val users = getClientMetadata(args[2]).metadata.clientAdministrators
-
-                        connection.sendSystemMessage("客户端(${args[2]})管理员用户列表(${users.size}): ${users.joinToString(", ")}")
-                    } else {
-                        connection.sendSystemMessage("客户端 ${args[2]} 不存在")
-                    }
-                }
-            }
-            else -> connection.sendCommandUsage("clients admins", "<add/remove/list> <...>")
-        }
-    }
-
-    fun handleUsers(manager: CommandManager, connection: IRCNetworkManagerServer, args: MutableList<String>) {
-        when (if (args.size <= 1) "" else args[1]) {
-            "add" -> {
-                if (args.size != 4) {
-                    connection.sendCommandUsage("clients users", "add <客户端> <用户名>")
-                    return
-                }
-
-                manager.base.dataManager.apply {
-                    if (clientExist(args[2])) {
-                        if (!isClientAdmin(args[1], connection.user)) {
-                            connection.sendMessageError("当前登录用户无权限执行该命令")
-                            return
-                        }
-
-                        val users = getClientMetadata(args[2]).metadata.clientUsers
-
-                        if (users.contains(args[3])) {
-                            connection.sendSystemMessage("客户端 ${args[2]} 授权用户 ${args[3]} 添加失败:用户已在列表")
-                        } else if (userExist(args[3])) {
-                            connection.sendSystemMessage("客户端 ${args[2]} 授权用户 ${args[3]} 添加失败:用户不存在")
-                        } else {
-                            users.add(args[3])
-                            manager.base.dataManager.updateClientMetadata(name = args[2], clientUsers = users)
-                            connection.sendSystemMessage("客户端 ${args[2]} 授权用户 ${args[3]} 添加成功")
-                        }
-                    } else {
-                        connection.sendSystemMessage("客户端 ${args[2]} 不存在")
-                    }
-                }
-            }
-            "remove" -> {
-                if (args.size != 4) {
-                    connection.sendCommandUsage("clients users", "remove <客户端> <用户名>")
-                    return
-                }
-
-                manager.base.dataManager.apply {
-                    if (clientExist(args[2])) {
-                        if (!isClientAdmin(args[1], connection.user)) {
-                            connection.sendMessageError("当前登录用户无权限执行该命令")
-                            return
-                        }
-
-                        val users = getClientMetadata(args[2]).metadata.clientUsers
-
-                        if (users.contains(args[3])) {
-                            users.remove(args[3])
-                            manager.base.dataManager.updateClientMetadata(name = args[2], clientUsers = users)
-                            connection.sendSystemMessage("客户端 ${args[2]} 授权用户 ${args[3]} 删除成功")
-                        } else {
-                            connection.sendSystemMessage("客户端 ${args[2]} 授权用户 ${args[3]} 添删除失败:用户不在列表")
-                        }
-                    } else {
-                        connection.sendSystemMessage("客户端 ${args[2]} 不存在")
-                    }
-                }
-            }
-            "list" -> {
-                manager.base.dataManager.apply {
-                    if (clientExist(args[2])) {
-                        if (!isClientAdmin(args[1], connection.user)) {
-                            connection.sendMessageError("当前登录用户无权限执行该命令")
-                            return
-                        }
-
-                        val users = getClientMetadata(args[2]).metadata.clientUsers
-
-                        connection.sendSystemMessage("客户端(${args[2]})授权用户列表(${users.size}): ${users.joinToString(", ")}")
-                    } else {
-                        connection.sendSystemMessage("客户端 ${args[2]} 不存在")
-                    }
-                }
-            }
-
-            else -> connection.sendCommandUsage("clients users", "<add/remove/list> <...>")
-        }
     }
 
 }

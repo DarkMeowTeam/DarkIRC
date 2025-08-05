@@ -15,8 +15,6 @@ data class DataClient(
     val metadata: ClientMetadata,
 ) {
     data class ClientMetadata(
-        val allowLoginMinVersion: Int,
-        val clientAdministrators: MutableSet<String> = mutableSetOf(),
-        val clientUsers: MutableSet<String> = mutableSetOf()
+        val allowLoginMinVersion: Int
     )
 }

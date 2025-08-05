@@ -35,8 +35,6 @@ object DataManagerClientExtensions {
                 it[this.keyPublic] = key.public.encoded
                 it[this.keyPrivate] = key.private.encoded
                 it[this.allowLoginMinVersion] = metadata.allowLoginMinVersion
-                it[this.usersClientAdministrator] = metadata.clientAdministrators.joinToString(separator = ",")
-                it[this.usersAllowLogin] = metadata.clientUsers.joinToString(separator = ",")
             }
         }
 
@@ -99,9 +97,7 @@ object DataManagerClientExtensions {
                         CryptUtils.loadPrivateKeyFromByte(it[DataBaseClient.keyPrivate])
                     ),
                     metadata = DataClient.ClientMetadata(
-                        allowLoginMinVersion = it[DataBaseClient.allowLoginMinVersion],
-                        clientAdministrators = it[DataBaseClient.usersClientAdministrator].split(",").toMutableSet(),
-                        clientUsers = it[DataBaseClient.usersAllowLogin].split(",").toMutableSet()
+                        allowLoginMinVersion = it[DataBaseClient.allowLoginMinVersion]
                     )
                 )
             }
@@ -125,8 +121,6 @@ object DataManagerClientExtensions {
                     ),
                     metadata = DataClient.ClientMetadata(
                         allowLoginMinVersion = it[DataBaseClient.allowLoginMinVersion],
-                        clientAdministrators = it[DataBaseClient.usersClientAdministrator].split(",").toMutableSet(),
-                        clientUsers = it[DataBaseClient.usersAllowLogin].split(",").toMutableSet()
                     )
                 )
             }
@@ -139,15 +133,13 @@ object DataManagerClientExtensions {
      * @param name 客户端名称
      * @param key 非空则更新客户端密钥
      * @param allowLoginMinVersion 非空则更新客户端最低允许登录版本
-     * @param clientAdministrators 非空则更新客户端管理员列表
-     * @param clientUsers 非空则更新客户端用户列表
      *
      * @throws DataClientNotFoundException 客户端不存在在
      * @throws IllegalArgumentException 提供更新参数全部为空
      */
     @JvmOverloads
-    fun DataBaseManager.updateClientMetadata(name: String, key: KeyPair? = null, allowLoginMinVersion: Int? = null, clientAdministrators: Set<String>? = null, clientUsers: Set<String>? = null) {
-        if (ObjectUtils.allNull(key, allowLoginMinVersion, clientAdministrators, clientUsers)) throw IllegalArgumentException("未提供任何更新参数")
+    fun DataBaseManager.updateClientMetadata(name: String, key: KeyPair? = null, allowLoginMinVersion: Int? = null) {
+        if (ObjectUtils.allNull(key, allowLoginMinVersion)) throw IllegalArgumentException("未提供任何更新参数")
 
         transaction(database) {
             DataBaseClient
@@ -158,12 +150,6 @@ object DataManagerClientExtensions {
                     }
                     allowLoginMinVersion?.also { update ->
                         it[this.allowLoginMinVersion] = update
-                    }
-                    clientAdministrators?.also { update ->
-                        it[this.usersClientAdministrator] = update.joinToString(separator = ",")
-                    }
-                    clientUsers?.also { update ->
-                        it[this.usersAllowLogin] = update.joinToString(separator = ",")
                     }
                 }
                 .also { count ->
