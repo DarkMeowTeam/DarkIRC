@@ -33,7 +33,7 @@ class CommandUsers: Command("Users") {
                     if (userExist(name = args[1])) {
                         connection.sendSystemMessage("用户 ${args[1]} 已经存在")
                     } else {
-                        createUser(args[1], args[2], EnumUserPremium.valueOf(args[4]))
+                        createUser(args[1], args[2], EnumUserPremium.valueOf(args[3]))
                         connection.sendSystemMessage("成功创建用户 ${args[1]}")
                     }
                 }
