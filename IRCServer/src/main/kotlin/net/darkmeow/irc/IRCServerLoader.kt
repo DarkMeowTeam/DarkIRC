@@ -1,5 +1,10 @@
 package net.darkmeow.irc
 
-fun main(args: Array<String>) {
-    IRCServer().start()
+object IRCServerLoader {
+
+    @JvmStatic
+    fun main(vararg args: String) {
+        IRCServer().start()
+    }
+
 }

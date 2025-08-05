@@ -19,7 +19,7 @@ plugins {
 }
 
 application {
-    mainClass.set("net.darkmeow.irc.IRCServerLoaderKt")
+    mainClass.set("net.darkmeow.irc.IRCServerLoader")
 }
 
 dependencies {
