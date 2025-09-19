@@ -2,7 +2,6 @@ val slf4jVersion: String by project
 val apacheCommonsCompressVersion: String by project
 val tukaaniXZVersion: String by project
 val apacheLog4jVersion: String by project
-val gsonVersion: String by project
 val kamlVersion: String by project
 val sqliteJdbcVersion: String by project
 val exposedVersion: String by project
@@ -34,7 +33,6 @@ dependencies {
     implementation("org.apache.commons:commons-compress:${apacheCommonsCompressVersion}")
     implementation("org.tukaani:xz:${tukaaniXZVersion}")
 
-    implementation("com.google.code.gson:gson:${gsonVersion}")
     implementation("com.charleskorn.kaml:kaml:${kamlVersion}")
 
     implementation("org.xerial:sqlite-jdbc:${sqliteJdbcVersion}")
