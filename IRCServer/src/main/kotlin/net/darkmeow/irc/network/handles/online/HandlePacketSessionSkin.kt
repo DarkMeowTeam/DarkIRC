@@ -20,7 +20,7 @@ class HandlePacketSessionSkin(private val connection: IRCNetworkManagerServer): 
             }
             is C2SPacketQuerySkin -> {
                 connection.bossNetworkManager.clients[packet.sessionId]
-                    ?.takeUnless { client -> client.currentIsInvisible }
+                    ?.takeUnless { client -> client.currentIsInvisible && client.user != connection.user }
                     ?.also { client ->
                         connection.sendPacket(S2CPacketUpdateSkin(packet.sessionId, client.sessionSkin ?: DataSkin.EMPTY))
                     }
@@ -30,7 +30,9 @@ class HandlePacketSessionSkin(private val connection: IRCNetworkManagerServer): 
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        connection.sendPacketToAllIgnoreInvisible(S2CPacketUpdateSkin(connection.sessionId))
+        if (connection.isLogin()) {
+            connection.sendPacketToAllIgnoreInvisible(S2CPacketUpdateSkin(connection.sessionId))
+        }
 
         super.channelInactive(ctx)
     }
