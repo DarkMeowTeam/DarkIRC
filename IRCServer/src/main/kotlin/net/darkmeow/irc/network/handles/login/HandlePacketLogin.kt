@@ -105,6 +105,7 @@ class HandlePacketLogin(private val connection: IRCNetworkManagerServer): Simple
                 // 登录成功
                 connection.user = userMeta.name
                 connection.userPremium = userMeta.metadata.premium
+                connection.currentIsInvisible = packet.isInvisible
 
                 connection.bossNetworkManager.clients[connection.sessionId] = connection
 
