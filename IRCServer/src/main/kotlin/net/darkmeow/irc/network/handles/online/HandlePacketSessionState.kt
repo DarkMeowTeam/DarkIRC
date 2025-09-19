@@ -9,6 +9,7 @@ import net.darkmeow.irc.network.packet.online.c2s.C2SPacketQuerySessions
 import net.darkmeow.irc.network.packet.online.c2s.C2SPacketUploadState
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketUpdateSessionState
 import net.darkmeow.irc.network.packet.online.s2c.S2CPacketUpdateSessionStateMulti
+import net.darkmeow.irc.utils.QuickBoardCastUtils.sendPacketToAllIgnoreInvisible
 
 class HandlePacketSessionState(private val connection: IRCNetworkManagerServer): SimpleChannelInboundHandler<C2SPacket>() {
 
@@ -40,25 +41,16 @@ class HandlePacketSessionState(private val connection: IRCNetworkManagerServer):
                 }
 
                 connection.sessionState = packet.state
-
-                val boardCastPacket = S2CPacketUpdateSessionState(connection.sessionId,DataUser(connection.user, connection.userPremium, connection.sessionState))
-
-                connection.bossNetworkManager.clients.values
-                    // 隐身会话不发送
-                    .filter { other -> !other.currentIsInvisible || other.user == connection.user }
-                    .onEach { other -> other.sendPacket(boardCastPacket) }
+                connection.sendPacketToAllIgnoreInvisible(S2CPacketUpdateSessionState(connection.sessionId,DataUser(connection.user, connection.userPremium, connection.sessionState)))
             }
             else -> ctx.fireChannelRead(packet)
         }
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        val boardCastPacket = S2CPacketUpdateSessionState(connection.sessionId)
-
-        connection.bossNetworkManager.clients.values
-            // 隐身会话不发送
-            .filter { other -> !other.currentIsInvisible || other.user == connection.user }
-            .onEach { other -> other.sendPacket(boardCastPacket) }
+        if (connection.isLogin()) {
+            connection.sendPacketToAllIgnoreInvisible(S2CPacketUpdateSessionState(connection.sessionId))
+        }
 
         super.channelInactive(ctx)
     }
