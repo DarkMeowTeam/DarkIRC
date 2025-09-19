@@ -9,9 +9,7 @@ import java.net.InetSocketAddress
 class NettyAddressLogger(private val connection: IRCNetworkManagerServer): ChannelInboundHandlerAdapter() {
 
     override fun channelActive(ctx: ChannelHandlerContext) {
-        connection.address = (ctx.channel().remoteAddress() as? InetSocketAddress)
-            ?.let { "${it.address.hostAddress}:${it.port}" }
-            ?: "unknown"
+        connection.address = ctx.channel().remoteAddress().toString()
 
         super.channelActive(ctx)
     }
