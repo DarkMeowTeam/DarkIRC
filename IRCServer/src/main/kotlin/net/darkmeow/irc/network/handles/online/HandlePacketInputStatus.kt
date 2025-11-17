@@ -16,7 +16,6 @@ class HandlePacketInputStatus(private val connection: IRCNetworkManagerServer): 
         const val INPUT_TIME_OUT = 150000
     }
 
-
     override fun channelRead0(ctx: ChannelHandlerContext, packet: C2SPacketInputStatus) {
         if (connection.userPremium.ordinal < EnumUserPremium.USER.ordinal) return
 
