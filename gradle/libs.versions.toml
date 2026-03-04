@@ -1,0 +1,36 @@
+[versions]
+kotlin = "2.3.10"
+ktor = "3.3.3"
+
+slf4j = "2.0.17"
+log4j = "2.25.3"
+
+kaml = "0.104.0"
+
+exposed = "0.61.0"
+sqlite = "3.51.2.0"
+mysql-connector-j = "9.6.0"
+
+jbcrypt = "0.4"
+
+[libraries]
+slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4j" }
+log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4j" }
+log4j-slf4j2-impl = { group = "org.apache.logging.log4j", name = "log4j-slf4j2-impl", version.ref = "log4j" }
+
+kaml = { group = "com.charleskorn.kaml", name = "kaml", version.ref = "kaml" }
+
+exposed-core = { group = "org.jetbrains.exposed", name = "exposed-core", version.ref = "exposed" }
+exposed-dao = { group = "org.jetbrains.exposed", name = "exposed-dao", version.ref = "exposed" }
+exposed-jdbc = { group = "org.jetbrains.exposed", name = "exposed-jdbc", version.ref = "exposed" }
+exposed-time = { group = "org.jetbrains.exposed", name = "exposed-kotlin-datetime", version.ref = "exposed" }
+sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqlite" }
+mysql-connector-j = { group = "com.mysql", name = "mysql-connector-j", version.ref = "mysql-connector-j" }
+jbcrypt = { group = "org.mindrot", name = "jbcrypt", version.ref = "jbcrypt" }
+
+[bundles]
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

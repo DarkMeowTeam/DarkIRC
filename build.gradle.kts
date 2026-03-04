@@ -6,10 +6,7 @@ val annotationsVersion: String by project
 val lombokVersion: String by project
 
 plugins {
-    idea
-
-    java
-    kotlin("jvm")
+    alias(libs.plugins.kotlin.jvm)
 }
 
 group = baseGroup
@@ -20,17 +17,11 @@ allprojects {
     version = baseVersion
 
     apply {
-        plugin("idea")
-
         plugin("java")
     }
 
     repositories {
-        mavenLocal()
         mavenCentral()
-
-        maven("https://maven.aliyun.com/repository/central/")
-        maven("https://jitpack.io")
     }
 
     dependencies {

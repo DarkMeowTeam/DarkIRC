@@ -1,18 +1,7 @@
-val slf4jVersion: String by project
-val apacheCommonsCompressVersion: String by project
-val tukaaniXZVersion: String by project
-val apacheLog4jVersion: String by project
-val kamlVersion: String by project
-val sqliteJdbcVersion: String by project
-val exposedVersion: String by project
-val jbcryptVersion: String by project
-
 plugins {
-    java
-    kotlin("jvm")
-
-    id("io.ktor.plugin")
-    id("org.jetbrains.kotlin.plugin.serialization")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ktor)
 
     application
 }
@@ -26,24 +15,23 @@ application {
 dependencies {
     implementation(project(":IRCLib"))
 
-    implementation(kotlin("stdlib"))
+    // Logger
+    implementation(libs.slf4j.api)
+    implementation(libs.log4j.core)
+    implementation(libs.log4j.slf4j2.impl)
 
-    implementation("org.slf4j:slf4j-api:${slf4jVersion}")
-    implementation("org.apache.logging.log4j:log4j-core:${apacheLog4jVersion}")
-    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:${apacheLog4jVersion}")
+    // Config
+    implementation(libs.kaml)
 
-    implementation("org.apache.commons:commons-compress:${apacheCommonsCompressVersion}")
-    implementation("org.tukaani:xz:${tukaaniXZVersion}")
+    // Database
+    implementation(libs.exposed.core)
+    implementation(libs.exposed.dao)
+    implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.time)
+    implementation(libs.sqlite.jdbc)
+    implementation(libs.mysql.connector.j)
 
-    implementation("com.charleskorn.kaml:kaml:${kamlVersion}")
-
-    implementation("org.xerial:sqlite-jdbc:${sqliteJdbcVersion}")
-
-    implementation("org.jetbrains.exposed:exposed-core:${exposedVersion}")
-    implementation("org.jetbrains.exposed:exposed-dao:${exposedVersion}")
-    implementation("org.jetbrains.exposed:exposed-jdbc:${exposedVersion}")
-
-    implementation("org.mindrot:jbcrypt:${jbcryptVersion}")
+    implementation(libs.jbcrypt)
 
     implementation("io.ktor:ktor-server-core-jvm")
     implementation("io.ktor:ktor-server-netty")
@@ -59,16 +47,6 @@ dependencies {
 }
 
 tasks {
-    java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(21)
-        }
-    }
-
-    kotlin {
-        jvmToolchain(21)
-    }
-
     startScripts {
         doLast {
             windowsScript.apply {
